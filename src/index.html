@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>TRON</title>
+<style type="text/css">
+body { 
+	background: #ccc;
+	width: 100%;
+	perspective: 1000px;
+	margin: 0;
+}
+.container {
+	display: block; 
+	width: 500px;
+	margin: 0 auto;
+	line-height: 100%;
+	transform: translateY(300px) rotateX(60deg) scale(2,2);
+}
+canvas {
+	position: relative;
+	background: #fff; 
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+	<canvas id="canvas" width="500" height="500"></canvas>
+</div>
+<script src="game.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
