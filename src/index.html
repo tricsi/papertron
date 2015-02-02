@@ -10,12 +10,12 @@ body {
 	perspective: 1000px;
 	margin: 0;
 }
-.container {
+#container {
 	display: block; 
 	width: 500px;
 	margin: 0 auto;
 	line-height: 100%;
-	transform: translateY(300px) rotateX(60deg) scale(2,2);
+	transition: transform .3s;
 }
 canvas {
 	position: relative;
@@ -25,7 +25,7 @@ canvas {
 </head>
 <body>
 
-<div class="container">
+<div id="container">
 	<canvas id="canvas" width="500" height="500"></canvas>
 </div>
 <script src="game.js"></script>

@@ -1,15 +1,18 @@
 var App = (function() {
 
-	var canvas,
+	var container,
+		canvas,
 		ctx,
 		width,
 		height,
+		rotate,
 		motor;
 
 	function render() {
 		var motors = Game.get(),
 			motor = motors[0];
-		canvas.style.transform = 'rotate(' + (motor.v * -90) + 'deg) translate(' + (-motor.x) + 'px,' + (-motor.y) + 'px)';
+		canvas.style.transform = 'translate(' + (-motor.x) + 'px,' + (-motor.y) + 'px)';
+		container.style.transform = 'rotateX(60deg) translateY(400px) scale(2) rotateZ(' + rotate + 'deg)';
 		ctx.save();
 		ctx.clearRect(0, 0, width, height);
 		ctx.translate(Math.round(width / 2), Math.round(height / 2));
@@ -37,19 +40,23 @@ var App = (function() {
 			switch (e.keyCode) {
 				case 39:
 					motor.turn(1);
+					rotate -= 90;
 					break;
 				case 37:
 					motor.turn(3);
+					rotate += 90;
 					break;
 			}
 		}, false);
 	}
 
 	function init(id) {
+		container = document.getElementById('container');
 		canvas = document.getElementById('canvas');
 		ctx = canvas.getContext('2d');
 		width = canvas.width;
 		height = canvas.height;
+		rotate = 0;
 		motor = Game.add(0, 0, 0);
 		bind();
 		anim();
