@@ -38,7 +38,7 @@ var Game = (function() {
 		}
 	};
 	
-	Motor.prototype.turn = function(to) {
+	Motor.prototype.turn = function (to){
 		switch (to) {
 			case Motor.LEFT:
 				if (--this.v < Motor.UP) this.v = Motor.LEFT;
@@ -51,11 +51,46 @@ var Game = (function() {
 		}
 	};
 
+    Motor.prototype.check = function(x1, y1, x2, y2) {
+        var i = this.data.length - 1,
+            x = this.data[i][0],
+            y = this.data[i][1],
+            a1 = y2 - y1,
+            b1 = x1 - x2,
+            c1 = a1 * x1 + b1 * y1,
+            a2 = y - this.y,
+            b2 = this.x - x,
+            c2 = a2 * this.x + b2 * this.y;
+            d = a1 * b2 - a2 * b1;
+        if (d == 0) {
+            return false;
+        } else {
+            x = (b2 * c1 - b1 * c2) / d;
+            y = (a1 * c2 - a2 * c1) / d;
+            console.log([x, y]);
+        }
+    };
+
 	function add(x, y, v) {
 		var motor = new Motor(x, y, v);
 		motors.push(motor);
 		return motor;
 	}
+
+    function check()
+    {
+        motors.forEach(function(motor) {
+            motors.forEach(function(other) {
+                var x = other.x,
+                    y = other.y;
+                other.data.forEach(function(item) {
+                    motor.check(x, y, item[0], item[1]);
+                    x = item[0];
+                    y = item[1];
+                });
+            });
+        });
+    }
 
 	function get() {
 		return motors;
@@ -64,7 +99,8 @@ var Game = (function() {
 	function run() {
 		frame++;
 		motors.forEach(function(motor) {
-				motor.move();
+            check();
+            motor.move();
 		});
 	}
 
