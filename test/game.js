@@ -1,9 +1,8 @@
 var assert = require('assert'),
     game = require('../src/game.js');
 
-var motor = new game.Motor(0, 0, 0);
-
-motor.data.push([40, 0, 3]);
+var motor = new game.Motor(0, 0, 1);
+motor.move(40);
 
 describe('game.Motor', function() {
     describe('check', function() {

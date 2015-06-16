@@ -9,7 +9,7 @@ var App = (function() {
 		motor;
 
 	function render() {
-		var motors = Game.get(),
+		var motors = Game.motors,
 			motor = motors[0];
 		canvas.style.transform = 'translate(' + (-motor.x) + 'px,' + (-motor.y) + 'px)';
 		container.style.transform = 'rotateX(60deg) translateY(400px) scale(2) rotateZ(' + rotate + 'deg)';
@@ -50,7 +50,7 @@ var App = (function() {
 		}, false);
 	}
 
-	function init(id) {
+	function init() {
 		container = document.getElementById('container');
 		canvas = document.getElementById('canvas');
 		ctx = canvas.getContext('2d');
