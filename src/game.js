@@ -68,6 +68,11 @@ var Game = (function() {
             x = (b2 * c1 - b1 * c2) / d;
             y = (a1 * c2 - a2 * c1) / d;
             console.log([x, y]);
+            x1 -= x;
+            x2 -= x;
+            y1 -= y;
+            y2 -= y;
+            return x1 <= 0 && x2 >= 0 || x2 <= 0 && x1 >= 0 || y1 <= 0 && y2 >= 0 || y2 <= 0 && y1 >= 0;
         }
     };
 
@@ -77,19 +82,21 @@ var Game = (function() {
 		return motor;
 	}
 
-    function check()
+    function check(motor)
     {
-        motors.forEach(function(motor) {
-            motors.forEach(function(other) {
-                var x = other.x,
-                    y = other.y;
-                other.data.forEach(function(item) {
-                    motor.check(x, y, item[0], item[1]);
-                    x = item[0];
-                    y = item[1];
-                });
+        var result = false;
+        motors.forEach(function(other) {
+            var x = other.x,
+                y = other.y;
+            other.data.forEach(function(item) {
+                if (motor.check(x, y, item[0], item[1])) {
+                    result = true;
+                }
+                x = item[0];
+                y = item[1];
             });
         });
+        return result;
     }
 
 	function get() {
@@ -99,8 +106,9 @@ var Game = (function() {
 	function run() {
 		frame++;
 		motors.forEach(function(motor) {
-            check();
-            motor.move();
+            if (!check(motor)) {
+                motor.move();
+            }
 		});
 	}
 
