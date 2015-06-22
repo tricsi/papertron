@@ -19,7 +19,7 @@ var Game = (function() {
     Motor.LEFT = 3;
 
     Motor.prototype.add = function() {
-        this.data.push([this.x, this.y, this.vec, this.time]);
+        this.data.unshift([this.x, this.y, this.vec, this.time]);
     };
 
     Motor.prototype.move = function(time) {
@@ -92,12 +92,28 @@ var Game = (function() {
         motors.forEach(function(other) {
             var x = other.x,
                 y = other.y;
-            other.data.forEach(function(item) {
-                if (motor.check(x, y, item[0], item[1])) {
-                    result = true;
+            other.data.forEach(function(item, i) {
+                if (i > 0 || other !== motor) {
+                    if (motor.check(x, y, item[0], item[1])) {
+                        result = true;
+                    }
                 }
                 x = item[0];
                 y = item[1];
+                switch (item[2]) {
+                    case Motor.LEFT:
+                        x++;
+                        break;
+                    case Motor.RIGHT:
+                        x--;
+                        break;
+                    case Motor.UP:
+                        y++;
+                        break;
+                    case Motor.DOWN:
+                        y--;
+                        break;
+                }
             });
         });
         return result;
@@ -106,8 +122,9 @@ var Game = (function() {
     function run() {
         time++;
         motors.forEach(function(motor) {
-            motor.move(time);
-            check(motor);
+            if (!check(motor)) {
+                motor.move(time);
+            }
         });
     }
 

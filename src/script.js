@@ -12,15 +12,16 @@ var App = (function() {
 		var motors = Game.motors,
 			motor = motors[0];
 		canvas.style.transform = 'translate(' + (-motor.x) + 'px,' + (-motor.y) + 'px)';
-		container.style.transform = 'rotateX(60deg) translateY(400px) scale(2) rotateZ(' + rotate + 'deg)';
-		ctx.save();
+		container.style.transform = 'rotateZ(' + rotate + 'deg)';
+        //container.style.transform = 'rotateX(60deg) translateY(400px) scale(2) rotateZ(' + rotate + 'deg)';
+        ctx.save();
 		ctx.clearRect(0, 0, width, height);
 		ctx.translate(Math.round(width / 2), Math.round(height / 2));
 		motors.forEach(function(motor) {
 			ctx.save();
 			ctx.beginPath();
 			ctx.moveTo(motor.x, motor.y);
-			for (var i=motor.data.length-1; i >= 0; i--) {
+			for (var i = 0; i < motor.data.length; i++) {
 				ctx.lineTo(motor.data[i][0], motor.data[i][1]);
 			}
 			ctx.stroke();
@@ -38,13 +39,13 @@ var App = (function() {
 	function bind() {
 		document.body.addEventListener('keydown', function(e) {
 			switch (e.keyCode) {
-				case 39:
-					motor.turn(1);
-					rotate -= 90;
-					break;
 				case 37:
-					motor.turn(3);
+					motor.turn(Game.Motor.LEFT);
 					rotate += 90;
+					break;
+				case 39:
+					motor.turn(Game.Motor.RIGHT);
+					rotate -= 90;
 					break;
 			}
 		}, false);
