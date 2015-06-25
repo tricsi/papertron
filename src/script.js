@@ -11,7 +11,7 @@ var App = (function() {
 
 	function render() {
 		canvas.style.transform = "translate(" + (-myMotor.x) + "px," + (-myMotor.y) + "px)";
-        container.style.transform = "rotateX(60deg) translateY(400px) scale(2) rotateZ(" + rotate + "deg)";
+        container.style.transform = "rotateX(60deg) translateY(100px) scale(2) rotateZ(" + rotate + "deg)";
         ctx.save();
 		ctx.clearRect(0, 0, width, height);
 		ctx.translate(Math.round(width / 2), Math.round(height / 2));
@@ -38,14 +38,17 @@ var App = (function() {
 		document.body.addEventListener("keydown", function(e) {
 			switch (e.keyCode) {
 				case 37:
-                    myMotor.turn(Game.Motor.LEFT);
-					rotate += 90;
+                    if (myMotor.turn(Game.Motor.LEFT)) {
+                        rotate += 90;
+                    }
 					break;
 				case 39:
-                    myMotor.turn(Game.Motor.RIGHT);
-					rotate -= 90;
+                    if (myMotor.turn(Game.Motor.RIGHT)) {
+                        rotate -= 90;
+                    }
 					break;
 			}
+            e.preventDefault();
 		}, false);
 	}
 

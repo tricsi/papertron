@@ -104,8 +104,11 @@ var Game = (function() {
         var result = false;
         motors.forEach(function(other) {
             var x = other.x,
-                y = other.y;
-            other.data.forEach(function(item, i) {
+                y = other.y,
+                i = 0,
+                item;
+            while (!result && i < other.data.length) {
+                item = other.data[i];
                 if (i > 0 || other !== motor) {
                     if (motor.check(x, y, item[0], item[1])) {
                         result = true;
@@ -127,7 +130,8 @@ var Game = (function() {
                         y--;
                         break;
                 }
-            });
+                i++;
+            }
         });
         return result;
     }
