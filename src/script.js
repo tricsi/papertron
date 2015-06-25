@@ -1,4 +1,5 @@
 var App = (function() {
+    "use strict";
 
 	var container,
 		canvas,
@@ -6,18 +7,15 @@ var App = (function() {
 		width,
 		height,
 		rotate,
-		motor;
+        myMotor;
 
 	function render() {
-		var motors = Game.motors,
-			motor = motors[0];
-		canvas.style.transform = 'translate(' + (-motor.x) + 'px,' + (-motor.y) + 'px)';
-		container.style.transform = 'rotateZ(' + rotate + 'deg)';
-        //container.style.transform = 'rotateX(60deg) translateY(400px) scale(2) rotateZ(' + rotate + 'deg)';
+		canvas.style.transform = "translate(" + (-myMotor.x) + "px," + (-myMotor.y) + "px)";
+        container.style.transform = "rotateX(60deg) translateY(400px) scale(2) rotateZ(" + rotate + "deg)";
         ctx.save();
 		ctx.clearRect(0, 0, width, height);
 		ctx.translate(Math.round(width / 2), Math.round(height / 2));
-		motors.forEach(function(motor) {
+        Game.motors.forEach(function(motor) {
 			ctx.save();
 			ctx.beginPath();
 			ctx.moveTo(motor.x, motor.y);
@@ -37,14 +35,14 @@ var App = (function() {
 	}
 
 	function bind() {
-		document.body.addEventListener('keydown', function(e) {
+		document.body.addEventListener("keydown", function(e) {
 			switch (e.keyCode) {
 				case 37:
-					motor.turn(Game.Motor.LEFT);
+                    myMotor.turn(Game.Motor.LEFT);
 					rotate += 90;
 					break;
 				case 39:
-					motor.turn(Game.Motor.RIGHT);
+                    myMotor.turn(Game.Motor.RIGHT);
 					rotate -= 90;
 					break;
 			}
@@ -52,13 +50,13 @@ var App = (function() {
 	}
 
 	function init() {
-		container = document.getElementById('container');
-		canvas = document.getElementById('canvas');
-		ctx = canvas.getContext('2d');
+		container = document.getElementById("container");
+		canvas = document.getElementById("canvas");
+		ctx = canvas.getContext("2d");
 		width = canvas.width;
 		height = canvas.height;
 		rotate = 0;
-		motor = Game.add(0, 0, 0);
+        myMotor = Game.add(0, 0, 0);
 		bind();
 		anim();
 	}

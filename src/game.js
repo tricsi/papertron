@@ -1,6 +1,7 @@
 var Game = (function() {
+    "use strict";
 
-    var time = 0;
+    var time = 0,
         motors = [];
 
     function Motor(x, y, v) {
@@ -10,6 +11,7 @@ var Game = (function() {
         this.time = 0; // Time
         this.speed = 1; // Speed
         this.data = []; // Line data
+        this.stuck = false;
         this.add();
     }
 
@@ -22,32 +24,40 @@ var Game = (function() {
         this.data.unshift([this.x, this.y, this.vec, this.time]);
     };
 
-    Motor.prototype.move = function(time) {
+    Motor.prototype.move = function(toTime) {
+        if (this.stuck) {
+            return false;
+        }
         this.x = this.data[0][0];
         this.y = this.data[0][1];
         this.vec = this.data[0][2];
         this.time = this.data[0][3];
-        if (time > this.time) {
-            var add = (time - this.time) * this.speed;
+        if (toTime > this.time) {
+            var addTime = (toTime - this.time) * this.speed;
             switch (this.vec) {
                 case Motor.LEFT:
-                    this.x -= add;
+                    this.x -= addTime;
                     break;
                 case Motor.RIGHT:
-                    this.x += add;
+                    this.x += addTime;
                     break;
                 case Motor.UP:
-                    this.y -= add;
+                    this.y -= addTime;
                     break;
                 case Motor.DOWN:
-                    this.y += add;
+                    this.y += addTime;
                     break;
             }
-            this.time = time;
+            this.time = toTime;
+            return true;
         }
+        return false;
     };
 
-    Motor.prototype.turn = function (to){
+    Motor.prototype.turn = function (to) {
+        if (this.stuck) {
+            return false;
+        }
         switch (to) {
             case Motor.LEFT:
                 if (--this.vec < Motor.UP) {
@@ -62,6 +72,7 @@ var Game = (function() {
                 this.add();
                 break;
         }
+        return true;
     };
 
     Motor.prototype.check = function(x1, y1, x2, y2) {
@@ -72,12 +83,14 @@ var Game = (function() {
             n2 = ((y1 - this.y) * (x2 - x1)) - ((x1 - this.x) * (y2 - y1)),
             r,
             s;
-        if (d == 0) {
-            return n1 == 0 && n2 == 0;
+        if (d === 0) {
+            this.stuck = n1 === 0 && n2 === 0;
+        } else {
+            r = n1 / d;
+            s = n2 / d;
+            this.stuck = (r >= 0 && r <= 1) && (s >= 0 && s <= 1);
         }
-        r = n1 / d;
-        s = n2 / d;
-        return (r >= 0 && r <= 1) && (s >= 0 && s <= 1);
+        return this.stuck;
     };
 
     function add(x, y, v) {
@@ -122,9 +135,8 @@ var Game = (function() {
     function run() {
         time++;
         motors.forEach(function(motor) {
-            if (!check(motor)) {
-                motor.move(time);
-            }
+            check(motor);
+            motor.move(time);
         });
     }
 
@@ -135,6 +147,7 @@ var Game = (function() {
         add: add,
         run: run
     };
+
 })();
 
 module.exports = Game;
