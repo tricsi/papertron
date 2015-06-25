@@ -6,9 +6,6 @@
   },
   "globals": {
     "App": true,
-    "Game": true,
-  },
-  "rules": {
-    "camelcase": 0
+    "Game": true
   }
 }
