@@ -52,7 +52,7 @@ describe("game", function() {
                 assert.equal(true, motor.check(0, -10, 0, 10));
             });
 
-            it("return true when not overlap Y", function() {
+            it("return false when not overlap Y", function() {
                 motor = new game.Motor(0, 0, game.Motor.DOWN);
                 motor.move(40);
                 assert.equal(false, motor.check(0, 50, 0, 60));
@@ -116,7 +116,7 @@ describe("game", function() {
 
     describe("check", function() {
 
-        it("can check motor", function() {
+        it("can check motor after turn", function() {
             motor = game.add(0, 0, game.Motor.UP);
             motor.move(50);
             motor.turn(game.Motor.RIGHT);
