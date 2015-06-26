@@ -2,6 +2,7 @@ var Game = (function() {
     "use strict";
 
     var time = 0,
+        size = 250,
         motors = [];
 
     function Motor(x, y, v) {
@@ -76,21 +77,48 @@ var Game = (function() {
     };
 
     Motor.prototype.check = function(x1, y1, x2, y2) {
-        var x = this.data[0][0],
-            y = this.data[0][1],
-            d = ((x2 - x1) * (y - this.y)) - ((y2 - y1) * (x - this.x)),
-            n1 = ((y1 - this.y) * (x - this.x)) - ((x1 - this.x) * (y - this.y)),
-            n2 = ((y1 - this.y) * (x2 - x1)) - ((x1 - this.x) * (y2 - y1)),
-            r,
-            s;
-        if (d === 0) {
-            this.stuck = n1 === 0 && n2 === 0;
-        } else {
+        var x3 = this.x,
+            y3 = this.y,
+            x4 = this.data[0][0],
+            y4 = this.data[0][1],
+            d, n1, n2, r, s;
+        if (x3 === x4 && y3 === y4) { //not line
+            return false;
+        }
+        d = ((x2 - x1) * (y4 - y3)) - ((y2 - y1) * (x4 - x3));
+        n1 = ((y1 - y3) * (x4 - x3)) - ((x1 - x3) * (y4 - y3));
+        n2 = ((y1 - y3) * (x2 - x1)) - ((x1 - x3) * (y2 - y1));
+        if (d !== 0) { //not parallel
             r = n1 / d;
             s = n2 / d;
             this.stuck = (r >= 0 && r <= 1) && (s >= 0 && s <= 1);
+        } else if (n1 === 0 && n2 === 0) { //overlap
+            switch (this.vec) {
+                case Motor.LEFT:
+                case Motor.RIGHT:
+                    this.stuck = (x1 >= x4 && x2 <= x4) ||
+                        (x2 >= x4 && x1 <= x4) ||
+                        (x1 >= x3 && x2 <= x3) ||
+                        (x2 >= x3 && x1 <= x3);
+                    break;
+                case Motor.UP:
+                case Motor.DOWN:
+                    this.stuck = (y1 >= y4 && y2 <= y4) ||
+                        (y2 >= y4 && y1 <= y4) ||
+                        (y1 >= y3 && y2 <= y3) ||
+                        (y2 >= y3 && y1 <= y3);
+                    break;
+            }
         }
         return this.stuck;
+    };
+
+    Motor.prototype.wall = function(size) {
+        if (this.x > size || this.x < -size || this.y > size || this.y < -size) {
+            this.stuck = true;
+            return true;
+        }
+        return false;
     };
 
     function add(x, y, v) {
@@ -109,13 +137,6 @@ var Game = (function() {
                 item;
             while (!result && i < other.data.length) {
                 item = other.data[i];
-                if (i > 0 || other !== motor) {
-                    if (motor.check(x, y, item[0], item[1])) {
-                        result = true;
-                    }
-                }
-                x = item[0];
-                y = item[1];
                 switch (item[2]) {
                     case Motor.LEFT:
                         x++;
@@ -130,6 +151,11 @@ var Game = (function() {
                         y--;
                         break;
                 }
+                if (i > 0 || other !== motor) { //skip self check
+                    result = motor.check(x, y, item[0], item[1]);
+                }
+                x = item[0];
+                y = item[1];
                 i++;
             }
         });
@@ -139,8 +165,10 @@ var Game = (function() {
     function run() {
         time++;
         motors.forEach(function(motor) {
-            check(motor);
             motor.move(time);
+            if (!motor.wall(size)) {
+                check(motor);
+            }
         });
     }
 

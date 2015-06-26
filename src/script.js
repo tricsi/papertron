@@ -41,14 +41,15 @@ var App = (function() {
                     if (myMotor.turn(Game.Motor.LEFT)) {
                         rotate += 90;
                     }
+                    e.preventDefault();
 					break;
 				case 39:
                     if (myMotor.turn(Game.Motor.RIGHT)) {
                         rotate -= 90;
                     }
+                    e.preventDefault();
 					break;
 			}
-            e.preventDefault();
 		}, false);
 	}
 
@@ -59,7 +60,8 @@ var App = (function() {
 		width = canvas.width;
 		height = canvas.height;
 		rotate = 0;
-        myMotor = Game.add(0, 0, 0);
+        myMotor = Game.add(0, 50, Game.Motor.UP);
+        Game.add(0, -50, Game.Motor.DOWN);
 		bind();
 		anim();
 	}
