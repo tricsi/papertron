@@ -113,8 +113,8 @@ var Game = (function() {
         return this.stuck;
     };
 
-    Motor.prototype.wall = function(size) {
-        if (this.x > size || this.x < -size || this.y > size || this.y < -size) {
+    Motor.prototype.wall = function(distance) {
+        if (this.x > distance || this.x < -distance || this.y > distance || this.y < -distance) {
             this.stuck = true;
             return true;
         }
