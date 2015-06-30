@@ -1,14 +1,15 @@
 var Game = (function() {
     "use strict";
 
-    var time = 0,
-        size = 250,
+    var size = 250,
+        start = new Date().getTime() + 3000,
         motors = [];
 
-    function Motor(x, y, v) {
+    function Motor(x, y, v, l) {
         this.x = x; // X coordinate
         this.y = y; // Y coordinate
         this.vec = v; // Direction vector
+        this.length = l; // Length
         this.time = 0; // Time
         this.speed = 1; // Speed
         this.data = []; // Line data
@@ -162,14 +163,20 @@ var Game = (function() {
         return result;
     }
 
+    function getTime() {
+        return (new Date().getTime() - start) / 25;
+    }
+
     function run() {
-        time++;
-        motors.forEach(function(motor) {
-            motor.move(time);
-            if (!motor.wall(size)) {
-                check(motor);
-            }
-        });
+        var time = getTime();
+        if (time > 0) {
+            motors.forEach(function(motor) {
+                motor.move(time);
+                if (!motor.wall(size)) {
+                    check(motor);
+                }
+            });
+        }
     }
 
     return {
