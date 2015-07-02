@@ -1,7 +1,7 @@
 var Game = (function() {
     "use strict";
 
-    var size = 250,
+    var size = 125,
         start = new Date().getTime() + 3000,
         motors = [];
 

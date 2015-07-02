@@ -7,6 +7,7 @@ var App = (function() {
 		width,
 		height,
 		rotate,
+        colors = ["#00c", "#c00", "#0f0"],
         myMotor;
 
 	function render() {
@@ -15,14 +16,27 @@ var App = (function() {
         ctx.save();
 		ctx.clearRect(0, 0, width, height);
 		ctx.translate(Math.round(width / 2), Math.round(height / 2));
-        Game.motors.forEach(function(motor) {
+        Game.motors.forEach(function(motor, color) {
 			ctx.save();
+            //line
 			ctx.beginPath();
+            ctx.scale(2, 2);
 			ctx.moveTo(motor.x, motor.y);
 			for (var i = 0; i < motor.data.length; i++) {
 				ctx.lineTo(motor.data[i][0], motor.data[i][1]);
 			}
+            ctx.strokeStyle = colors[color];
 			ctx.stroke();
+            //Arrow
+            ctx.beginPath();
+            ctx.translate(motor.x, motor.y);
+            ctx.rotate(motor.vec / 2 * Math.PI);
+            ctx.moveTo(0, -1);
+            ctx.lineTo(2, 5);
+            ctx.lineTo(-2, 5);
+            ctx.closePath();
+            ctx.fillStyle = colors[color];
+            ctx.fill();
 			ctx.restore();
 		});
 		ctx.restore();
