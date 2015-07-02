@@ -41,9 +41,7 @@ server = http.createServer(function(req, res) {
     });
 });
 
-io.listen(server).sockets.on("connection", function(socket) {
-    console.log("User connected");
-});
+io.listen(server).sockets.on("connection", require("./src/server"));
 
 server.listen(port, function(){
     console.log("Server listening on port " + port);

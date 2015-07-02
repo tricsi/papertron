@@ -28,12 +28,12 @@ var Game = (function() {
         if (this.stuck) {
             return false;
         }
-        this.x = this.data[0][0];
-        this.y = this.data[0][1];
-        this.vec = this.data[0][2];
-        this.time = this.data[0][3];
-        if (toTime > this.time) {
-            var addTime = (toTime - this.time);
+        var lastTime = this.data[0][3];
+        if (toTime > lastTime) {
+            var addTime = toTime - lastTime;
+            this.x = this.data[0][0];
+            this.y = this.data[0][1];
+            this.vec = this.data[0][2];
             switch (this.vec) {
                 case Motor.LEFT:
                     this.x -= addTime;

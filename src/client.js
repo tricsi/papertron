@@ -8,6 +8,7 @@ var App = (function() {
 		height,
 		rotate,
         colors = ["#00c", "#c00", "#0f0"],
+        socket,
         myMotor;
 
 	function render() {
@@ -76,6 +77,7 @@ var App = (function() {
 		rotate = 0;
         myMotor = Game.add(0, 50, Game.Motor.UP);
         Game.add(0, -50, Game.Motor.DOWN);
+        socket = io();
 		bind();
 		anim();
 	}
