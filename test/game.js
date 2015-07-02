@@ -4,56 +4,57 @@ describe("game", function() {
     var assert = require("assert"),
         game = require("../src/game.js");
 
-    var motor;
+    var motor,
+        match;
 
     describe("Motor", function() {
 
         describe("check", function() {
 
             it("return true when crossing", function() {
-                motor = new game.Motor(0, 0, game.Motor.RIGHT);
+                motor = new game.Motor(0, 0, game.Motor.RIGHT, 0);
                 motor.move(40);
                 assert.equal(true, motor.check(10, 10, 10, -10));
             });
 
             it("return true when contacting", function() {
-                motor = new game.Motor(0, 0, game.Motor.RIGHT);
+                motor = new game.Motor(0, 0, game.Motor.RIGHT, 0);
                 motor.move(40);
                 assert.equal(true, motor.check(0, 10, 0, -10));
             });
 
             it("return false when not crossing", function() {
-                motor = new game.Motor(0, 0, game.Motor.RIGHT);
+                motor = new game.Motor(0, 0, game.Motor.RIGHT, 0);
                 motor.move(40);
                 assert.equal(false, motor.check(50, 10, 50, -10));
             });
 
             it("return false when paralel", function() {
-                motor = new game.Motor(0, 0, game.Motor.RIGHT);
+                motor = new game.Motor(0, 0, game.Motor.RIGHT, 0);
                 motor.move(40);
                 assert.equal(false, motor.check(0, 10, 10, 10));
             });
 
             it("return true when overlap X", function() {
-                motor = new game.Motor(0, 0, game.Motor.RIGHT);
+                motor = new game.Motor(0, 0, game.Motor.RIGHT, 0);
                 motor.move(40);
                 assert.equal(true, motor.check(-10, 0, 10, 0));
             });
 
             it("return false when not overlap X", function() {
-                motor = new game.Motor(0, 0, game.Motor.RIGHT);
+                motor = new game.Motor(0, 0, game.Motor.RIGHT, 0);
                 motor.move(40);
                 assert.equal(false, motor.check(50, 0, 60, 0));
             });
 
             it("return true when overlap Y", function() {
-                motor = new game.Motor(0, 0, game.Motor.DOWN);
+                motor = new game.Motor(0, 0, game.Motor.DOWN, 0);
                 motor.move(40);
                 assert.equal(true, motor.check(0, -10, 0, 10));
             });
 
             it("return false when not overlap Y", function() {
-                motor = new game.Motor(0, 0, game.Motor.DOWN);
+                motor = new game.Motor(0, 0, game.Motor.DOWN, 0);
                 motor.move(40);
                 assert.equal(false, motor.check(0, 50, 0, 60));
             });
@@ -105,24 +106,48 @@ describe("game", function() {
 
     });
 
-    describe("add", function() {
+    describe("Match", function() {
 
-        it("can add motor", function() {
-            motor = game.add(0, 0, 0);
-            assert.equal(1, game.motors.length);
+        describe("add", function() {
+
+            it("can add motor", function() {
+                match = new game.Match();
+                motor = match.add(0, 0, 0);
+                assert.equal(1, match.motors.length);
+            });
+
         });
 
-    });
+        describe("check", function() {
 
-    describe("check", function() {
+            it("can check motor after turn", function() {
+                match = new game.Match();
+                motor = match.add(0, 0, game.Motor.UP);
+                motor.move(50);
+                motor.turn(game.Motor.RIGHT);
+                assert.equal(false, match.check(motor));
+            });
 
-        it("can check motor after turn", function() {
-            motor = game.add(0, 0, game.Motor.UP);
-            motor.move(50);
-            motor.turn(game.Motor.RIGHT);
-            assert.equal(false, game.check(motor));
+            it("check self overlap", function() {
+                match = new game.Match();
+                motor = match.add(0, 0, game.Motor.UP);
+                motor.move(50);
+                motor.turn(game.Motor.RIGHT);
+                motor.move(60);
+                motor.turn(game.Motor.LEFT);
+                motor.move(70);
+                motor.turn(game.Motor.LEFT);
+                motor.move(90);
+                motor.turn(game.Motor.LEFT);
+                motor.move(160);
+                motor.turn(game.Motor.LEFT);
+                motor.move(170);
+                motor.turn(game.Motor.LEFT);
+                motor.move(190);
+                assert.equal(true, match.check(motor));
+            });
+
         });
-
     });
 
 });

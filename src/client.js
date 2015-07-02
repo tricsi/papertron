@@ -9,6 +9,7 @@ var App = (function() {
 		rotate,
         colors = ["#00c", "#c00", "#0f0"],
         socket,
+        myMatch,
         myMotor;
 
 	function render() {
@@ -17,7 +18,7 @@ var App = (function() {
         ctx.save();
 		ctx.clearRect(0, 0, width, height);
 		ctx.translate(Math.round(width / 2), Math.round(height / 2));
-        Game.motors.forEach(function(motor, color) {
+        myMatch.motors.forEach(function(motor, color) {
 			ctx.save();
             //line
 			ctx.beginPath();
@@ -33,8 +34,8 @@ var App = (function() {
             ctx.translate(motor.x, motor.y);
             ctx.rotate(motor.vec / 2 * Math.PI);
             ctx.moveTo(0, -1);
-            ctx.lineTo(2, 5);
-            ctx.lineTo(-2, 5);
+            ctx.lineTo(1.5, 3);
+            ctx.lineTo(-1.5, 3);
             ctx.closePath();
             ctx.fillStyle = colors[color];
             ctx.fill();
@@ -45,7 +46,7 @@ var App = (function() {
 
 	function anim() {
 		requestAnimationFrame(anim);
-		Game.run();
+        myMatch.run();
 		render();
 	}
 
@@ -75,8 +76,9 @@ var App = (function() {
 		width = canvas.width;
 		height = canvas.height;
 		rotate = 0;
-        myMotor = Game.add(0, 50, Game.Motor.UP);
-        Game.add(0, -50, Game.Motor.DOWN);
+        myMatch = new Game.Match();
+        myMotor = myMatch.add(0, 50, Game.Motor.UP);
+        myMatch.add(0, -50, Game.Motor.DOWN);
         socket = io();
 		bind();
 		anim();

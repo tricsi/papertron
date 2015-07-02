@@ -1,11 +1,8 @@
 var Game = (function() {
     "use strict";
 
-    var size = 125,
-        start = new Date().getTime() + 3000,
-        motors = [];
-
-    function Motor(x, y, v) {
+    function Motor(x, y, v, i) {
+        this.id = i; // Motor ID
         this.x = x; // X coordinate
         this.y = y; // Y coordinate
         this.vec = v; // Direction vector
@@ -120,16 +117,23 @@ var Game = (function() {
         return false;
     };
 
-    function add(x, y, v) {
-        var motor = new Motor(x, y, v);
-        motors.unshift(motor);
-        return motor;
+    function Match() {
+        this.timer = 25;
+        this.distance = 125;
+        this.start = new Date().getTime() + 2000;
+        this.motors = [];
     }
 
-    function check(motor)
+    Match.prototype.add = function (x, y, v) {
+        var motor = new Motor(x, y, v, this.motors.length);
+        this.motors.push(motor);
+        return motor;
+    };
+
+    Match.prototype.check = function (motor)
     {
         var result = false;
-        motors.forEach(function(other) {
+        this.motors.forEach(function(other) {
             var x = other.x,
                 y = other.y,
                 i = 0,
@@ -159,30 +163,29 @@ var Game = (function() {
             }
         });
         return result;
-    }
+    };
 
-    function getTime() {
-        return (new Date().getTime() - start) / 25;
-    }
+    Match.prototype.getTime = function () {
+        return Math.round((new Date().getTime() - this.start) / this.timer);
+    };
 
-    function run() {
-        var time = getTime();
+    Match.prototype.run = function () {
+        var time = this.getTime(),
+            motor,
+            i;
         if (time > 0) {
-            motors.forEach(function(motor) {
-                motor.move(time);
-                if (!motor.wall(size)) {
-                    check(motor);
+            for (i = 0; i < this.motors.length; i++) {
+                motor = this.motors[i];
+                if (motor.move(time) && !motor.wall(this.distance)) {
+                    this.check(motor);
                 }
-            });
+            }
         }
-    }
+    };
 
     return {
-        motors: motors,
         Motor: Motor,
-        check: check,
-        add: add,
-        run: run
+        Match: Match
     };
 
 })();
