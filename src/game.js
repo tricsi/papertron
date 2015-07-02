@@ -5,13 +5,11 @@ var Game = (function() {
         start = new Date().getTime() + 3000,
         motors = [];
 
-    function Motor(x, y, v, l) {
+    function Motor(x, y, v) {
         this.x = x; // X coordinate
         this.y = y; // Y coordinate
         this.vec = v; // Direction vector
-        this.length = l; // Length
         this.time = 0; // Time
-        this.speed = 1; // Speed
         this.data = []; // Line data
         this.stuck = false;
         this.add();
@@ -35,7 +33,7 @@ var Game = (function() {
         this.vec = this.data[0][2];
         this.time = this.data[0][3];
         if (toTime > this.time) {
-            var addTime = (toTime - this.time) * this.speed;
+            var addTime = (toTime - this.time);
             switch (this.vec) {
                 case Motor.LEFT:
                     this.x -= addTime;

@@ -74,8 +74,8 @@ var App = (function() {
 		width = canvas.width;
 		height = canvas.height;
 		rotate = 0;
-        myMotor = Game.add(0, 50, Game.Motor.UP, 300);
-        Game.add(0, -50, Game.Motor.DOWN, 300);
+        myMotor = Game.add(0, 50, Game.Motor.UP);
+        Game.add(0, -50, Game.Motor.DOWN);
 		bind();
 		anim();
 	}
