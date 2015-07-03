@@ -2,7 +2,7 @@
 
 var http = require("http"),
     fs = require("fs"),
-    io = require("socket.io");
+    game = require("./src/server");
 
 var port = Number(process.env.PORT || 80),
     server,
@@ -41,7 +41,7 @@ server = http.createServer(function(req, res) {
     });
 });
 
-io.listen(server).sockets.on("connection", require("./src/server").connect);
+game.listen(server);
 
 server.listen(port, function(){
     console.log("Server listening on port " + port);

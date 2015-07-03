@@ -8,7 +8,6 @@ var App = (function() {
 		height,
 		rotate,
         colors = ["#00c", "#c00", "#0f0"],
-        socket,
         myMatch,
         myMotor;
 
@@ -79,7 +78,7 @@ var App = (function() {
         myMatch = new Game.Match();
         myMotor = myMatch.add(0, 50, Game.Motor.UP);
         myMatch.add(0, -50, Game.Motor.DOWN);
-        socket = io();
+        io();
 		bind();
 		anim();
 	}

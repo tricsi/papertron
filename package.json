@@ -5,9 +5,16 @@
     "socket.io": "1.0.*"
   },
   "devDependencies": {
+    "eslint": "*",
     "grunt": "0.4.*",
-    "grunt-sync": "*",
     "grunt-contrib-compress": "*",
-    "grunt-contrib-uglify": "*"
+    "grunt-contrib-uglify": "*",
+    "grunt-sync": "*",
+    "mocha": "*"
+  },
+  "scripts": {
+    "start": "node ./app.js",
+    "lint": "eslint .",
+    "test": "npm run-script lint && mocha --reporter spec"
   }
 }

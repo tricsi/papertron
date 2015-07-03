@@ -18,25 +18,14 @@ module.exports = function(grunt) {
         },
 
         "compress": {
-            "client": {
+            "dist": {
                 options: {
-                    archive: "client.zip"
+                    archive: "dist.zip"
                 },
                 files: [{
                     cwd: "dist",
                     expand: true,
-                    src: ["index.html", "client.js", "game.js"],
-                    filter: "isFile"
-                }]
-            },
-            "server": {
-                options: {
-                    archive: "server.zip"
-                },
-                files: [{
-                    cwd: "dist",
-                    expand: true,
-                    src: ["server.js", "game.js"],
+                    src: ["*"],
                     filter: "isFile"
                 }]
             }
