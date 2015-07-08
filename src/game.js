@@ -109,16 +109,51 @@ var Game = (function() {
         return this.x > distance || this.x < -distance || this.y > distance || this.y < -distance;
     };
 
+    function Bot(motor, match) {
+        this.motor = motor;
+        this.match = match;
+    }
+
+    Bot.prototype.check = function() {
+        var motor = this.motor,
+            match = this.match,
+            time = motor.time,
+            dir = Math.random() >= .5,
+            toTime = time + 10 + Math.round(Math.random() * 10);
+        if (!motor.stuck) {
+            motor.move(toTime);
+            if (match.check(motor)) {
+                motor.move(time);
+                motor.turn(dir ? Motor.RIGHT : Motor.LEFT);
+                motor.move(toTime);
+                if (match.check(motor)) {
+                    motor.back();
+                    motor.turn(dir ? Motor.LEFT : Motor.RIGHT);
+                    motor.move(toTime);
+                    if (match.check(motor)) {
+                        motor.back();
+                    }
+                }
+            }
+            motor.move(time);
+        }
+    };
+
+
     function Match() {
         this.timer = 25;
         this.distance = 125;
         this.start = new Date().getTime() + 2000;
         this.motors = [];
+        this.bots = [];
     }
 
-    Match.prototype.add = function (x, y, v) {
+    Match.prototype.add = function (x, y, v, isBot) {
         var motor = new Motor(x, y, v, this.motors.length);
         this.motors.push(motor);
+        if (isBot) {
+            this.bots.push(new Bot(motor, this));
+        }
         return motor;
     };
 
@@ -163,6 +198,12 @@ var Game = (function() {
         return Math.round((new Date().getTime() - this.start) / this.timer);
     };
 
+    Match.prototype.ai = function() {
+        this.bots.forEach(function(bot) {
+            bot.check();
+        });
+    };
+
     Match.prototype.run = function () {
         var time = this.getTime(),
             motor,
@@ -175,35 +216,6 @@ var Game = (function() {
                     motor.stuck = this.check(motor);
                 }
             }
-        }
-    };
-
-    function Bot(motor, match) {
-        this.motor = motor;
-        this.match = match;
-    }
-
-    Bot.prototype.check = function() {
-        var motor = this.motor,
-            time = motor.time,
-            dir = Math.random() >= .5,
-            toTime = time + 10 + Math.round(Math.random() * 10);
-        if (!motor.stuck) {
-            motor.move(toTime);
-            if (this.match.check(motor)) {
-                motor.move(time);
-                motor.turn(dir ? Motor.RIGHT : Motor.LEFT);
-                motor.move(toTime);
-                if (this.match.check(motor)) {
-                    motor.back();
-                    motor.turn(dir ? Motor.LEFT : Motor.RIGHT);
-                    motor.move(toTime);
-                    if (this.match.check(motor)) {
-                        motor.back();
-                    }
-                }
-            }
-            motor.move(time);
         }
     };
 

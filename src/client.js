@@ -9,8 +9,7 @@ var App = (function() {
 		rotate,
         colors = ["#00c", "#c00", "#0f0"],
         myMatch,
-        myMotor,
-        myBot;
+        myMotor;
 
 	function render() {
 		canvas.style.transform = "translate(" + (-myMotor.x) + "px," + (-myMotor.y) + "px)";
@@ -78,12 +77,12 @@ var App = (function() {
 		rotate = 0;
         myMatch = new Game.Match();
         myMotor = myMatch.add(0, 50, Game.Motor.UP);
-        myBot = new Game.Bot(myMatch.add(0, -50, Game.Motor.DOWN), myMatch);
+        myMatch.add(0, -50, Game.Motor.DOWN, true);
 		bind();
 		anim();
-        setInterval(function() {
-            myBot.check();
-        }, 50);
+        setTimeout(function() {
+            myMatch.ai();
+        }, 25);
 	}
 
 	return {
