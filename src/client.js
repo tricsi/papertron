@@ -80,7 +80,7 @@ var App = (function() {
         myMatch.add(0, -50, Game.Motor.DOWN, true);
 		bind();
 		anim();
-        setTimeout(function() {
+        setInterval(function() {
             myMatch.ai();
         }, 25);
 	}
