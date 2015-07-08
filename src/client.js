@@ -9,11 +9,12 @@ var App = (function() {
 		rotate,
         colors = ["#00c", "#c00", "#0f0"],
         myMatch,
-        myMotor;
+        myMotor,
+        myBot;
 
 	function render() {
 		canvas.style.transform = "translate(" + (-myMotor.x) + "px," + (-myMotor.y) + "px)";
-        container.style.transform = "rotateX(60deg) translateY(100px) scale(2) rotateZ(" + rotate + "deg)";
+        container.style.transform = "rotateX(60deg) translateY(100px) scale(1) rotateZ(" + rotate + "deg)";
         ctx.save();
 		ctx.clearRect(0, 0, width, height);
 		ctx.translate(Math.round(width / 2), Math.round(height / 2));
@@ -51,20 +52,20 @@ var App = (function() {
 
 	function bind() {
 		document.body.addEventListener("keydown", function(e) {
-			switch (e.keyCode) {
-				case 37:
-                    if (myMotor.turn(Game.Motor.LEFT)) {
+            if (!myMotor.stuck) {
+                switch (e.keyCode) {
+                    case 37:
+                        myMotor.turn(Game.Motor.LEFT)
                         rotate += 90;
-                    }
-                    e.preventDefault();
-					break;
-				case 39:
-                    if (myMotor.turn(Game.Motor.RIGHT)) {
+                        e.preventDefault();
+                        break;
+                    case 39:
+                        myMotor.turn(Game.Motor.RIGHT)
                         rotate -= 90;
-                    }
-                    e.preventDefault();
-					break;
-			}
+                        e.preventDefault();
+                        break;
+                }
+            }
 		}, false);
 	}
 
@@ -77,10 +78,12 @@ var App = (function() {
 		rotate = 0;
         myMatch = new Game.Match();
         myMotor = myMatch.add(0, 50, Game.Motor.UP);
-        myMatch.add(0, -50, Game.Motor.DOWN);
-        io();
+        myBot = new Game.Bot(myMatch.add(0, -50, Game.Motor.DOWN), myMatch);
 		bind();
 		anim();
+        setInterval(function() {
+            myBot.check();
+        }, 50);
 	}
 
 	return {
