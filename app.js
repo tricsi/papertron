@@ -4,7 +4,7 @@ var http = require("http"),
     fs = require("fs"),
     game = require("./src/server");
 
-var port = Number(process.env.PORT || 80),
+var port = Number(process.env.PORT || 3000),
     server,
     types = {
         appcache: "text/cache-manifest",
@@ -25,6 +25,7 @@ var port = Number(process.env.PORT || 80),
         woff: "application/font-woff"
     };
 
+// Simple static server
 server = http.createServer(function(req, res) {
     var path = "./src" + req.url.replace(/^([^\?]+).*$/, "$1").replace(/\/$/, "/index.html"),
         match = path.match(/\.([a-z0-9]+)$/i),
@@ -41,8 +42,10 @@ server = http.createServer(function(req, res) {
     });
 });
 
+// Bind Socket.IO
 game.listen(server);
 
+// Start server
 server.listen(port, function(){
     console.log("Server listening on port " + port);
 });

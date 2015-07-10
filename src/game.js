@@ -1,26 +1,48 @@
+/**
+ * Game logic for client and server
+ */
 var Game = (function() {
     "use strict";
 
-    function Motor(x, y, v, i) {
-        this.id = i; // Motor ID
-        this.x = x; // X coordinate
-        this.y = y; // Y coordinate
-        this.vec = v; // Direction vector
+    /**
+     * Motor class
+     * @param {number} x Coordinate
+     * @param {number} y Coordinate
+     * @param {number} vec Direction
+     * @param {number} id Motor ID
+     * @constructor
+     */
+    function Motor(x, y, vec, id) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.vec = vec;
         this.time = 0; // Time
         this.data = []; // Line data
         this.stuck = false;
         this.add();
     }
 
+    /**
+     * Direction values
+     * @type {number}
+     */
     Motor.UP = 0;
     Motor.RIGHT = 1;
     Motor.DOWN = 2;
     Motor.LEFT = 3;
 
+    /**
+     * Add current coordinates to data array
+     */
     Motor.prototype.add = function() {
         this.data.unshift([this.x, this.y, this.vec, this.time]);
     };
 
+    /**
+     * Move motor to current direction
+     * @param {number} toTime snapshot time
+     */
     Motor.prototype.move = function(toTime) {
         var lastTime = this.data[0][3],
             addTime = toTime - lastTime;
@@ -42,9 +64,12 @@ var Game = (function() {
                 break;
         }
         this.time = toTime;
-        return true;
     };
 
+    /**
+     * Turn motor to left or right direction
+     * @param to
+     */
     Motor.prototype.turn = function (to) {
         switch (to) {
             case Motor.LEFT:
@@ -60,9 +85,11 @@ var Game = (function() {
                 this.add();
                 break;
         }
-        return true;
     };
 
+    /**
+     * Go back to previous point
+     */
     Motor.prototype.back = function() {
         this.x = this.data[0][0];
         this.y = this.data[0][1];
@@ -71,6 +98,14 @@ var Game = (function() {
         this.data.shift();
     };
 
+    /**
+     * Check line segment collation
+     * @param {number} x1
+     * @param {number} y1
+     * @param {number} x2
+     * @param {number} y2
+     * @returns {boolean}
+     */
     Motor.prototype.check = function(x1, y1, x2, y2) {
         var x3 = this.x,
             y3 = this.y,
@@ -105,15 +140,29 @@ var Game = (function() {
         return false;
     };
 
+    /**
+     * Check wall collation
+     * @param {number} distance
+     * @returns {boolean}
+     */
     Motor.prototype.wall = function(distance) {
         return this.x > distance || this.x < -distance || this.y > distance || this.y < -distance;
     };
 
+    /**
+     * Robot driver
+     * @param {Motor} motor
+     * @param {Match} match
+     * @constructor
+     */
     function Bot(motor, match) {
         this.motor = motor;
         this.match = match;
     }
 
+    /**
+     * Check and set next movement
+     */
     Bot.prototype.check = function() {
         var motor = this.motor,
             match = this.match,
@@ -139,17 +188,28 @@ var Game = (function() {
         }
     };
 
-
+    /**
+     * Game match class
+     * @constructor
+     */
     function Match() {
-        this.timer = 25;
-        this.distance = 125;
-        this.start = new Date().getTime() + 2000;
-        this.motors = [];
-        this.bots = [];
+        this.timer = 25; // Snapshot time
+        this.distance = 125; // Wall distance
+        this.start = new Date().getTime() + 2000; // Start time
+        this.motors = []; // Motors
+        this.bots = []; // Robots
     }
 
-    Match.prototype.add = function (x, y, v, isBot) {
-        var motor = new Motor(x, y, v, this.motors.length);
+    /**
+     * Create new motor
+     * @param {number} x Coordinate
+     * @param {number} y Coordinate
+     * @param {number} vec Direction
+     * @param {boolean} isBot
+     * @returns {Motor}
+     */
+    Match.prototype.add = function (x, y, vec, isBot) {
+        var motor = new Motor(x, y, vec, this.motors.length);
         this.motors.push(motor);
         if (isBot) {
             this.bots.push(new Bot(motor, this));
@@ -157,6 +217,11 @@ var Game = (function() {
         return motor;
     };
 
+    /**
+     * Check motor collations
+     * @param {Motor} motor
+     * @returns {boolean}
+     */
     Match.prototype.check = function (motor)
     {
         var result = motor.wall(this.distance);
@@ -194,16 +259,26 @@ var Game = (function() {
         return result;
     };
 
+    /**
+     * Get current snapshot time
+     * @returns {number}
+     */
     Match.prototype.getTime = function () {
         return Math.round((new Date().getTime() - this.start) / this.timer);
     };
 
+    /**
+     * Runs all robot checks
+     */
     Match.prototype.ai = function() {
         this.bots.forEach(function(bot) {
             bot.check();
         });
     };
 
+    /**
+     * Runs all motor checks
+     */
     Match.prototype.run = function () {
         var time = this.getTime(),
             motor,

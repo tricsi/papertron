@@ -1,7 +1,11 @@
 "use strict";
 module.exports = (function() {
+
     var io = require("socket.io")();
 
+    /**
+     * Hello world server ;)
+     */
     io.on("connect", function (socket) {
         console.log("user connected");
         socket.emit("hello", "Hello Socket.IO!");

@@ -1,3 +1,6 @@
+/**
+ * Client application
+ */
 var App = (function() {
     "use strict";
 
@@ -11,6 +14,9 @@ var App = (function() {
         myMatch,
         myMotor;
 
+    /**
+     * Render 2D canvas
+     */
 	function render() {
 		canvas.style.transform = "translate(" + (-myMotor.x) + "px," + (-myMotor.y) + "px)";
         container.style.transform = "rotateX(60deg) translateY(100px) scale(1) rotateZ(" + rotate + "deg)";
@@ -19,7 +25,7 @@ var App = (function() {
 		ctx.translate(Math.round(width / 2), Math.round(height / 2));
         myMatch.motors.forEach(function(motor, color) {
 			ctx.save();
-            //line
+            //Lines
 			ctx.beginPath();
             ctx.scale(2, 2);
 			ctx.moveTo(motor.x, motor.y);
@@ -43,32 +49,41 @@ var App = (function() {
 		ctx.restore();
 	}
 
+    /**
+     * Run animations and game logic
+     */
 	function anim() {
 		requestAnimationFrame(anim);
         myMatch.run();
 		render();
 	}
 
-	function bind() {
-		document.body.addEventListener("keydown", function(e) {
+    /**
+     * Bind controls
+     */
+    function bind() {
+        document.body.addEventListener("keydown", function(e) {
             if (!myMotor.stuck) {
                 switch (e.keyCode) {
                     case 37:
-                        myMotor.turn(Game.Motor.LEFT)
+                        myMotor.turn(Game.Motor.LEFT);
                         rotate += 90;
                         e.preventDefault();
                         break;
                     case 39:
-                        myMotor.turn(Game.Motor.RIGHT)
+                        myMotor.turn(Game.Motor.RIGHT);
                         rotate -= 90;
                         e.preventDefault();
                         break;
                 }
             }
-		}, false);
-	}
+        }, false);
+    }
 
-	function init() {
+    /**
+     * Init client
+     */
+    function init() {
 		container = document.getElementById("container");
 		canvas = document.getElementById("canvas");
 		ctx = canvas.getContext("2d");
@@ -80,12 +95,13 @@ var App = (function() {
         myMatch.add(0, -50, Game.Motor.DOWN, true);
 		bind();
 		anim();
+        io();
         setInterval(function() {
             myMatch.ai();
         }, 25);
 	}
 
-	return {
+    return {
 		init: init
 	};
 
