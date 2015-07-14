@@ -9,6 +9,8 @@
     "grunt": "0.4.*",
     "grunt-contrib-compress": "*",
     "grunt-contrib-uglify": "*",
+    "grunt-contrib-watch": "*",
+    "grunt-sass": "*",
     "grunt-sync": "*",
     "mocha": "*"
   },

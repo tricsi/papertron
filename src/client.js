@@ -10,7 +10,7 @@ var App = (function() {
 		width,
 		height,
 		rotate,
-        colors = ["#00c", "#c00", "#0f0"],
+        colors = ["#00c", "#c00", "#0f0", "#f0c"],
         myMatch,
         myMotor;
 
@@ -18,7 +18,7 @@ var App = (function() {
      * Render 2D canvas
      */
 	function render() {
-		canvas.style.transform = "translate(" + (-myMotor.x) + "px," + (-myMotor.y) + "px)";
+		canvas.style.transform = "translate(" + (-myMotor.x * 2) + "px," + (-myMotor.y * 2) + "px)";
         container.style.transform = "rotateX(60deg) translateY(100px) scale(1) rotateZ(" + rotate + "deg)";
         ctx.save();
 		ctx.clearRect(0, 0, width, height);
@@ -91,8 +91,10 @@ var App = (function() {
 		height = canvas.height;
 		rotate = 0;
         myMatch = new Game.Match();
-        myMotor = myMatch.add(0, 50, Game.Motor.UP);
-        myMatch.add(0, -50, Game.Motor.DOWN, true);
+        myMotor = myMatch.add(0, 100, Game.Motor.UP);
+        myMatch.add(0, -100, Game.Motor.DOWN, true);
+        myMatch.add(-100, 0, Game.Motor.RIGHT, true);
+        myMatch.add(100, 0, Game.Motor.LEFT, true);
 		bind();
 		anim();
         io();

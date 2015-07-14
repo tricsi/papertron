@@ -3,15 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <title>TRON</title>
-<script src="/socket.io/socket.io.js"></script>
-<style type="text/css">
-body {background: #ccc; width: 100%; perspective: 1000px; margin: 0; overflow: hidden;}
-canvas {position: relative; background: #fff; width:100%;}
-#container {display: block; width: 50%; margin: 0 auto; line-height: 100%; transition: transform .3s;}
-</style>
+<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-<div id="container"><canvas id="canvas" width="500" height="500"></canvas></div>
+
+<div id="container">
+	<canvas id="canvas" width="500" height="500"></canvas>
+</div>
+
+<div id="menu">
+	<h1>PAPERTRON</h1>
+	<nav id="main" class="active">
+		<a href="#game">Create Game</a><br>
+		<a href="#game">Join Game</a>
+	</nav>
+	<nav id="game">
+		<a href="#start">Start</a><br>
+		<a href="#main">Back</a><br>
+	</nav>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
 <script src="game.js"></script>
 <script src="client.js"></script>
 </body>
