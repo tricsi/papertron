@@ -5,12 +5,14 @@ module.exports = function (grunt) {
 
 		pkg: grunt.file.readJSON("package.json"),
 
+		clean: ["dist"],
+
 		uglify: {
 			dist: {
 				files: [{
 					expand: true,
 					cwd: "src",
-					src: ["*.js"],
+					src: ["client.js", "game.js", "server.js"],
 					dest: "dist",
 					ext: ".js"
 				}]
@@ -66,10 +68,11 @@ module.exports = function (grunt) {
 
 	});
 
+	grunt.loadNpmTasks("grunt-contrib-clean");
 	grunt.loadNpmTasks("grunt-contrib-compress");
 	grunt.loadNpmTasks("grunt-contrib-uglify");
 	grunt.loadNpmTasks("grunt-contrib-watch");
 	grunt.loadNpmTasks("grunt-sass");
 	grunt.loadNpmTasks("grunt-sync");
-	grunt.registerTask("default", ["sass", "sync", "uglify", "compress"]);
+	grunt.registerTask("default", ["clean", "sass", "sync", "uglify", "compress"]);
 };

@@ -7,6 +7,8 @@ var App = (function() {
 	var container,
 		canvas,
 		ctx,
+        menu,
+        navs,
 		width,
 		height,
 		rotate,
@@ -62,6 +64,14 @@ var App = (function() {
      * Bind controls
      */
     function bind() {
+        menu.addEventListener("click", function(e) {
+            var i,
+                id = e.target.getAttribute("href").substr(1);
+            for (i = 0; i < navs.length; i++) {
+                var nav = navs.item(i);
+                nav.className = nav.id !== id ? "hide" : "";
+            }
+        }, false);
         document.body.addEventListener("keydown", function(e) {
             if (!myMotor.stuck) {
                 switch (e.keyCode) {
@@ -86,6 +96,8 @@ var App = (function() {
     function init() {
 		container = document.getElementById("container");
 		canvas = document.getElementById("canvas");
+        menu = document.getElementById("menu");
+        navs = document.getElementsByTagName("nav");
 		ctx = canvas.getContext("2d");
 		width = canvas.width;
 		height = canvas.height;
