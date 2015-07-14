@@ -37,12 +37,7 @@ canvas {
 	}
 
 	nav {
-		display: none;
 		line-height: 70px;
-		
-		&.active {
-			display: block;
-		}
 	}
 	
 	a {
@@ -57,4 +52,8 @@ canvas {
 			background: #99f;
 		}
 	}
+}
+
+.hide {
+	display: none;
 }

@@ -18,8 +18,8 @@ var App = (function() {
      * Render 2D canvas
      */
 	function render() {
-		canvas.style.transform = "translate(" + (-myMotor.x * 2) + "px," + (-myMotor.y * 2) + "px)";
-        container.style.transform = "rotateX(60deg) translateY(100px) scale(1) rotateZ(" + rotate + "deg)";
+		canvas.style.transform = "translate(" + (-myMotor.x * 2) + "px," + (-myMotor.y * 2 + 50) + "px)";
+        container.style.transform = "rotateX(45deg) translateY(100px) scale(1) rotateZ(" + rotate + "deg)";
         ctx.save();
 		ctx.clearRect(0, 0, width, height);
 		ctx.translate(Math.round(width / 2), Math.round(height / 2));

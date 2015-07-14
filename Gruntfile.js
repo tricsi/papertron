@@ -1,65 +1,65 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
 	"use strict";
 
 	grunt.initConfig({
 
-		pkg : grunt.file.readJSON("package.json"),
+		pkg: grunt.file.readJSON("package.json"),
 
-		uglify : {
-			dist : {
-				files : [ {
-					expand : true,
-					cwd : "src",
-					src : [ "*.js" ],
-					dest : "dist",
-					ext : ".js"
-				} ]
+		uglify: {
+			dist: {
+				files: [{
+					expand: true,
+					cwd: "src",
+					src: ["*.js"],
+					dest: "dist",
+					ext: ".js"
+				}]
 			}
 		},
 
-		sass : {
-			options : {
-				outputStyle : "compressed"
+		sass: {
+			options: {
+				outputStyle: "compressed"
 			},
-			dist : {
-				files : {
-					'src/style.css' : 'src/style.scss'
+			dist: {
+				files: {
+					"src/style.css": "src/style.scss"
 				}
 			}
 		},
 
-		compress : {
-			dist : {
-				options : {
-					archive : "dist.zip"
+		compress: {
+			dist: {
+				options: {
+					archive: "dist.zip"
 				},
-				files : [ {
-					cwd : "dist",
-					expand : true,
-					src : [ "*" ],
-					filter : "isFile"
-				} ]
+				files: [{
+					cwd: "dist",
+					expand: true,
+					src: ["*"],
+					filter: "isFile"
+				}]
 			}
 		},
 
-		sync : {
-			dist : {
-				files : [ {
-					cwd : "src",
-					expand : true,
-					src : [ "*.html", "*.css" ],
-					dest : "dist"
-				} ],
-				verbose : true
+		sync: {
+			dist: {
+				files: [{
+					cwd: "src",
+					expand: true,
+					src: ["*.html", "*.css"],
+					dest: "dist"
+				}],
+				verbose: true
 			}
 		},
 
-		watch : {
-			sass : {
-				files : [ 'src/*.scss' ],
-				tasks : [ 'sass' ],
-				options : {
-					spawn : false,
+		watch: {
+			sass: {
+				files: ["src/*.scss"],
+				tasks: ["sass"],
+				options: {
+					spawn: false
 				}
 			}
 		}
@@ -71,5 +71,5 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks("grunt-contrib-watch");
 	grunt.loadNpmTasks("grunt-sass");
 	grunt.loadNpmTasks("grunt-sync");
-	grunt.registerTask("default", [ "sass", "sync", "uglify", "compress" ]);
+	grunt.registerTask("default", ["sass", "sync", "uglify", "compress"]);
 };
