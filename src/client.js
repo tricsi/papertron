@@ -20,7 +20,7 @@ var App = (function() {
      * Render 2D canvas
      */
 	function render() {
-		canvas.style.transform = "translate(" + (-myMotor.x * 2) + "px," + (-myMotor.y * 2 + 50) + "px)";
+		canvas.style.transform = "translate(" + (-myMotor.x * 2) + "px," + (-myMotor.y * 2) + "px)";
         container.style.transform = "rotateX(45deg) translateY(100px) scale(1) rotateZ(" + rotate + "deg)";
         ctx.save();
 		ctx.clearRect(0, 0, width, height);
@@ -66,11 +66,16 @@ var App = (function() {
     function bind() {
         menu.addEventListener("click", function(e) {
             var i,
-                id = e.target.getAttribute("href").substr(1);
-            for (i = 0; i < navs.length; i++) {
-                var nav = navs.item(i);
-                nav.className = nav.id !== id ? "hide" : "";
+                id,
+                item;
+            if (e.target.tagName === "A") {
+                 id = e.target.getAttribute("href").substr(1);
+                 for (i = 0; i < navs.length; i++) {
+                    item = navs.item(i);
+                    item.className = item.id !== id ? "hide" : "";
+                }
             }
+            e.preventDefault();
         }, false);
         document.body.addEventListener("keydown", function(e) {
             if (!myMotor.stuck) {

@@ -14,11 +14,14 @@
 <div id="menu">
 	<nav id="main">
 		<h1>PAPERTRON</h1>
-		<a href="#game">Create Game</a><br>
-		<a href="#game">Join Game</a>
+		<label>Your name: <input value="Player 1" size="10" maxlength="10"></label><br>
+		<select multiple><option>end3r's game</option></select><br>
+		<a href="#create">Create</a>
+		<a href="#join">Join</a>
 	</nav>
-	<nav id="game" class="hide">
+	<nav id="create" class="hide">
 		<h1>CREATE GAME</h1>
+		<label>Bots: <select><option>0</option><option>1</option><option>2</option><option>3</option></select><br>
 		<a href="#start">Start</a>
 		<a href="#main">Back</a>
 	</nav>

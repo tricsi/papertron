@@ -2,13 +2,13 @@ html, body {
 	width: 100%;
 	height: 100%;
 	margin: 0;	
+	overflow: hidden;
 }
 
 body {
 	font-family: Arial, Helvetica, sans-serif;
 	background: #ccc;
 	perspective: 1000px;
-	overflow: hidden;
 	line-height: 100%;
 }
 
@@ -36,23 +36,50 @@ canvas {
 
 	h1 {
 		font-weight: bold;
+		font-size: 48px;
+		padding: 0;
+		margin: 0;
+		line-height: 100px;
 	}
 
 	nav {
-		line-height: 70px;
+		line-height: 60px;
 	}
 	
-	a {
+	input, select {
+		color: #000;
+		font-size: 28px;
+	}
+
+	input {
+		border: 0;
+		border-bottom: 2px solid #000;
+		background: rgba(0, 0, 0, 0);
+	}
+		
+	select {
+		width: 100px;
+		border: 2px solid #000;
+		background: #fff;
+	}
+	
+	select[multiple] {
+		width: 300px;
+		height: 150px;
+	}
+	
+	a, span {
 		border: 2px solid #000;
 		border-radius: 5px;
 		color: #000;
 		padding: 5px 20px;
 		text-decoration: none;
-		
-		&:hover {
-			background: #000;
-			color: #fff;
-		}
+		cursor: pointer;
+	}
+	
+	a:hover, span.active {
+		background: #000;
+		color: #fff;
 	}
 }
 
