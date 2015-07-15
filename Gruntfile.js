@@ -12,7 +12,7 @@ module.exports = function (grunt) {
 				files: [{
 					expand: true,
 					cwd: "src",
-					src: ["client.js", "game.js", "server.js"],
+					src: ["*.js"],
 					dest: "dist",
 					ext: ".js"
 				}]

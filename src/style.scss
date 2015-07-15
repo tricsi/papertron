@@ -10,11 +10,58 @@ body {
 	background: #ccc;
 	perspective: 1000px;
 	line-height: 100%;
+	font-size: 28px;
 }
 
+h1 {
+	font-weight: bold;
+	font-size: 48px;
+	padding: 0;
+	margin: 0;
+	line-height: 100px;
+}
+
+form {
+	position: fixed;
+	top: 0;
+	left: 0;
+	line-height: 20px;
+	
+	div {
+		height: 100px;
+		overflow: hidden;
+		opacity: .5;
+	}
+}
+
+input, select {
+	color: #000;
+	font-size: 28px;
+}
+
+input {
+	border: 0;
+	background: rgba(0, 0, 0, 0);
+}
+	
+select {
+	width: 100px;
+	border: 2px solid #000;
+	background: #fff;
+}
+
+select[multiple] {
+	width: 300px;
+	height: 150px;
+}
+	
 canvas {
 	position: relative;
 	background: #fff;
+}
+
+.hide {
+	display: none;
 }
 
 #container {
@@ -32,40 +79,9 @@ canvas {
 	right: 0;
 	bottom: 0;
 	text-align: center;
-	font-size: 28px;
-
-	h1 {
-		font-weight: bold;
-		font-size: 48px;
-		padding: 0;
-		margin: 0;
-		line-height: 100px;
-	}
 
 	nav {
 		line-height: 60px;
-	}
-	
-	input, select {
-		color: #000;
-		font-size: 28px;
-	}
-
-	input {
-		border: 0;
-		border-bottom: 2px solid #000;
-		background: rgba(0, 0, 0, 0);
-	}
-		
-	select {
-		width: 100px;
-		border: 2px solid #000;
-		background: #fff;
-	}
-	
-	select[multiple] {
-		width: 300px;
-		height: 150px;
 	}
 	
 	a, span {
@@ -81,8 +97,4 @@ canvas {
 		background: #000;
 		color: #fff;
 	}
-}
-
-.hide {
-	display: none;
 }
