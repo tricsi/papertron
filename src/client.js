@@ -11,7 +11,9 @@ var App = (function() {
         text, //chat input
         texts, //chat messages
         menu, //menu container
+        name, //nickname
         navs, //menu navigations
+        socket, //server connection
         width, //canvas width
         height, //canvas height
         rotate, //canvas rotation
@@ -84,33 +86,53 @@ var App = (function() {
     }
 
     /**
-     * Bind controls
+     * Bind events
      */
     function bind() {
+        
+        socket.on("message", function (value) {
+            var br = document.createElement("br");
+            texts.insertBefore(br, texts.firstChild);
+            texts.insertBefore(document.createTextNode(value), br);
+        });
+
         on(chat, "submit", function(e) {
-            console.log(text.value);
-            var br = document.createElement("br"),
-                value = text.value.trim();
+            var value = text.value.trim();
             if (value !== "") {
-                texts.insertBefore(br, texts.firstChild);
-                texts.insertBefore(document.createTextNode(value), br);
+                socket.emit("message", value);
             }
             text.value = "";
             e.preventDefault();
         });
+        
         on(menu, "click", function(e) {
             var i,
                 id,
-                item;
+                item,
+                close = true;
             if (e.target.tagName === "A") {
                  id = e.target.getAttribute("href").substr(1);
                  for (i = 0; i < navs.length; i++) {
                     item = navs.item(i);
-                    item.className = item.id !== id ? "hide" : "";
+                    if (item.id !== id) {
+                        item.className = "hide";
+                    } else {
+                        item.className = "";
+                        close = false;
+                    }
                 }
+            }
+            if (close) {
+                menu.className = "hide";
+            }
+            switch (id) {
+                case "create":
+                    socket.emit("join", name.value.trim());
+                    break;
             }
             e.preventDefault();
         });
+        
         on(document.body, "keydown", function(e) {
             switch (e.keyCode) {
                 case 37:
@@ -137,6 +159,7 @@ var App = (function() {
         text = $("input", chat);
         texts = $("div", chat);
         menu = $("#menu");
+        name = $("input", menu);
         navs = menu.getElementsByTagName("nav");
         ctx = canvas.getContext("2d");
         width = canvas.width;
@@ -147,9 +170,9 @@ var App = (function() {
         myMatch.add(0, -100, Game.Motor.DOWN, true);
         myMatch.add(-100, 0, Game.Motor.RIGHT, true);
         myMatch.add(100, 0, Game.Motor.LEFT, true);
+        socket = io();
         bind();
-        anim();
-        io();
+        //anim();
         setInterval(function() {
             myMatch.ai();
         }, 25);

@@ -8,6 +8,11 @@ module.exports = function (grunt) {
 		clean: ["dist"],
 
 		uglify: {
+			options: {
+				compress: {
+					drop_console: true
+				}
+			},
 			dist: {
 				files: [{
 					expand: true,
