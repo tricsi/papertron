@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="user-scalable=no, width=device-width" />
+<title>WebGL teszt</title>
+<style>
+body {paddign:0; margin:0; background:#ccc;}
+</style>
+</head>
+<body>
+
+<canvas id="canvas" width="500" height="500"></canvas>
+
+<script id="3d-vertex-shader" type="x-shader/x-vertex">
+attribute vec4 a_position;
+attribute vec4 a_color;
+
+uniform mat4 u_matrix;
+
+varying vec4 v_color;
+
+void main() {
+  // Multiply the position by the matrix.
+  gl_Position = u_matrix * a_position;
+  
+  // Pass the color to the fragment shader.
+  v_color = a_color;
+}
+</script>
+
+<script id="3d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+// Passed in from the vertex shader.
+varying vec4 v_color;
+
+void main() {
+   gl_FragColor = v_color;
+}
+</script>
+
+<script src="webgl.js"></script>
+
+</body>
+</html>
