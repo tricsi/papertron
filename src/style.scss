@@ -47,6 +47,7 @@ input {
 select {
 	width: 100px;
 	border: 2px solid #000;
+	border-radius: 5px;
 	background: #fff;
 }
 
@@ -80,6 +81,9 @@ canvas {
 	bottom: 0;
 	text-align: center;
 
+	input, select {
+		text-align: center;
+	}
 	nav {
 		line-height: 60px;
 	}

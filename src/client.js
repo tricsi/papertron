@@ -1,35 +1,36 @@
+"use strict";
+
+/**
+ * Query selector helper
+ * @param {string} query
+ * @param {Object} element
+ */
+function $(query, element) {
+    element = element || document;
+    return element.querySelector(query);
+}
+
 /**
  * Client application
  */
 var App = (function() {
-    "use strict";
 
-    var container, //canvas container
-        canvas, //canvas element
-        ctx, //canvas context
-        chat, //chat form
-        text, //chat input
-        texts, //chat messages
-        menu, //menu container
-        name, //nickname
-        navs, //menu navigations
-        socket, //server connection
-        width, //canvas width
-        height, //canvas height
-        rotate, //canvas rotation
+    var container = $("#container"),  //canvas container
+        canvas = $("canvas"), //canvas element
+        chat = $("form"), //chat form
+        text = $("input", chat), //chat input
+        texts = $("div", chat), //chat messages
+        menu = $("#menu"), //menu container
+        games = $("select", menu), //game list
+        navs = menu.getElementsByTagName("nav"), //menu navigations
+        ctx = canvas.getContext("2d"), //canvas context
+        width = canvas.width,  //canvas width
+        height = canvas.height, //canvas height
+        rotate = 0, //canvas rotation
         colors = ["#00c", "#c00", "#0f0", "#f0c"], //motor colors
+        socket, //server connection
         myMatch, //actual game
         myMotor; //player's motor
-
-    /**
-     * Query selector helper
-     * @param {string} query
-     * @param {Object} element
-     */
-    function $(query, element) {
-        element = element || document;
-        return element.querySelector(query);
-    }
 
     /**
      * Event handler helper
@@ -89,7 +90,21 @@ var App = (function() {
      * Bind events
      */
     function bind() {
-        
+
+        socket.on("connect", function () {
+            socket.emit("games");
+        });
+
+        socket.on("games", function (values) {
+            while (games.options.length) {
+                games.remove(0);
+            }
+            games.add(new Option("NEW GAME", "", true));
+            values.forEach(function(game) {
+                games.add(new Option(game + "'s game", game));
+            });
+        });
+
         socket.on("message", function (value) {
             var br = document.createElement("br");
             texts.insertBefore(br, texts.firstChild);
@@ -104,7 +119,7 @@ var App = (function() {
             text.value = "";
             e.preventDefault();
         });
-        
+
         on(menu, "click", function(e) {
             var i,
                 id,
@@ -118,21 +133,22 @@ var App = (function() {
                         item.className = "hide";
                     } else {
                         item.className = "";
-                        close = false;
                     }
                 }
             }
-            if (close) {
+            if (id && close) {
                 menu.className = "hide";
             }
             switch (id) {
-                case "create":
-                    socket.emit("join", name.value.trim());
+                case "join":
+                    var nick = $("input", menu).value.trim(),
+                        room = $("select", menu).value;
+                    socket.emit("join", nick, room);
                     break;
             }
             e.preventDefault();
         });
-        
+
         on(document.body, "keydown", function(e) {
             switch (e.keyCode) {
                 case 37:
@@ -153,18 +169,6 @@ var App = (function() {
      * Init client
      */
     function init() {
-        container = $("#container");
-        canvas = $("canvas");
-        chat = $("form");
-        text = $("input", chat);
-        texts = $("div", chat);
-        menu = $("#menu");
-        name = $("input", menu);
-        navs = menu.getElementsByTagName("nav");
-        ctx = canvas.getContext("2d");
-        width = canvas.width;
-        height = canvas.height;
-        rotate = 0;
         myMatch = new Game.Match();
         myMotor = myMatch.add(0, 100, Game.Motor.UP);
         myMatch.add(0, -100, Game.Motor.DOWN, true);
@@ -172,7 +176,7 @@ var App = (function() {
         myMatch.add(100, 0, Game.Motor.LEFT, true);
         socket = io();
         bind();
-        //anim();
+        anim();
         setInterval(function() {
             myMatch.ai();
         }, 25);

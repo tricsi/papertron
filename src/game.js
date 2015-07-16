@@ -1,8 +1,9 @@
+"use strict";
+
 /**
  * Game logic for client and server
  */
 var Game = (function() {
-    "use strict";
 
     /**
      * Motor class
@@ -301,5 +302,3 @@ var Game = (function() {
     };
 
 })();
-
-module.exports = Game;
