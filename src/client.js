@@ -19,7 +19,8 @@ var App = (function() {
         canvas = $("canvas"), //canvas element
         chat = $("form"), //chat form
         text = $("input", chat), //chat input
-        texts = $("div", chat), //chat messages
+        texts = $("div.texts", chat), //chat messages
+        room = $("div.room", chat), //players list
         menu = $("#menu"), //menu container
         games = $("select", menu), //game list
         navs = menu.getElementsByTagName("nav"), //menu navigations
@@ -40,6 +41,20 @@ var App = (function() {
      */
     function on(element, event, handler) {
         element.addEventListener(event, handler, false);
+    }
+
+    function message(text) {
+        var br = document.createElement("br");
+        texts.insertBefore(br, texts.firstChild);
+        texts.insertBefore(document.createTextNode(text), br);
+    }
+    
+    function players(list) {
+        room.innerHTML = "";
+        list.forEach(function(nick) {
+            room.appendChild(document.createTextNode(nick));
+            room.appendChild(document.createElement("br"));
+        });
     }
 
     /**
@@ -94,7 +109,7 @@ var App = (function() {
         socket.on("connect", function () {
             socket.emit("games");
         });
-
+        
         socket.on("games", function (values) {
             while (games.options.length) {
                 games.remove(0);
@@ -104,17 +119,31 @@ var App = (function() {
                 games.add(new Option(game + "'s game", game));
             });
         });
+        
+        socket.on("players", function (list) {
+            players(list);
+        });
 
-        socket.on("message", function (value) {
-            var br = document.createElement("br");
-            texts.insertBefore(br, texts.firstChild);
-            texts.insertBefore(document.createTextNode(value), br);
+        socket.on("joined", function (nick, list) {
+            message(nick + " joined");
+            players(list);
+        });
+
+        socket.on("left", function (nick, list) {
+            message(nick + " left");
+            players(list);
+        });
+
+        socket.on("message", function (nick, text) {
+            message(nick + ": " + text);
         });
 
         on(chat, "submit", function(e) {
-            var value = text.value.trim();
+            var value = text.value.trim(),
+                nick = $("input", menu).value.trim();
             if (value !== "") {
                 socket.emit("message", value);
+                message(nick + ": " + value);
             }
             text.value = "";
             e.preventDefault();
@@ -142,8 +171,8 @@ var App = (function() {
             switch (id) {
                 case "join":
                     var nick = $("input", menu).value.trim(),
-                        room = $("select", menu).value;
-                    socket.emit("join", nick, room);
+                        game = $("select", menu).value;
+                    socket.emit("join", nick, game);
                     break;
             }
             e.preventDefault();
@@ -176,7 +205,7 @@ var App = (function() {
         myMatch.add(100, 0, Game.Motor.LEFT, true);
         socket = io();
         bind();
-        anim();
+        //anim();
         setInterval(function() {
             myMatch.ai();
         }, 25);

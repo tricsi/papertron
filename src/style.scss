@@ -25,12 +25,22 @@ form {
 	position: fixed;
 	top: 0;
 	left: 0;
+	right: 0;
 	line-height: 20px;
+
+	input {
+		padding: 5px;
+	}
 	
 	div {
 		height: 100px;
+		padding: 5px;
 		overflow: hidden;
-		opacity: .5;
+	}
+
+	div.room {
+		float: right;
+		text-align: right;
 	}
 }
 

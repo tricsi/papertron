@@ -2,18 +2,29 @@
 module.exports = (function() {
 
     var io = require("socket.io")(),
-        games = [];
+        games = [],
+        players = {};
 
     io.on("connect", function (socket) {
+
         var user = {
             nick: "Player",
             game: null
         };
 
         function leave() {
-            if (user.game) {
+            var nick = user.nick,
+                game = user.game;
+            if (game) {
                 user.game = null;
-                console.log(user.nick + " leave " + user.game);
+                players[game].splice(players[game].indexOf(nick), 1);
+                if (players[game].length === 0) {
+                    games.splice(games.indexOf(game), 1);
+                    delete players[game];
+                } else {
+                    socket.to(game).emit("left", nick, players[game]);
+                }
+                console.log(nick + " leave " + game);
             }
         }
 
@@ -23,13 +34,20 @@ module.exports = (function() {
         });
 
         socket.on("join", function (nick, game) {
-            user.nick = nick;
-            user.game = game || nick;
-            if (games.indexOf(user.game) < 0) {
-                games.push(user.game);
+            game = game || nick;
+            if (nick && (!players[game] || players[game].indexOf(nick) === -1)) {
+                socket.join(game);
+                user.nick = nick;
+                user.game = game;
+                if (!players[game]) {
+                    players[game] = [];
+                    games.push(game);
+                }
+                players[game].push(nick);
+                socket.emit("players", players[game]);
+                socket.to(game).emit("joined", nick, players[game]);
+                console.log(nick + " join to " + game);
             }
-            socket.join(user.game);
-            console.log(user.nick + " join to " + user.game);
         });
 
         socket.on("leave", function () {
@@ -38,12 +56,10 @@ module.exports = (function() {
         });
 
         socket.on("message", function (message) {
-            message = user.nick + ": " + message;
-            socket.emit("message", message);
             if (user.game) {
-                socket.to(user.game).emit("message", message);
+                socket.to(user.game).emit("message", user.nick, message);
+                console.log(user.nick + " message to " + user.game);
             }
-            console.log(user.nick + " message to " + user.game);
         });
 
         socket.on("disconnect", function () {
