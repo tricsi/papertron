@@ -44,7 +44,7 @@ module.exports = (function() {
                     games.push(game);
                 }
                 players[game].push(nick);
-                socket.emit("players", players[game]);
+                socket.emit("join", players[game]);
                 socket.to(game).emit("joined", nick, players[game]);
                 console.log(nick + " join to " + game);
             }

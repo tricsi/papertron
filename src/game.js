@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Game logic for client and server
+ * Game logic
  */
 var Game = (function() {
 
