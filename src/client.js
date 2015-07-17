@@ -389,6 +389,89 @@ window.onload = (function () {
     })();
 
     /**
+     * Chat module
+     */
+    var Chat = (function () {
+
+        var container, //chat form
+            text, //chat input
+            texts, //chat messages
+            room; //players list
+
+        /**
+         * Show chat
+         */
+        function show() {
+            container.className = "";
+        }
+
+        /**
+         * Hide chat
+         */
+        function hide() {
+            container.className = "hide";
+        }
+
+        /**
+         * Add chat message
+         * @param {string} message
+         */
+        function addMesage(message) {
+            var br = document.createElement("br");
+            texts.insertBefore(br, texts.firstChild);
+            texts.insertBefore(document.createTextNode(message), br);
+        }
+
+        /**
+         * Update room
+         * @param {string[]} list
+         */
+        function setRoom(list) {
+            room.innerHTML = "";
+            list.forEach(function (nick) {
+                room.appendChild(document.createTextNode(nick));
+                room.appendChild(document.createElement("br"));
+            });
+        }
+
+        /**
+         * Bind chat events
+         */
+        function bind() {
+            on(container, "submit", function (e) {
+                var value = text.value.trim(),
+                    nick = Menu.nick();
+                if (value !== "") {
+                    socket.emit("message", value);
+                    addMesage(nick + ": " + value);
+                }
+                text.value = "";
+                e.preventDefault();
+            });
+        }
+
+        /**
+         * Init chat
+         */
+        function init() {
+            container = $("form");
+            text = $("input", container);
+            texts = $("div.texts", container);
+            room = $("div.room", container);
+            bind();
+        }
+
+        return {
+            init: init,
+            show: show,
+            hide: hide,
+            room: setRoom,
+            add: addMesage
+        };
+
+    })();
+
+    /**
      * Game menu
      */
     var Menu = (function () {
@@ -413,6 +496,7 @@ window.onload = (function () {
          */
         function show() {
             container.className = "";
+            Chat.hide();
         }
 
         /**
@@ -420,6 +504,7 @@ window.onload = (function () {
          */
         function hide() {
             container.className = "hide";
+            Chat.show();
         }
 
         /**
@@ -501,73 +586,6 @@ window.onload = (function () {
     })();
 
     /**
-     * Chat module
-     */
-    var Chat = (function () {
-
-        var container, //chat form
-            text, //chat input
-            texts, //chat messages
-            room; //players list
-
-        /**
-         * Add chat message
-         * @param {string} message
-         */
-        function addMesage(message) {
-            var br = document.createElement("br");
-            texts.insertBefore(br, texts.firstChild);
-            texts.insertBefore(document.createTextNode(message), br);
-        }
-
-        /**
-         * Update room
-         * @param {string[]} list
-         */
-        function setRoom(list) {
-            room.innerHTML = "";
-            list.forEach(function (nick) {
-                room.appendChild(document.createTextNode(nick));
-                room.appendChild(document.createElement("br"));
-            });
-        }
-
-        /**
-         * Bind chat events
-         */
-        function bind() {
-            on(container, "submit", function (e) {
-                var value = text.value.trim(),
-                    nick = Menu.nick();
-                if (value !== "") {
-                    socket.emit("message", value);
-                    addMesage(nick + ": " + value);
-                }
-                text.value = "";
-                e.preventDefault();
-            });
-        }
-
-        /**
-         * Init chat
-         */
-        function init() {
-            container = $("form");
-            text = $("input", container);
-            texts = $("div.texts", container);
-            room = $("div.room", container);
-            bind();
-        }
-
-        return {
-            init: init,
-            room: setRoom,
-            add: addMesage
-        };
-
-    })();
-
-    /**
      * Run animations and game logic
      */
     function anim() {
@@ -642,7 +660,7 @@ window.onload = (function () {
         Menu.init();
         socket = io();
         bind();
-        anim();
+        //anim();
         setInterval(function () {
             myMatch.ai();
         }, 25);
