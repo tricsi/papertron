@@ -4,7 +4,12 @@
 window.onload = (function () {
     "use strict";
 
-    var socket; //server connection
+    var socket, //server connection
+        Scene, //Game scene module
+        Sfx, //Sound module
+        Chat, //Chat module
+        Game, //Game module
+        Menu; //Menu module
 
     /**
      * Query selector helper
@@ -348,7 +353,7 @@ window.onload = (function () {
     /**
      * Scene renderer module
      */
-    var Scene = (function () {
+    Scene = (function () {
 
         var container,  //canvas container
             canvas, //canvas element
@@ -421,7 +426,7 @@ window.onload = (function () {
     /**
      * Chat module
      */
-    var Chat = (function () {
+    Chat = (function () {
 
         var container, //chat form
             text, //chat input
@@ -493,7 +498,7 @@ window.onload = (function () {
     /**
      * Game menu
      */
-    var Menu = (function () {
+    Menu = (function () {
 
         var container, //menu container
             games, //game list
@@ -516,7 +521,7 @@ window.onload = (function () {
                             break;
                     }
                     console.log(id);
-                })
+                });
             },
 
             /**
@@ -573,7 +578,7 @@ window.onload = (function () {
 
     })();
 
-    var Sfx = (function () {
+    Sfx = (function () {
 
         var sounds;
 
@@ -592,7 +597,7 @@ window.onload = (function () {
 
     })();
 
-    var Game = (function () {
+    Game = (function () {
 
         var container, //game container
             match, //actual match
@@ -610,8 +615,8 @@ window.onload = (function () {
             if (match.win === false) {
                 requestAnimationFrame(run);
             } else {
-                var winner = Game.players[match.win];
-                Game.show(winner + " win!");
+                Game.show(Game.players[match.win] + " win!");
+                clearInterval(ai);
             }
         }
 
@@ -665,7 +670,7 @@ window.onload = (function () {
                         [0, 100, Motor.UP],
                         [0, -100, Motor.DOWN],
                         [-100, 0, Motor.RIGHT],
-                        [100, 0, Motor.LEFT],
+                        [100, 0, Motor.LEFT]
                     ];
 
                 match = new Match();
@@ -676,7 +681,7 @@ window.onload = (function () {
                         v = pos[i][2],
                         player = match.add(x, y, v);
                     if (nick === me) {
-                        Scene.rotate(v * -90, true)
+                        Scene.rotate(v * -90, true);
                         motor = player;
                     }
                 });

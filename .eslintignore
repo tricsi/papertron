@@ -2,3 +2,4 @@ dist
 node_modules
 src/jsfxr.js
 src/webgl.js
+Gruntfile.js
