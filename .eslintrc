@@ -5,8 +5,6 @@
     "mocha": true
   },
   "globals": {
-    "App": true,
-    "Game": true,
     "io": true
   }
 }

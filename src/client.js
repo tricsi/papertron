@@ -4,9 +4,7 @@
 window.onload = (function () {
     "use strict";
 
-    var socket, //server connection
-        myMatch, //actual game
-        myMotor; //player's motor
+    var socket; //server connection
 
     /**
      * Query selector helper
@@ -349,7 +347,7 @@ window.onload = (function () {
          * @param {Motor} motor
          */
         function render(match, me) {
-            container.style.transform = "rotateX(45deg) rotateZ(" + rotate + "deg)";
+            container.style.transform = "rotateX(45deg) translateY(100px) scale(2) rotateZ(" + rotate + "deg)";
             canvas.style.transform = "translate(" + (-me.x * 2) + "px," + (-me.y * 2) + "px)";
             ctx.save();
             ctx.clearRect(0, 0, width, height);
@@ -380,22 +378,25 @@ window.onload = (function () {
             ctx.restore();
         }
 
-        /**
-         * Init scene
-         */
-        function init() {
-            container = $("#container");
-            canvas = $("canvas");
-            ctx = canvas.getContext("2d");
-            width = canvas.width;
-            height = canvas.height;
-            rotate = 0;
-        }
-
         return {
-            init: init,
-            render: render,
-            rotate: rotate
+
+            /**
+             * Init scene
+             */
+            init: function init() {
+                container = $("#container");
+                canvas = $("canvas");
+                ctx = canvas.getContext("2d");
+                width = canvas.width;
+                height = canvas.height;
+                rotate = 0;
+            },
+
+            rotate: function(value) {
+                rotate += value;
+            },
+
+            render: render
         };
 
     })();
@@ -412,6 +413,9 @@ window.onload = (function () {
 
         return {
 
+            /**
+             * Module init
+             */
             init: function () {
                 container = $("#chat");
                 text = $("input", container);
@@ -429,6 +433,10 @@ window.onload = (function () {
                 });
             },
 
+            /**
+             * Set room members
+             * @param {string[]} list
+             */
             room: function (list) {
                 room.innerHTML = "";
                 list.forEach(function (nick) {
@@ -437,16 +445,26 @@ window.onload = (function () {
                 });
             },
 
+            /**
+             * Add new message
+             * @param {string} message
+             */
             add: function (message) {
                 var br = document.createElement("br");
                 texts.insertBefore(br, texts.firstChild);
                 texts.insertBefore(document.createTextNode(message), br);
             },
 
+            /**
+             * Show chat
+             */
             show: function () {
                 attr(container, "class", "");
             },
 
+            /**
+             * Hide chat
+             */
             hide: function () {
                 attr(container, "class", "hide");
             }
@@ -465,6 +483,9 @@ window.onload = (function () {
 
         return {
 
+            /**
+             * Module init
+             */
             init: function () {
                 container = $("#menu");
                 games = $("select", container);
@@ -481,26 +502,44 @@ window.onload = (function () {
                 })
             },
 
+            /**
+             * Show menu
+             */
             show: function () {
                 attr(container, "class", "");
-                Note.hide();
+                Game.hide();
                 Chat.hide();
             },
 
+            /**
+             * Hide menu
+             */
             hide: function () {
                 attr(container, "class", "hide");
-                Note.show();
+                Game.show();
                 Chat.show();
             },
 
+            /**
+             * Get nickname
+             * @return string
+             */
             nick: function () {
                 return nick.value.trim();
             },
 
+            /**
+             * Get game name
+             * @return string
+             */
             game: function () {
                 return games.value;
             },
 
+            /**
+             * Set games list
+             * @param {string[]} list
+             */
             games: function (list) {
                 while (games.options.length) {
                     games.remove(0);
@@ -515,19 +554,50 @@ window.onload = (function () {
 
     })();
 
-    var Note = (function () {
+    var Game = (function () {
 
-        var container;
+        var container, //game container
+            match, //actual match
+            motor, //player's motor
+            ai; //ai timer
+
+        /**
+         * Run animations and game logic
+         */
+        function run() {
+            match.run();
+            Scene.render(match, motor);
+            requestAnimationFrame(run);
+        }
+
+        /**
+         * Start new match
+         */
+        function start() {
+            match = new Match();
+            motor = match.add(0, 100, Motor.UP);
+            match.add(0, -100, Motor.DOWN, true);
+            match.add(-100, 0, Motor.RIGHT, true);
+            match.add(100, 0, Motor.LEFT, true);
+            ai = setInterval(function () {
+                match.ai();
+            }, 25);
+            run();
+        }
 
         return {
 
+            /**
+             * Module init
+             */
             init: function () {
-                container = $("#note");
+                container = $("#game");
                 on(container, "click", function (e) {
                     var id = attr(e.target, "href");
                     switch (id) {
                         case "#start":
-                            Note.hide();
+                            Game.hide();
+                            start();
                             break;
                         case "#leave":
                             socket.emit("leave");
@@ -536,28 +606,39 @@ window.onload = (function () {
                     }
                     e.preventDefault();
                     console.log(id);
-                })
+                });
+                on(document.body, "keydown", function (e) {
+                    switch (e.keyCode) {
+                        case 37:
+                            motor.turn(Motor.LEFT);
+                            Scene.rotate(90);
+                            e.preventDefault();
+                            break;
+                        case 39:
+                            motor.turn(Motor.RIGHT);
+                            Scene.rotate(-90);
+                            e.preventDefault();
+                            break;
+                    }
+                });
             },
 
+            /**
+             * Show game
+             */
             show: function () {
                 attr(container, "class", "");
             },
 
+            /**
+             * Hide game
+             */
             hide: function () {
                 attr(container, "class", "hide");
             }
         };
 
     })();
-
-    /**
-     * Run animations and game logic
-     */
-    function anim() {
-        requestAnimationFrame(anim);
-        myMatch.run();
-        Scene.render(myMatch, myMotor);
-    }
 
     /**
      * Bind events
@@ -590,42 +671,18 @@ window.onload = (function () {
         socket.on("message", function (nick, text) {
             Chat.add(nick + ": " + text);
         });
-
-        on(document.body, "keydown", function (e) {
-            switch (e.keyCode) {
-                case 37:
-                    myMotor.turn(Motor.LEFT);
-                    Scene.rotate += 90;
-                    e.preventDefault();
-                    break;
-                case 39:
-                    myMotor.turn(Motor.RIGHT);
-                    Scene.rotate -= 90;
-                    e.preventDefault();
-                    break;
-            }
-        });
     }
 
     /**
      * App init
      */
     return function () {
-        myMatch = new Match();
-        myMotor = myMatch.add(0, 100, Motor.UP);
-        myMatch.add(0, -100, Motor.DOWN, true);
-        myMatch.add(-100, 0, Motor.RIGHT, true);
-        myMatch.add(100, 0, Motor.LEFT, true);
         Scene.init();
         Chat.init();
         Menu.init();
-        Note.init();
+        Game.init();
         socket = io();
         bind();
-        //anim();
-        setInterval(function () {
-            myMatch.ai();
-        }, 25);
     };
 
 })();
