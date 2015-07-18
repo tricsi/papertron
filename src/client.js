@@ -29,6 +29,19 @@ window.onload = (function () {
     }
 
     /**
+     * Attribute helper
+     * @param {Object} element
+     * @param {string} name
+     * @param {string} value
+     */
+    function attr(element, name, value) {
+        if (value !== undefined) {
+            element.setAttribute(name, value);
+        }
+        return element.getAttribute(name);
+    }
+
+    /**
      * Motor class
      * @param {number} x Coordinate
      * @param {number} y Coordinate
@@ -59,7 +72,7 @@ window.onload = (function () {
     /**
      * Add current coordinates to data array
      */
-    Motor.prototype.add = function() {
+    Motor.prototype.add = function () {
         this.data.unshift([this.x, this.y, this.vec, this.time]);
     };
 
@@ -67,7 +80,7 @@ window.onload = (function () {
      * Move motor to current direction
      * @param {number} toTime snapshot time
      */
-    Motor.prototype.move = function(toTime) {
+    Motor.prototype.move = function (toTime) {
         var lastTime = this.data[0][3],
             addTime = toTime - lastTime;
         this.x = this.data[0][0];
@@ -114,7 +127,7 @@ window.onload = (function () {
     /**
      * Go back to previous point
      */
-    Motor.prototype.back = function() {
+    Motor.prototype.back = function () {
         this.x = this.data[0][0];
         this.y = this.data[0][1];
         this.vec = this.data[0][2];
@@ -130,7 +143,7 @@ window.onload = (function () {
      * @param {number} y2
      * @returns {boolean}
      */
-    Motor.prototype.check = function(x1, y1, x2, y2) {
+    Motor.prototype.check = function (x1, y1, x2, y2) {
         var x3 = this.x,
             y3 = this.y,
             x4 = this.data[0][0],
@@ -169,7 +182,7 @@ window.onload = (function () {
      * @param {number} distance
      * @returns {boolean}
      */
-    Motor.prototype.wall = function(distance) {
+    Motor.prototype.wall = function (distance) {
         return this.x > distance || this.x < -distance || this.y > distance || this.y < -distance;
     };
 
@@ -187,7 +200,7 @@ window.onload = (function () {
     /**
      * Check and set next movement
      */
-    Bot.prototype.check = function() {
+    Bot.prototype.check = function () {
         var motor = this.motor,
             match = this.match,
             time = motor.time,
@@ -246,8 +259,7 @@ window.onload = (function () {
      * @param {Motor} motor
      * @returns {boolean}
      */
-    Match.prototype.check = function (motor)
-    {
+    Match.prototype.check = function (motor) {
         var result = motor.wall(this.distance);
         if (!result) {
             this.motors.forEach(function (other) {
@@ -294,8 +306,8 @@ window.onload = (function () {
     /**
      * Runs all robot checks
      */
-    Match.prototype.ai = function() {
-        this.bots.forEach(function(bot) {
+    Match.prototype.ai = function () {
+        this.bots.forEach(function (bot) {
             bot.check();
         });
     };
@@ -337,7 +349,7 @@ window.onload = (function () {
          * @param {Motor} motor
          */
         function render(match, me) {
-            container.style.transform = "rotateX(45deg) translateY(100px) scale(1) rotateZ(" + rotate + "deg)";
+            container.style.transform = "rotateX(45deg) rotateZ(" + rotate + "deg)";
             canvas.style.transform = "translate(" + (-me.x * 2) + "px," + (-me.y * 2) + "px)";
             ctx.save();
             ctx.clearRect(0, 0, width, height);
@@ -398,75 +410,46 @@ window.onload = (function () {
             texts, //chat messages
             room; //players list
 
-        /**
-         * Show chat
-         */
-        function show() {
-            container.className = "";
-        }
-
-        /**
-         * Hide chat
-         */
-        function hide() {
-            container.className = "hide";
-        }
-
-        /**
-         * Add chat message
-         * @param {string} message
-         */
-        function addMesage(message) {
-            var br = document.createElement("br");
-            texts.insertBefore(br, texts.firstChild);
-            texts.insertBefore(document.createTextNode(message), br);
-        }
-
-        /**
-         * Update room
-         * @param {string[]} list
-         */
-        function setRoom(list) {
-            room.innerHTML = "";
-            list.forEach(function (nick) {
-                room.appendChild(document.createTextNode(nick));
-                room.appendChild(document.createElement("br"));
-            });
-        }
-
-        /**
-         * Bind chat events
-         */
-        function bind() {
-            on(container, "submit", function (e) {
-                var value = text.value.trim(),
-                    nick = Menu.nick();
-                if (value !== "") {
-                    socket.emit("message", value);
-                    addMesage(nick + ": " + value);
-                }
-                text.value = "";
-                e.preventDefault();
-            });
-        }
-
-        /**
-         * Init chat
-         */
-        function init() {
-            container = $("form");
-            text = $("input", container);
-            texts = $("div.texts", container);
-            room = $("div.room", container);
-            bind();
-        }
-
         return {
-            init: init,
-            show: show,
-            hide: hide,
-            room: setRoom,
-            add: addMesage
+
+            init: function () {
+                container = $("#chat");
+                text = $("input", container);
+                texts = $(".texts", container);
+                room = $(".room", container);
+                on(container, "submit", function (e) {
+                    var value = text.value.trim(),
+                        nick = Menu.nick();
+                    if (value !== "") {
+                        socket.emit("message", value);
+                        Chat.add(nick + ": " + value);
+                    }
+                    text.value = "";
+                    e.preventDefault();
+                });
+            },
+
+            room: function (list) {
+                room.innerHTML = "";
+                list.forEach(function (nick) {
+                    room.appendChild(document.createTextNode(nick));
+                    room.appendChild(document.createElement("br"));
+                });
+            },
+
+            add: function (message) {
+                var br = document.createElement("br");
+                texts.insertBefore(br, texts.firstChild);
+                texts.insertBefore(document.createTextNode(message), br);
+            },
+
+            show: function () {
+                attr(container, "class", "");
+            },
+
+            hide: function () {
+                attr(container, "class", "hide");
+            }
         };
 
     })();
@@ -477,110 +460,92 @@ window.onload = (function () {
     var Menu = (function () {
 
         var container, //menu container
-            events, //menu events
             games, //game list
-            nick, //nickname
-            navs; //menu navigations
-
-        /**
-         * Add menu event
-         * @param {string} event
-         * @callback callback
-         */
-        function addEvent(event, callback) {
-            events[event] = callback;
-        }
-
-        /**
-         * Show menu
-         */
-        function show() {
-            container.className = "";
-            Chat.hide();
-        }
-
-        /**
-         * Hide menu
-         */
-        function hide() {
-            container.className = "hide";
-            Chat.show();
-        }
-
-        /**
-         * Get nickname
-         */
-        function getNick() {
-            return nick.value.trim();
-        }
-
-        /**
-         * Get game name
-         */
-        function getGame() {
-            return games.value;
-        }
-
-        /**
-         * Update game list
-         * @param {string[]} list
-         */
-        function setGames(list) {
-            while (games.options.length) {
-                games.remove(0);
-            }
-            games.add(new Option("NEW GAME", "", true));
-            list.forEach(function (game) {
-                games.add(new Option(game + "'s game", game));
-            });
-        }
-
-        /**
-         * Bind menu events
-         */
-        function bind() {
-            on(container, "click", function (e) {
-                var i,
-                    id,
-                    item;
-                if (e.target.tagName === "A") {
-                    id = e.target.getAttribute("href").substr(1);
-                    for (i = 0; i < navs.length; i++) {
-                        item = navs.item(i);
-                        if (item.id !== id) {
-                            item.className = "hide";
-                        } else {
-                            item.className = "";
-                        }
-                    }
-                }
-                if (id in events) {
-                    events[id].call(Menu);
-                }
-                e.preventDefault();
-            });
-        }
-
-        /**
-         * Module init
-         */
-        function init() {
-            container = $("#menu");
-            events = {};
-            games = $("select", container);
-            nick = $("input", container);
-            navs = container.getElementsByTagName("nav");
-            bind();
-        }
+            nick; //nickname
 
         return {
-            init: init,
-            show: show,
-            hide: hide,
-            on: addEvent,
-            nick: getNick,
-            game: getGame,
-            games: setGames
+
+            init: function () {
+                container = $("#menu");
+                games = $("select", container);
+                nick = $("input", container);
+                on(container, "click", function (e) {
+                    var id = attr(e.target, "href");
+                    switch (id) {
+                        case "#join":
+                            socket.emit("join", Menu.nick(), Menu.game());
+                            break;
+                    }
+                    e.preventDefault();
+                    console.log(id);
+                })
+            },
+
+            show: function () {
+                attr(container, "class", "");
+                Note.hide();
+                Chat.hide();
+            },
+
+            hide: function () {
+                attr(container, "class", "hide");
+                Note.show();
+                Chat.show();
+            },
+
+            nick: function () {
+                return nick.value.trim();
+            },
+
+            game: function () {
+                return games.value;
+            },
+
+            games: function (list) {
+                while (games.options.length) {
+                    games.remove(0);
+                }
+                games.add(new Option("NEW GAME", ""));
+                list.forEach(function (game) {
+                    games.add(new Option(game + "'s game", game));
+                });
+                games.selectedIndex = 0;
+            }
+        };
+
+    })();
+
+    var Note = (function () {
+
+        var container;
+
+        return {
+
+            init: function () {
+                container = $("#note");
+                on(container, "click", function (e) {
+                    var id = attr(e.target, "href");
+                    switch (id) {
+                        case "#start":
+                            Note.hide();
+                            break;
+                        case "#leave":
+                            socket.emit("leave");
+                            Menu.show();
+                            break;
+                    }
+                    e.preventDefault();
+                    console.log(id);
+                })
+            },
+
+            show: function () {
+                attr(container, "class", "");
+            },
+
+            hide: function () {
+                attr(container, "class", "hide");
+            }
         };
 
     })();
@@ -598,10 +563,6 @@ window.onload = (function () {
      * Bind events
      */
     function bind() {
-
-        Menu.on("join", function () {
-            socket.emit("join", Menu.nick(), Menu.game());
-        });
 
         socket.on("connect", function () {
             socket.emit("games");
@@ -658,6 +619,7 @@ window.onload = (function () {
         Scene.init();
         Chat.init();
         Menu.init();
+        Note.init();
         socket = io();
         bind();
         //anim();

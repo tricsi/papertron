@@ -9,28 +9,27 @@
 <body>
 
 <div id="container">
-<canvas width="500" height="500"></canvas>
+<canvas width="500" height="500" style="transform:rotateX(45deg)"></canvas>
 </div>
 
-<form class="hide">
-<div class="room"></div>
+<form id="chat" class="hide">
 <input maxlength="50" placeholder="Chat">
 <input type="submit" class="hide">
+<div class="room"></div>
 <div class="texts"></div>
 </form>
 
 <div id="note" class="hide">
 <h1>GAME</h1>
-<a class="btn">Start</a>
+<a href="#start" class="btn">Start</a>
+<a href="#leave" class="btn">Leave</a>
 </div>
 
 <div id="menu">
-<nav id="main">
 <h1>PAPERTRON</h1>
-<label><input placeholder="Your name" size="10" maxlength="10"></label><br>
+<input placeholder="Your name" size="10" maxlength="10"><br>
 <select multiple></select><br>
 <a href="#join" class="btn">Join</a>
-</nav>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>

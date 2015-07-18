@@ -21,32 +21,10 @@ h1 {
 	line-height: 100px;
 }
 
-form {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	line-height: 20px;
-
-	input {
-		padding: 5px;
-	}
-
-	div {
-		height: 100px;
-		padding: 5px;
-		overflow: hidden;
-	}
-
-	div.room {
-		float: right;
-		text-align: right;
-	}
-}
-
 input, select {
 	color: #000;
 	font-size: 28px;
+	text-align: center;
 }
 
 input {
@@ -97,24 +75,48 @@ a.btn:hover {
 }
 
 #menu,
-#note {
+#note,
+#chat {
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
 	bottom: 0;
-	text-align: center;
 	overflow: auto;
+}
+
+#menu,
+#note {
+	text-align: center;
+	line-height: 60px;
 }
 
 #menu {
 	background: rgba(255, 255, 255, .7);
+}
 
-	input, select {
-		text-align: center;
+#note {
+	top: 30px;
+}
+
+#chat {
+	line-height: 20px;
+
+	input {
+		width: 100%;
+		height: 30px;
+		text-align: left;
 	}
 
-	nav {
-		line-height: 60px;
+	div {
+		width: 50%;
+		height: 100px;
+		padding: 5px;
+	}
+
+	div.room {
+		float: right;
+		text-align: right;
 	}
 }
+

@@ -18,13 +18,14 @@ module.exports = (function() {
             if (game) {
                 user.game = null;
                 players[game].splice(players[game].indexOf(nick), 1);
+                console.log(nick + " leave " + game);
                 if (players[game].length === 0) {
                     games.splice(games.indexOf(game), 1);
                     delete players[game];
+                    console.log("room deleted: " + game);
                 } else {
                     socket.to(game).emit("left", nick, players[game]);
                 }
-                console.log(nick + " leave " + game);
             }
         }
 
@@ -42,6 +43,7 @@ module.exports = (function() {
                 if (!players[game]) {
                     players[game] = [];
                     games.push(game);
+                    console.log("new room: " + game);
                 }
                 players[game].push(nick);
                 socket.emit("join", players[game]);
