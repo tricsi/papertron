@@ -5,6 +5,7 @@
     "mocha": true
   },
   "globals": {
-    "io": true
+    "io": true,
+    "jsfxr": true
   }
 }

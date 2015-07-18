@@ -1,17 +1,23 @@
 "use strict";
 module.exports = (function() {
 
-    var io = require("socket.io")(),
-        games = [],
-        players = {};
+    var io = require("socket.io")(), //server
+        games = [], //game list
+        players = {}; //game players
 
     io.on("connect", function (socket) {
 
+        /**
+         * User object
+         */
         var user = {
             nick: "Player",
             game: null
         };
 
+        /**
+         * Leave game
+         */
         function leave() {
             var nick = user.nick,
                 game = user.game;
@@ -29,11 +35,25 @@ module.exports = (function() {
             }
         }
 
+        /**
+         * Client disconnects
+         */
+        socket.on("disconnect", function () {
+            leave();
+            console.log(user.nick + " disconnected");
+        });
+
+        /**
+         * List games
+         */
         socket.on("games", function () {
             socket.emit("games", games);
             console.log(user.nick + " get games");
         });
 
+        /**
+         * Player join or create game
+         */
         socket.on("join", function (nick, game) {
             game = game || nick;
             if (nick && (!players[game] || players[game].indexOf(nick) === -1)) {
@@ -52,11 +72,17 @@ module.exports = (function() {
             }
         });
 
+        /**
+         * Player leave
+         */
         socket.on("leave", function () {
             socket.leave(user.game);
             leave();
         });
 
+        /**
+         * Chat message
+         */
         socket.on("message", function (message) {
             if (user.game) {
                 socket.to(user.game).emit("message", user.nick, message);
@@ -64,9 +90,26 @@ module.exports = (function() {
             }
         });
 
-        socket.on("disconnect", function () {
-            leave();
-            console.log(user.nick + " disconnected");
+        /**
+         * Player start game
+         */
+        socket.on("start", function (bots) {
+            if (user.game) {
+                socket.to(user.game).emit("start", bots);
+                console.log(user.nick + " started " + user.game);
+            }
+        });
+
+        /**
+         * Player turn
+         */
+        socket.on("turn", function (to, time) {
+            var id;
+            if (user.game) {
+                id = players[user.game].indexOf(user.nick);
+                socket.to(user.game).emit("turn", to, time, id);
+                console.log(user.nick + " turn " + to + " at " + time);
+            }
         });
 
         console.log(user.nick + " connected");

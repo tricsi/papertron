@@ -315,6 +315,7 @@ window.onload = (function () {
      */
     Match.prototype.run = function () {
         var time = this.getTime(),
+            result = false,
             motor,
             i;
         if (time > 0) {
@@ -323,9 +324,13 @@ window.onload = (function () {
                 if (!motor.stuck) {
                     motor.move(time);
                     motor.stuck = this.check(motor);
+                    if (motor.stuck) {
+                        result = true;
+                    }
                 }
             }
         }
+        return result;
     };
 
     /**
@@ -347,7 +352,7 @@ window.onload = (function () {
          * @param {Motor} motor
          */
         function render(match, me) {
-            container.style.transform = "rotateX(45deg) translateY(100px) scale(2) rotateZ(" + rotate + "deg)";
+            container.style.transform = "rotateX(45deg) translateY(100px) scale(1.5) rotateZ(" + rotate + "deg)";
             canvas.style.transform = "translate(" + (-me.x * 2) + "px," + (-me.y * 2) + "px)";
             ctx.save();
             ctx.clearRect(0, 0, width, height);
@@ -392,8 +397,8 @@ window.onload = (function () {
                 rotate = 0;
             },
 
-            rotate: function(value) {
-                rotate += value;
+            rotate: function (value, reset) {
+                rotate = reset ? value : rotate + value;
             },
 
             render: render
@@ -443,6 +448,7 @@ window.onload = (function () {
                     room.appendChild(document.createTextNode(nick));
                     room.appendChild(document.createElement("br"));
                 });
+                Game.players = list;
             },
 
             /**
@@ -497,7 +503,6 @@ window.onload = (function () {
                             socket.emit("join", Menu.nick(), Menu.game());
                             break;
                     }
-                    e.preventDefault();
                     console.log(id);
                 })
             },
@@ -506,6 +511,7 @@ window.onload = (function () {
              * Show menu
              */
             show: function () {
+                socket.emit("games");
                 attr(container, "class", "");
                 Game.hide();
                 Chat.hide();
@@ -554,6 +560,26 @@ window.onload = (function () {
 
     })();
 
+    var Sfx = (function () {
+
+        var sounds;
+
+        return {
+            init: function () {
+                sounds = {
+                    sel: new Audio(jsfxr([0, , 0.1165, , 0.1398, 0.2011, , , , , , , , 0.0508, , , , , 1, , , 0.1, , 0.5])),
+                    exp: new Audio(jsfxr([3, , 0.1608, 0.5877, 0.4919, 0.1058, , , , , , , , , , 0.7842, -0.1553, -0.2125, 1, , , , , 0.5])),
+                    btn: new Audio(jsfxr([0, , 0.0373, 0.3316, 0.1534, 0.785, , , , , , , , , , , , , 1, , , , , 0.5])),
+                    turn: new Audio(jsfxr([1, , 0.18, , 0.1, 0.3465, , 0.2847, , , , , , 0.4183, , , , , 0.5053, , , , , 0.5]))
+                };
+            },
+            play: function (name) {
+                sounds[name].play();
+            }
+        };
+
+    })();
+
     var Game = (function () {
 
         var container, //game container
@@ -565,24 +591,11 @@ window.onload = (function () {
          * Run animations and game logic
          */
         function run() {
-            match.run();
+            if (match.run()) {
+                Sfx.play("exp");
+            }
             Scene.render(match, motor);
             requestAnimationFrame(run);
-        }
-
-        /**
-         * Start new match
-         */
-        function start() {
-            match = new Match();
-            motor = match.add(0, 100, Motor.UP);
-            match.add(0, -100, Motor.DOWN, true);
-            match.add(-100, 0, Motor.RIGHT, true);
-            match.add(100, 0, Motor.LEFT, true);
-            ai = setInterval(function () {
-                match.ai();
-            }, 25);
-            run();
         }
 
         return {
@@ -596,31 +609,88 @@ window.onload = (function () {
                     var id = attr(e.target, "href");
                     switch (id) {
                         case "#start":
-                            Game.hide();
-                            start();
+                            Game.start(0, true);
                             break;
                         case "#leave":
                             socket.emit("leave");
                             Menu.show();
                             break;
                     }
-                    e.preventDefault();
                     console.log(id);
                 });
                 on(document.body, "keydown", function (e) {
                     switch (e.keyCode) {
                         case 37:
-                            motor.turn(Motor.LEFT);
-                            Scene.rotate(90);
-                            e.preventDefault();
+                            if (Game.turn(Motor.LEFT)) {
+                                Scene.rotate(90);
+                            }
                             break;
                         case 39:
-                            motor.turn(Motor.RIGHT);
-                            Scene.rotate(-90);
-                            e.preventDefault();
+                            if (Game.turn(Motor.RIGHT)) {
+                                Scene.rotate(-90);
+                            }
                             break;
                     }
                 });
+            },
+
+            players: [],
+
+            /**
+             * Start new match
+             */
+            start: function (bots, server) {
+                var me = Menu.nick(),
+                    pos = [
+                        [0, 100, Motor.UP],
+                        [0, -100, Motor.DOWN],
+                        [-100, 0, Motor.RIGHT],
+                        [100, 0, Motor.LEFT],
+                    ];
+
+                match = new Match();
+
+                Game.players.forEach(function (nick, i) {
+                    var x = pos[i][0],
+                        y = pos[i][1],
+                        v = pos[i][2],
+                        player = match.add(x, y, v);
+                    if (nick === me) {
+                        Scene.rotate(v * -90, true)
+                        motor = player;
+                    }
+                });
+
+                if (server) {
+                    socket.emit("start", bots);
+                    ai = setInterval(function () {
+                        match.ai();
+                    }, 25);
+                }
+                run();
+
+                Game.hide();
+            },
+
+            /**
+             * Turn motor
+             */
+            turn: function (to, time, id) {
+                var player = match.motors[id] || motor;
+                time = time || match.getTime();
+                if (!player || time < 1) {
+                    return false;
+                }
+                if (id === undefined) {
+                    if (player.stuck) {
+                        return false;
+                    }
+                    socket.emit("turn", to, time);
+                }
+                player.move(time);
+                player.turn(to);
+                Sfx.play("turn");
+                return true;
             },
 
             /**
@@ -671,12 +741,33 @@ window.onload = (function () {
         socket.on("message", function (nick, text) {
             Chat.add(nick + ": " + text);
         });
+
+        socket.on("start", function (bots) {
+            Game.start(bots, false);
+        });
+
+        socket.on("turn", function (to, time, id) {
+            Game.turn(to, time, id);
+        });
+
+        on(document.body, "click", function (e) {
+            switch (e.target.tagName) {
+                case "A":
+                    Sfx.play("btn");
+                    break;
+                case "INPUT":
+                case "OPTION":
+                    Sfx.play("sel");
+                    break;
+            }
+        });
     }
 
     /**
      * App init
      */
     return function () {
+        Sfx.init();
         Scene.init();
         Chat.init();
         Menu.init();
