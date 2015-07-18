@@ -233,6 +233,7 @@ window.onload = (function () {
         this.start = new Date().getTime() + 2000; // Start time
         this.motors = []; // Motors
         this.bots = []; // Robots
+        this.win = false;
     }
 
     /**
@@ -316,18 +317,29 @@ window.onload = (function () {
     Match.prototype.run = function () {
         var time = this.getTime(),
             result = false,
+            count = 0,
+            winner,
             motor,
             i;
         if (time > 0) {
             for (i = 0; i < this.motors.length; i++) {
                 motor = this.motors[i];
-                if (!motor.stuck) {
+                if (motor.stuck) {
+                    count++;
+                } else {
                     motor.move(time);
-                    motor.stuck = this.check(motor);
-                    if (motor.stuck) {
+                    if (this.check(motor)) {
+                        motor.stuck = time;
                         result = true;
+                        count++;
+                    } else {
+                        winner = i;
                     }
                 }
+            }
+            if (count >= i - 1 && count > 0) {
+                this.win = winner || 0;
+                console.log("winner " + this.win);
             }
         }
         return result;
@@ -521,8 +533,9 @@ window.onload = (function () {
              * Hide menu
              */
             hide: function () {
+                var game = Menu.game() || Menu.nick();
                 attr(container, "class", "hide");
-                Game.show();
+                Game.show(game + "'s game");
                 Chat.show();
             },
 
@@ -567,7 +580,6 @@ window.onload = (function () {
         return {
             init: function () {
                 sounds = {
-                    sel: new Audio(jsfxr([0, , 0.1165, , 0.1398, 0.2011, , , , , , , , 0.0508, , , , , 1, , , 0.1, , 0.5])),
                     exp: new Audio(jsfxr([3, , 0.1608, 0.5877, 0.4919, 0.1058, , , , , , , , , , 0.7842, -0.1553, -0.2125, 1, , , , , 0.5])),
                     btn: new Audio(jsfxr([0, , 0.0373, 0.3316, 0.1534, 0.785, , , , , , , , , , , , , 1, , , , , 0.5])),
                     turn: new Audio(jsfxr([1, , 0.18, , 0.1, 0.3465, , 0.2847, , , , , , 0.4183, , , , , 0.5053, , , , , 0.5]))
@@ -595,7 +607,12 @@ window.onload = (function () {
                 Sfx.play("exp");
             }
             Scene.render(match, motor);
-            requestAnimationFrame(run);
+            if (match.win === false) {
+                requestAnimationFrame(run);
+            } else {
+                var winner = Game.players[match.win];
+                Game.show(winner + " win!");
+            }
         }
 
         return {
@@ -634,6 +651,9 @@ window.onload = (function () {
                 });
             },
 
+            /**
+             * Player names
+             */
             players: [],
 
             /**
@@ -676,7 +696,11 @@ window.onload = (function () {
              * Turn motor
              */
             turn: function (to, time, id) {
-                var player = match.motors[id] || motor;
+                var player;
+                if (!match || match.win !== false) {
+                    return false;
+                }
+                player = match.motors[id] || motor;
                 time = time || match.getTime();
                 if (!player || time < 1) {
                     return false;
@@ -696,7 +720,8 @@ window.onload = (function () {
             /**
              * Show game
              */
-            show: function () {
+            show: function (title) {
+                $("h1", container).innerHTML = title;
                 attr(container, "class", "");
             },
 
@@ -754,10 +779,6 @@ window.onload = (function () {
             switch (e.target.tagName) {
                 case "A":
                     Sfx.play("btn");
-                    break;
-                case "INPUT":
-                case "OPTION":
-                    Sfx.play("sel");
                     break;
             }
         });
