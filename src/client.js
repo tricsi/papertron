@@ -766,8 +766,6 @@ window.onload = (function () {
                         return false;
                     }
                     emit("turn", to, time, id);
-                } else {
-                    player.stuck = false;
                 }
                 player.move(time);
                 player.turn(to);
