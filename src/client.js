@@ -1,3 +1,5 @@
+/* global io */
+/* global jsfxr */
 /**
  * Client application
  */
@@ -42,6 +44,15 @@ window.onload = (function () {
             element.setAttribute(name, value);
         }
         return element.getAttribute(name);
+    }
+
+    /**
+     * Send network message
+     */
+    function emit() {
+        if (socket) {
+            socket.emit.apply(socket, arguments);
+        }
     }
 
     /**
@@ -355,7 +366,6 @@ window.onload = (function () {
             }
             if (count >= i - 1 && count > 0) {
                 this.win = winner || 0;
-                console.log("winner " + this.win);
             }
         }
         return result;
@@ -380,7 +390,7 @@ window.onload = (function () {
          * @param {Motor} motor
          */
         function render(match, me) {
-            container.style.transform = "rotateX(45deg) translateY(100px) scale(1.5) rotateZ(" + rotate + "deg)";
+            container.style.transform = "rotateX(45deg) rotateZ(" + rotate + "deg)";
             canvas.style.transform = "translate(" + (-me.x * 2) + "px," + (-me.y * 2) + "px)";
             ctx.save();
             ctx.clearRect(0, 0, width, height);
@@ -458,7 +468,7 @@ window.onload = (function () {
                     var value = text.value.trim(),
                         nick = Menu.nick();
                     if (value !== "") {
-                        socket.emit("message", value);
+                        emit("message", value);
                         Chat.add(nick + ": " + value);
                     }
                     text.value = "";
@@ -513,7 +523,8 @@ window.onload = (function () {
 
         var container, //menu container
             games, //game list
-            nick; //nickname
+            nick, //nickname
+            ping;
 
         return {
 
@@ -528,18 +539,20 @@ window.onload = (function () {
                     var id = attr(e.target, "href");
                     switch (id) {
                         case "#join":
-                            socket.emit("join", Menu.nick(), Menu.game());
+                            emit("join", Menu.nick(), Menu.game());
                             break;
                     }
-                    console.log(id);
                 });
+                ping = setInterval(function() {
+                    emit("games");
+                }, 3000);
             },
 
             /**
              * Show menu
              */
             show: function () {
-                socket.emit("games");
+                emit("games");
                 attr(container, "class", "");
                 Game.hide();
                 Chat.hide();
@@ -549,9 +562,8 @@ window.onload = (function () {
              * Hide menu
              */
             hide: function () {
-                var game = Menu.game() || Menu.nick();
                 attr(container, "class", "hide");
-                Game.show(game + "'s game");
+                Game.show("New game");
                 Chat.show();
             },
 
@@ -576,13 +588,17 @@ window.onload = (function () {
              * @param {string[]} list
              */
             games: function (list) {
+                var selected = games.value;
+                games.selectedIndex = 0;
                 while (games.options.length > 1) {
                     games.remove(1);
                 }
-                list.forEach(function (game) {
+                list.forEach(function (game, index) {
                     games.add(new Option(game + "'s game", game));
+                    if (game = selected) {
+                        games.selectedIndex = index + 1;
+                    }
                 });
-                games.selectedIndex = 0;
             }
         };
 
@@ -599,6 +615,13 @@ window.onload = (function () {
                     btn: new Audio(jsfxr([0, , 0.0373, 0.3316, 0.1534, 0.785, , , , , , , , , , , , , 1, , , , , 0.5])),
                     turn: new Audio(jsfxr([1, , 0.18, , 0.1, 0.3465, , 0.2847, , , , , , 0.4183, , , , , 0.5053, , , , , 0.5]))
                 };
+                on(document.body, "click", function (e) {
+                    switch (e.target.tagName) {
+                        case "A":
+                            Sfx.play("btn");
+                            break;
+                    }
+                });
             },
             play: function (name) {
                 sounds[name].play();
@@ -648,11 +671,10 @@ window.onload = (function () {
                             Game.start(parseInt(bots.value), true);
                             break;
                         case "#leave":
-                            socket.emit("leave");
+                            emit("leave");
                             Menu.show();
                             break;
                     }
-                    console.log(id);
                 });
                 on(document.body, "keydown", function (e) {
                     switch (e.keyCode) {
@@ -681,7 +703,7 @@ window.onload = (function () {
             start: function (botNum, server) {
                 var i,
                     j = 0,
-                    nick = Menu.nick(),
+                    nick = Menu.nick() || Game.players[0],
                     player,
                     pos = [
                         [0, 100, Motor.UP],
@@ -710,10 +732,10 @@ window.onload = (function () {
 
                 //start server
                 if (server) {
-                    socket.emit("start", botNum);
+                    emit("start", botNum);
                     ai = setInterval(function () {
                         match.ai(function(to, time, id) {
-                            socket.emit("turn", to, time, id);
+                            emit("turn", to, time, id);
                         });
                     }, 25);
                 }
@@ -738,7 +760,7 @@ window.onload = (function () {
                     if (player.stuck) {
                         return false;
                     }
-                    socket.emit("turn", to, time, id);
+                    emit("turn", to, time, id);
                 }
                 player.move(time);
                 player.turn(to);
@@ -770,7 +792,7 @@ window.onload = (function () {
     function bind() {
 
         socket.on("connect", function () {
-            socket.emit("games");
+            emit("games");
         });
 
         socket.on("games", function (list) {
@@ -803,14 +825,6 @@ window.onload = (function () {
         socket.on("turn", function (to, time, id) {
             Game.turn(to, time, id);
         });
-
-        on(document.body, "click", function (e) {
-            switch (e.target.tagName) {
-                case "A":
-                    Sfx.play("btn");
-                    break;
-            }
-        });
     }
 
     /**
@@ -822,8 +836,14 @@ window.onload = (function () {
         Chat.init();
         Menu.init();
         Game.init();
-        socket = io();
-        bind();
+        if (typeof(io) !== "undefined") {
+            socket = io();
+            bind();
+        } else {
+            Menu.hide();
+            Chat.hide();
+            Game.players = ["Player"];
+        }
     };
 
 })();
