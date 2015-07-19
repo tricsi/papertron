@@ -96,17 +96,20 @@ module.exports = (function() {
         socket.on("start", function (bots) {
             if (user.game) {
                 socket.to(user.game).emit("start", bots);
-                console.log(user.nick + " started " + user.game);
+                console.log(user.nick + " started " + user.game + " with bot number " + bots);
             }
         });
 
         /**
          * Player turn
          */
-        socket.on("turn", function (to, time) {
-            var id;
+        socket.on("turn", function (to, time, id) {
+            var list;
             if (user.game) {
-                id = players[user.game].indexOf(user.nick);
+                list = players[user.game];
+                if (id < list.length) {
+                    id = list.indexOf(user.nick);
+                }
                 socket.to(user.game).emit("turn", to, time, id);
                 console.log(user.nick + " turn " + to + " at " + time);
             }

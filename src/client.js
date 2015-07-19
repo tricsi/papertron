@@ -208,24 +208,29 @@ window.onload = (function () {
             match = this.match,
             time = motor.time,
             dir = Math.random() >= .5,
-            toTime = time + 10 + Math.round(Math.random() * 10);
+            toTime = time + 10 + Math.round(Math.random() * 10),
+            result = false;
         if (!motor.stuck) {
             motor.move(toTime);
             if (match.check(motor)) {
+                result = dir ? Motor.RIGHT : Motor.LEFT;
                 motor.move(time);
-                motor.turn(dir ? Motor.RIGHT : Motor.LEFT);
+                motor.turn(result);
                 motor.move(toTime);
                 if (match.check(motor)) {
+                    result = dir ? Motor.LEFT : Motor.RIGHT;
                     motor.back();
-                    motor.turn(dir ? Motor.LEFT : Motor.RIGHT);
+                    motor.turn(result);
                     motor.move(toTime);
                     if (match.check(motor)) {
                         motor.back();
+                        result = false;
                     }
                 }
             }
             motor.move(time);
         }
+        return result;
     };
 
     /**
@@ -309,10 +314,16 @@ window.onload = (function () {
 
     /**
      * Runs all robot checks
+     * @callback callback
      */
-    Match.prototype.ai = function () {
+    Match.prototype.ai = function (callback) {
+        var result,
+            time = this.getTime();
         this.bots.forEach(function (bot) {
-            bot.check();
+            result = bot.check();
+            if (result) {
+                callback.call(this, result, time, bot.motor.id);
+            }
         });
     };
 
@@ -565,10 +576,9 @@ window.onload = (function () {
              * @param {string[]} list
              */
             games: function (list) {
-                while (games.options.length) {
-                    games.remove(0);
+                while (games.options.length > 1) {
+                    games.remove(1);
                 }
-                games.add(new Option("NEW GAME", ""));
                 list.forEach(function (game) {
                     games.add(new Option(game + "'s game", game));
                 });
@@ -600,6 +610,7 @@ window.onload = (function () {
     Game = (function () {
 
         var container, //game container
+            bots, //robot select
             match, //actual match
             motor, //player's motor
             ai; //ai timer
@@ -615,7 +626,9 @@ window.onload = (function () {
             if (match.win === false) {
                 requestAnimationFrame(run);
             } else {
-                Game.show(Game.players[match.win] + " win!");
+                Game.show(Game.players.length > match.win
+                    ? Game.players[match.win] + " win!"
+                    : "Robot wins!");
                 clearInterval(ai);
             }
         }
@@ -627,11 +640,12 @@ window.onload = (function () {
              */
             init: function () {
                 container = $("#game");
+                bots = $("select", container);
                 on(container, "click", function (e) {
                     var id = attr(e.target, "href");
                     switch (id) {
                         case "#start":
-                            Game.start(0, true);
+                            Game.start(parseInt(bots.value), true);
                             break;
                         case "#leave":
                             socket.emit("leave");
@@ -664,8 +678,11 @@ window.onload = (function () {
             /**
              * Start new match
              */
-            start: function (bots, server) {
-                var me = Menu.nick(),
+            start: function (botNum, server) {
+                var i,
+                    j = 0,
+                    nick = Menu.nick(),
+                    player,
                     pos = [
                         [0, 100, Motor.UP],
                         [0, -100, Motor.DOWN],
@@ -675,25 +692,32 @@ window.onload = (function () {
 
                 match = new Match();
 
-                Game.players.forEach(function (nick, i) {
-                    var x = pos[i][0],
-                        y = pos[i][1],
-                        v = pos[i][2],
-                        player = match.add(x, y, v);
-                    if (nick === me) {
-                        Scene.rotate(v * -90, true);
+                //add players
+                for (i = 0; i < Game.players.length; i++) {
+                    player = match.add(pos[i][0], pos[i][1], pos[i][2]);
+                    if (Game.players[i] === nick) {
+                        Scene.rotate(pos[i][2] * -90, true);
                         motor = player;
                     }
-                });
+                }
 
+                //add bots
+                while (i < pos.length && j < botNum) {
+                    match.add(pos[i][0], pos[i][1], pos[i][2], true);
+                    i++;
+                    j++;
+                }
+
+                //start server
                 if (server) {
-                    socket.emit("start", bots);
+                    socket.emit("start", botNum);
                     ai = setInterval(function () {
-                        match.ai();
+                        match.ai(function(to, time, id) {
+                            socket.emit("turn", to, time, id);
+                        });
                     }, 25);
                 }
                 run();
-
                 Game.hide();
             },
 
@@ -714,7 +738,7 @@ window.onload = (function () {
                     if (player.stuck) {
                         return false;
                     }
-                    socket.emit("turn", to, time);
+                    socket.emit("turn", to, time, id);
                 }
                 player.move(time);
                 player.turn(to);
