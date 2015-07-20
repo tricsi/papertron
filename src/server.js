@@ -1,5 +1,3 @@
-"use strict";
-
 var io = require("socket.io")(), //server
     games = [], //game list
     players = {}; //game players

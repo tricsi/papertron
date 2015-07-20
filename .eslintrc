@@ -9,6 +9,7 @@
     "jsfxr": true
   },
   "rules": {
+    "strict": 0,
     "no-sparse-arrays": 0
   }
 }

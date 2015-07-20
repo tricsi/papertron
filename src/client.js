@@ -1,10 +1,5 @@
 /* global io */
 /* global jsfxr */
-"use strict";
-
-/**
-* Client application
-*/
 var socket, //server connection
     Scene, //Game scene module
     Sfx, //Sound module
@@ -477,7 +472,7 @@ Game = (function () {
                     match.ai(function (to, time, id) {
                         emit("turn", to, time, id);
                     });
-                }, 25);
+                }, 100);
             }
             run();
             Game.hide();

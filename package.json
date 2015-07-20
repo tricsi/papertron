@@ -17,7 +17,7 @@
   },
   "scripts": {
     "start": "node ./app.js",
-    "lint": "eslint .",
-    "test": "npm run-script lint && mocha --reporter spec"
+    "lint": "eslint src/",
+    "test": "npm run-script lint && mocha test/ --reporter spec"
   }
 }

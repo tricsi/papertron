@@ -9,7 +9,7 @@ module.exports = function (grunt) {
 
 		uglify: {
 			options: {
-				wrap: true,
+				enclose: {},
 				compress: {
 					drop_console: true
 				}
