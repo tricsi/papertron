@@ -2,10 +2,16 @@ describe("game", function() {
     "use strict";
 
     var assert = require("assert"),
-        game = require("../src/game.js");
+        fs = require("fs"),
+        vm = require("vm");
 
     var motor,
-        match;
+        match,
+        game = vm.createContext({
+            window: {}
+        });
+
+    vm.runInContext(fs.readFileSync("src/client.js").toString(), game);
 
     describe("Motor", function() {
 
