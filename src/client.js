@@ -244,7 +244,7 @@ Bot.prototype.check = function () {
  */
 function Match() {
     this.timer = 40; // Snapshot time
-    this.distance = 125; // Wall distance
+    this.distance = 100; // Wall distance
     this.start = new Date().getTime() + 2000; // Start time
     this.motors = []; // Motors
     this.bots = []; // Robots
@@ -441,10 +441,10 @@ Game = (function () {
                 nick = Menu.nick() || Game.players[0],
                 player,
                 pos = [
-                    [0, 100, Motor.UP],
-                    [0, -100, Motor.DOWN],
-                    [-100, 0, Motor.RIGHT],
-                    [100, 0, Motor.LEFT]
+                    [0, 50, Motor.UP],
+                    [0, -50, Motor.DOWN],
+                    [-50, 0, Motor.RIGHT],
+                    [50, 0, Motor.LEFT]
                 ];
 
             match = new Match();
@@ -472,7 +472,7 @@ Game = (function () {
                     match.ai(function (to, time, id) {
                         emit("turn", to, time, id);
                     });
-                }, 100);
+                }, 60);
             }
             run();
             Game.hide();
@@ -540,8 +540,8 @@ Scene = (function () {
      * @param {Motor} motor
      */
     function render(match, me) {
-        container.style.transform = "rotateX(45deg) rotateZ(" + rotate + "deg)";
-        canvas.style.transform = "translate(" + (-me.x * 2) + "px," + (-me.y * 2) + "px)";
+        container.style.transform = "rotateX(45deg) scale(2) rotateZ(" + rotate + "deg)";
+        canvas.style.transform = "translate(" + (-me.x) + "px," + (-me.y) + "px)";
         ctx.save();
         ctx.clearRect(0, 0, width, height);
         ctx.translate(Math.round(width / 2), Math.round(height / 2));
