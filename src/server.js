@@ -1,5 +1,6 @@
+//var logic = require("./game.js"); //game.logic
+
 var io = require("socket.io")(), //server
-    logic = require("./game.js"), //game.logic
     games = [], //game list
     players = {}; //game players
 
@@ -9,6 +10,19 @@ io.on("connect", function (socket) {
     socket.game = null;
 
     /**
+     * Game players nick
+     */
+    function nicks(game) {
+        var list = [];
+        if (players[game]) {
+            players[game].forEach(function(client) {
+                list.push(client.nick);
+            });
+        }
+        return list;
+    }
+
+    /**
      * Leave game
      */
     function leave() {
@@ -16,14 +30,14 @@ io.on("connect", function (socket) {
             game = socket.game;
         if (game) {
             socket.game = null;
-            players[game].splice(players[game].indexOf(nick), 1);
+            players[game].splice(players[game].indexOf(socket), 1);
             console.log(nick + " leave " + game);
             if (players[game].length === 0) {
                 games.splice(games.indexOf(game), 1);
                 delete players[game];
                 console.log("room deleted: " + game);
             } else {
-                socket.to(game).emit("left", nick, players[game]);
+                socket.to(game).emit("left", nick, nicks(game));
             }
         }
     }
@@ -48,8 +62,9 @@ io.on("connect", function (socket) {
      * Player join or create game
      */
     socket.on("join", function (nick, game) {
+        var list;
         game = game || nick;
-        if (nick && (!players[game] || players[game].indexOf(nick) === -1)) {
+        if (nick && (!players[game] || players[game].indexOf(socket) === -1)) {
             socket.join(game);
             socket.nick = nick;
             socket.game = game;
@@ -58,9 +73,10 @@ io.on("connect", function (socket) {
                 games.push(game);
                 console.log("new room: " + game);
             }
-            players[game].push(nick);
-            socket.emit("join", players[game]);
-            socket.to(game).emit("joined", nick, players[game]);
+            players[game].push(socket);
+            list = nicks(game);
+            socket.emit("join", list);
+            socket.to(game).emit("joined", nick, list);
             console.log(nick + " join to " + game);
         }
     });
@@ -87,8 +103,12 @@ io.on("connect", function (socket) {
      * Player start game
      */
     socket.on("start", function (bots) {
-        if (socket.game) {
-            socket.to(socket.game).emit("start", bots);
+        var game = players[socket.game],
+            list = nicks(socket.game);
+        if (game) {
+            game.forEach(function(client, index) {
+                client.emit("start", list, index);
+            });
             console.log(socket.nick + " started " + socket.game + " with bot number " + bots);
         }
     });
@@ -96,13 +116,12 @@ io.on("connect", function (socket) {
     /**
      * Player turn
      */
-    socket.on("turn", function (to, time, id) {
-        var list;
+    socket.on("turn", function (to, time) {
+        var list,
+            id;
         if (socket.game) {
             list = players[socket.game];
-            if (id < list.length) {
-                id = list.indexOf(socket.nick);
-            }
+            id = list.indexOf(socket.nick);
             socket.to(socket.game).emit("turn", to, time, id);
             console.log(socket.nick + " turn " + to + " at " + time);
         }

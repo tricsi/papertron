@@ -55,25 +55,15 @@ Game = (function () {
     var container, //game container
         bots, //robot select
         match, //actual match
-        motor, //player's motor
-        ai; //ai timer
+        motor; //player's motor
 
     /**
      * Run animations and game logic
      */
     function run() {
-        if (match.run()) {
-            Sfx.play("exp");
-        }
+        match.run();
         Scene.render(match, motor);
-        if (match.win === false) {
-            requestAnimationFrame(run);
-        } else {
-            Game.show(Game.players.length > match.win
-                ? Game.players[match.win] + " win!"
-                : "Robot wins!");
-            clearInterval(ai);
-        }
+        requestAnimationFrame(run);
     }
 
     return {
@@ -88,7 +78,7 @@ Game = (function () {
                 var id = attr(e.target, "href");
                 switch (id) {
                     case "#start":
-                        Game.start(parseInt(bots.value), true);
+                        emit("start", parseInt(bots.value));
                         break;
                     case "#leave":
                         emit("leave");
@@ -113,17 +103,12 @@ Game = (function () {
         },
 
         /**
-         * Player names
-         */
-        players: [],
-
-        /**
          * Start new match
          */
-        start: function (botNum, server) {
+        start: function (players, playerNum) {
             var i,
                 j = 0,
-                nick = Menu.nick() || Game.players[0],
+                nick = players[playerNum],
                 player,
                 pos = [
                     [0, 50, logic.Motor.UP],
@@ -135,30 +120,14 @@ Game = (function () {
             match = new logic.Match();
 
             //add players
-            for (i = 0; i < Game.players.length; i++) {
+            for (i = 0; i < players.length; i++) {
                 player = match.add(pos[i][0], pos[i][1], pos[i][2]);
-                if (Game.players[i] === nick) {
+                if (players[i] === nick) {
                     Scene.rotate(pos[i][2] * -90, true);
                     motor = player;
                 }
             }
 
-            //add bots
-            while (i < pos.length && j < botNum) {
-                match.add(pos[i][0], pos[i][1], pos[i][2], true);
-                i++;
-                j++;
-            }
-
-            //start server
-            if (server) {
-                emit("start", botNum);
-                ai = setInterval(function () {
-                    match.ai(function (to, time, id) {
-                        emit("turn", to, time, id);
-                    });
-                }, 60);
-            }
             run();
             Game.hide();
         },
@@ -168,7 +137,7 @@ Game = (function () {
          */
         turn: function (to, time, id) {
             var player;
-            if (!match || match.win !== false) {
+            if (!match) {
                 return false;
             }
             player = match.motors[id] || motor;
@@ -177,9 +146,6 @@ Game = (function () {
                 return false;
             }
             if (id === undefined) {
-                if (player.stuck) {
-                    return false;
-                }
                 emit("turn", to, time, id);
             }
             player.move(time);
@@ -502,8 +468,8 @@ function bind() {
         Chat.add(nick + ": " + text);
     });
 
-    socket.on("start", function (bots) {
-        Game.start(bots, false);
+    socket.on("start", function (players, playerNum) {
+        Game.start(players, playerNum);
     });
 
     socket.on("turn", function (to, time, id) {
