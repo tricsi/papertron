@@ -1,25 +1,21 @@
 var io = require("socket.io")(), //server
+    logic = require("./game.js"), //game.logic
     games = [], //game list
     players = {}; //game players
 
 io.on("connect", function (socket) {
 
-    /**
-     * User object
-     */
-    var user = {
-        nick: "Player",
-        game: null
-    };
+    socket.nick = "Player";
+    socket.game = null;
 
     /**
      * Leave game
      */
     function leave() {
-        var nick = user.nick,
-            game = user.game;
+        var nick = socket.nick,
+            game = socket.game;
         if (game) {
-            user.game = null;
+            socket.game = null;
             players[game].splice(players[game].indexOf(nick), 1);
             console.log(nick + " leave " + game);
             if (players[game].length === 0) {
@@ -37,7 +33,7 @@ io.on("connect", function (socket) {
      */
     socket.on("disconnect", function () {
         leave();
-        console.log(user.nick + " disconnected");
+        console.log(socket.nick + " disconnected");
     });
 
     /**
@@ -45,7 +41,7 @@ io.on("connect", function (socket) {
      */
     socket.on("games", function () {
         socket.emit("games", games);
-        console.log(user.nick + " get games");
+        console.log(socket.nick + " get games");
     });
 
     /**
@@ -55,8 +51,8 @@ io.on("connect", function (socket) {
         game = game || nick;
         if (nick && (!players[game] || players[game].indexOf(nick) === -1)) {
             socket.join(game);
-            user.nick = nick;
-            user.game = game;
+            socket.nick = nick;
+            socket.game = game;
             if (!players[game]) {
                 players[game] = [];
                 games.push(game);
@@ -73,7 +69,7 @@ io.on("connect", function (socket) {
      * Player leave
      */
     socket.on("leave", function () {
-        socket.leave(user.game);
+        socket.leave(socket.game);
         leave();
     });
 
@@ -81,9 +77,9 @@ io.on("connect", function (socket) {
      * Chat message
      */
     socket.on("message", function (message) {
-        if (user.game) {
-            socket.to(user.game).emit("message", user.nick, message);
-            console.log(user.nick + " message to " + user.game);
+        if (socket.game) {
+            socket.to(socket.game).emit("message", socket.nick, message);
+            console.log(socket.nick + " message to " + socket.game);
         }
     });
 
@@ -91,9 +87,9 @@ io.on("connect", function (socket) {
      * Player start game
      */
     socket.on("start", function (bots) {
-        if (user.game) {
-            socket.to(user.game).emit("start", bots);
-            console.log(user.nick + " started " + user.game + " with bot number " + bots);
+        if (socket.game) {
+            socket.to(socket.game).emit("start", bots);
+            console.log(socket.nick + " started " + socket.game + " with bot number " + bots);
         }
     });
 
@@ -102,17 +98,17 @@ io.on("connect", function (socket) {
      */
     socket.on("turn", function (to, time, id) {
         var list;
-        if (user.game) {
-            list = players[user.game];
+        if (socket.game) {
+            list = players[socket.game];
             if (id < list.length) {
-                id = list.indexOf(user.nick);
+                id = list.indexOf(socket.nick);
             }
-            socket.to(user.game).emit("turn", to, time, id);
-            console.log(user.nick + " turn " + to + " at " + time);
+            socket.to(socket.game).emit("turn", to, time, id);
+            console.log(socket.nick + " turn " + to + " at " + time);
         }
     });
 
-    console.log(user.nick + " connected");
+    console.log(socket.nick + " connected");
 });
 
 module.exports = io;
