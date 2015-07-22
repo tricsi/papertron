@@ -108,13 +108,14 @@ Game = (function () {
         /**
          * Start new match
          */
-        start: function (players, playerNum) {
+        start: function (players, id) {
             var i,
                 player;
+            motor = null;
             match = new logic.Match();
             for (i = 0; i < players.length; i++) {
-                player = match.add(i);
-                if (i === playerNum) {
+                player = match.add(players[i]);
+                if (i === id) {
                     motor = player;
                     Scene.rotate(motor.vec * -90, true);
                 }

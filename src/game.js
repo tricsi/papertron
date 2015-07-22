@@ -7,9 +7,11 @@ global.exports = (function () {
 	 * @param {number} y Coordinate
 	 * @param {number} vec Direction
 	 * @param {number} id Motor ID
+	 * @param {string} nick Nickname
 	 * @constructor
 	 */
-	function Motor(x, y, vec, id) {
+	function Motor(x, y, vec, id, nick) {
+		this.nick = nick;
 		this.id = id;
 		this.x = x;
 		this.y = y;
@@ -209,6 +211,14 @@ global.exports = (function () {
 	}
 
 	/**
+	 * Get current snapshot time
+	 * @returns {number}
+	 */
+	Match.prototype.getTime = function () {
+		return Math.round((new Date().getTime() - this.start) / this.timer);
+	};
+
+	/**
 	 * Create new motor
 	 * @param {number} x Coordinate
 	 * @param {number} y Coordinate
@@ -216,11 +226,12 @@ global.exports = (function () {
 	 * @param {boolean} isBot
 	 * @returns {Motor}
 	 */
-	Match.prototype.add = function (index, isBot) {
-		var x = this.pos[index][0],
-			y = this.pos[index][1],
-			v = this.pos[index][2];
-		var motor = new Motor(x, y, v, this.motors.length);
+	Match.prototype.add = function (nick, isBot) {
+		var i = this.motors.length,
+			x = this.pos[i][0],
+			y = this.pos[i][1],
+			v = this.pos[i][2];
+		var motor = new Motor(x, y, v, i, nick);
 		this.motors.push(motor);
 		if (isBot) {
 			this.bots.push(new Bot(motor, this));
@@ -267,14 +278,6 @@ global.exports = (function () {
 			});
 		}
 		return result;
-	};
-
-	/**
-	 * Get current snapshot time
-	 * @returns {number}
-	 */
-	Match.prototype.getTime = function () {
-		return Math.round((new Date().getTime() - this.start) / this.timer);
 	};
 
 	/**
