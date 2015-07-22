@@ -107,27 +107,15 @@ Game = (function () {
          */
         start: function (players, playerNum) {
             var i,
-                j = 0,
-                nick = players[playerNum],
-                player,
-                pos = [
-                    [0, 50, logic.Motor.UP],
-                    [0, -50, logic.Motor.DOWN],
-                    [-50, 0, logic.Motor.RIGHT],
-                    [50, 0, logic.Motor.LEFT]
-                ];
-
+                player;
             match = new logic.Match();
-
-            //add players
             for (i = 0; i < players.length; i++) {
-                player = match.add(pos[i][0], pos[i][1], pos[i][2]);
-                if (players[i] === nick) {
-                    Scene.rotate(pos[i][2] * -90, true);
+                player = match.add(i);
+                if (i === playerNum) {
                     motor = player;
+                    Scene.rotate(motor.vec * -90, true);
                 }
             }
-
             run();
             Game.hide();
         },

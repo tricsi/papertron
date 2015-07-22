@@ -1,10 +1,12 @@
-//var logic = require("./game.js"); //game.logic
+var logic = require("./game.js"); //game.logic
 
 var io = require("socket.io")(), //server
     games = [], //game list
     players = {}; //game players
 
 io.on("connect", function (socket) {
+
+    var thread; //game thread
 
     socket.nick = "Player";
     socket.game = null;
@@ -20,6 +22,25 @@ io.on("connect", function (socket) {
             });
         }
         return list;
+    }
+
+    /**
+     * Thread run
+     */
+    function run() {
+        var match = socket.match,
+            winner;
+        winner = match.run(function (id, time) {
+            socket.emit("stuck", id, time);
+            socket.to(socket.game).emit("stuck", id, time);
+            console.log(players[socket.game][id].nick + " stuck at " + time);
+        });
+        if (winner !== false) {
+            socket.emit("win", winner);
+            socket.to(socket.game).emit("win", winner);
+            clearInterval(thread);
+            console.log(players[socket.game][winner].nick + " wins");
+        }
     }
 
     /**
@@ -104,11 +125,15 @@ io.on("connect", function (socket) {
      */
     socket.on("start", function (bots) {
         var game = players[socket.game],
-            list = nicks(socket.game);
+            list = nicks(socket.game),
+            match = new logic.Match();
         if (game) {
             game.forEach(function(client, index) {
+                client.match = match;
+                client.motor = match.add(index);
                 client.emit("start", list, index);
             });
+            thread = setInterval(run, 1000 / match.timer);
             console.log(socket.nick + " started " + socket.game + " with bot number " + bots);
         }
     });
@@ -117,12 +142,12 @@ io.on("connect", function (socket) {
      * Player turn
      */
     socket.on("turn", function (to, time) {
-        var list,
-            id;
+        var motor;
         if (socket.game) {
-            list = players[socket.game];
-            id = list.indexOf(socket.nick);
-            socket.to(socket.game).emit("turn", to, time, id);
+            motor = socket.motor;
+            motor.move(time);
+            motor.turn(to);
+            socket.to(socket.game).emit("turn", to, time, motor.id);
             console.log(socket.nick + " turn " + to + " at " + time);
         }
     });

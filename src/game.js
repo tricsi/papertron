@@ -200,7 +200,12 @@ global.exports = (function () {
 		this.start = new Date().getTime() + 2000; // Start time
 		this.motors = []; // Motors
 		this.bots = []; // Robots
-		this.win = false;
+		this.pos = [
+            [0, 50, Motor.UP],
+            [0, -50, Motor.DOWN],
+            [-50, 0, Motor.RIGHT],
+            [50, 0, Motor.LEFT]
+        ];
 	}
 
 	/**
@@ -211,8 +216,11 @@ global.exports = (function () {
 	 * @param {boolean} isBot
 	 * @returns {Motor}
 	 */
-	Match.prototype.add = function (x, y, vec, isBot) {
-		var motor = new Motor(x, y, vec, this.motors.length);
+	Match.prototype.add = function (index, isBot) {
+		var x = this.pos[index][0],
+			y = this.pos[index][1],
+			v = this.pos[index][2];
+		var motor = new Motor(x, y, v, this.motors.length);
 		this.motors.push(motor);
 		if (isBot) {
 			this.bots.push(new Bot(motor, this));
@@ -271,25 +279,25 @@ global.exports = (function () {
 
 	/**
 	 * Runs all robot checks
-	 * @callback callback
+	 * @callback onTurn
 	 */
-	Match.prototype.ai = function (callback) {
-		var result,
+	Match.prototype.ai = function (onTurn) {
+		var to,
 			time = this.getTime();
 		this.bots.forEach(function (bot) {
-			result = bot.check();
-			if (result) {
-				callback.call(this, result, time, bot.motor.id);
+			to = bot.check();
+			if (to) {
+				onTurn.call(this, to, time, bot.motor.id);
 			}
 		});
 	};
 
 	/**
 	 * Runs all motor checks
+	 * @callback onStuck
 	 */
-	Match.prototype.run = function () {
+	Match.prototype.run = function (onStuck) {
 		var time = this.getTime(),
-			result = false,
 			count = 0,
 			winner,
 			motor,
@@ -303,7 +311,7 @@ global.exports = (function () {
 					motor.move(time);
 					if (this.check(motor)) {
 						motor.stuck = time;
-						result = true;
+						onStuck.call(this, i, time);
 						count++;
 					} else {
 						winner = i;
@@ -311,10 +319,10 @@ global.exports = (function () {
 				}
 			}
 			if (count >= i - 1 && count > 0) {
-				this.win = winner || 0;
+				return winner || 0;
 			}
 		}
-		return result;
+		return false;
 	};
 
 	return {
