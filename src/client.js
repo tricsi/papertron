@@ -55,7 +55,8 @@ Game = (function () {
     var container, //game container
         bots, //robot select
         match, //actual match
-        motor; //player's motor
+        motor, //player's motor
+        running; //match running
 
     /**
      * Run animations and game logic
@@ -63,7 +64,9 @@ Game = (function () {
     function run() {
         match.run();
         Scene.render(match, motor);
-        requestAnimationFrame(run);
+        if (running) {
+            requestAnimationFrame(run);
+        }
     }
 
     return {
@@ -116,8 +119,15 @@ Game = (function () {
                     Scene.rotate(motor.vec * -90, true);
                 }
             }
+            running = true;
             run();
-            Game.hide();
+        },
+
+        /**
+         * Stops game
+         */
+        stop: function() {
+            running = false;
         },
 
         /**
@@ -146,7 +156,9 @@ Game = (function () {
          * Show game
          */
         show: function (title) {
-            $("h1", container).innerHTML = title;
+            if (title) {
+                $("h1", container).innerHTML = title;
+            }
             attr(container, "class", "");
         },
 
@@ -458,10 +470,20 @@ function bind() {
 
     socket.on("start", function (players, playerNum) {
         Game.start(players, playerNum);
+        Game.hide();
     });
 
     socket.on("turn", function (to, time, id) {
         Game.turn(to, time, id);
+    });
+
+    socket.on("stuck", function (id) {
+        Sfx.play("exp");
+    });
+
+    socket.on("win", function (id) {
+        Game.stop();
+        Game.show();
     });
 }
 

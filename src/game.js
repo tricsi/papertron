@@ -311,7 +311,9 @@ global.exports = (function () {
 					motor.move(time);
 					if (this.check(motor)) {
 						motor.stuck = time;
-						onStuck.call(this, i, time);
+						if (onStuck) {
+							onStuck.call(this, i, time);
+						}
 						count++;
 					} else {
 						winner = i;
