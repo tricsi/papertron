@@ -450,9 +450,10 @@ function bind() {
         Menu.games(list);
     });
 
-    socket.on("join", function (list) {
+    socket.on("join", function (list, data) {
         Menu.hide();
         Chat.room(list);
+        console.log(data);
     });
 
     socket.on("joined", function (nick, list) {

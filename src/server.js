@@ -27,6 +27,21 @@ io.on("connect", function (socket) {
     }
 
     /**
+     * Get match snapshot
+     */
+    function snapshot(game) {
+        var data = null,
+            match = matches[game];
+        if (match) {
+            data = {
+                time: match.getTime(),
+                data: match.motors
+            };
+        }
+        return data;
+    }
+
+    /**
      * Thread run
      */
     function run() {
@@ -105,10 +120,7 @@ io.on("connect", function (socket) {
             }
             players[game].push(socket);
             list = nicks(game);
-            if (matches[game]) {
-                data = matches[game].getData();
-            }
-            socket.emit("join", list, data);
+            socket.emit("join", list, snapshot(game));
             socket.to(game).emit("joined", nick, list);
             console.log(nick + " join to " + game);
         }
