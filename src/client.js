@@ -161,10 +161,10 @@ Game = (function () {
         /**
          * Show game
          */
-        show: function (title) {
-            if (title) {
-                $("h1", container).innerHTML = title;
-            }
+        show: function (winner) {
+            $("h1", container).innerHTML = winner !== undefined
+                ? match.motors[winner].nick + " wins!"
+                : "New Game";
             attr(container, "class", "");
         },
 
@@ -372,7 +372,7 @@ Menu = (function () {
          */
         hide: function () {
             attr(container, "class", "hide");
-            Game.show("New game");
+            Game.show();
             Chat.show();
             clearInterval(ping);
         },
@@ -496,7 +496,7 @@ function bind() {
 
     socket.on("win", function (winner) {
         Game.stop();
-        Game.show();
+        Game.show(winner);
     });
 }
 

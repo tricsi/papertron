@@ -143,22 +143,17 @@ io.on("connect", function (socket) {
      */
     socket.on("start", function (bots) {
         var i,
-            list,
             data,
-            nick,
             player,
             clients = players[socket.game];
         if (clients) {
-            list = nicks(socket.game);
             match = new logic.Match();
             for (i = 0; i < clients.length; i++) {
                 player = clients[i];
-                player.motor = match.add(list[i]);
+                player.motor = match.add(player.nick);
             }
             while (i++ < 4 && bots-- > 0) {
-                nick = "Robot";
-                match.add(nick, true);
-                list.push(nick);
+                player = match.add();
             }
             matches[socket.game] = match;
             data = snapshot(socket.game);

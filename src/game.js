@@ -11,11 +11,12 @@ global.exports = (function () {
 	 * @constructor
 	 */
 	function Motor(x, y, vec, id, nick) {
-		this.nick = nick;
-		this.id = id;
 		this.x = x;
 		this.y = y;
 		this.vec = vec;
+		this.id = id;
+		this.bot = !nick;
+		this.nick = nick || "Robot";
 		this.time = 0; // Time
 		this.data = []; // Line data
 		this.stuck = false;
@@ -149,22 +150,11 @@ global.exports = (function () {
 	};
 
 	/**
-	 * Robot driver
-	 * @param {Motor} motor
-	 * @param {Match} match
-	 * @constructor
-	 */
-	function Bot(motor, match) {
-		this.motor = motor;
-		this.match = match;
-	}
-
-	/**
 	 * Check and set next movement
+	 * @param {Match} match
 	 */
-	Bot.prototype.check = function () {
-		var motor = this.motor,
-			match = this.match,
+	Motor.prototype.ai = function (match) {
+		var motor = this,
 			time = motor.time,
 			dir = Math.random() >= .5,
 			toTime = time + 10 + Math.round(Math.random() * 10),
@@ -250,22 +240,16 @@ global.exports = (function () {
 
 	/**
 	 * Create new motor
-	 * @param {number} x Coordinate
-	 * @param {number} y Coordinate
-	 * @param {number} vec Direction
-	 * @param {boolean} isBot
+	 * @param {string} nick
 	 * @returns {Motor}
 	 */
-	Match.prototype.add = function (nick, isBot) {
+	Match.prototype.add = function (nick) {
 		var i = this.motors.length,
 			x = this.pos[i][0],
 			y = this.pos[i][1],
 			v = this.pos[i][2];
 		var motor = new Motor(x, y, v, i, nick);
 		this.motors.push(motor);
-		if (isBot) {
-			this.bots.push(new Bot(motor, this));
-		}
 		return motor;
 	};
 
@@ -315,14 +299,19 @@ global.exports = (function () {
 	 * @callback onTurn
 	 */
 	Match.prototype.ai = function (onTurn) {
-		var to,
+		var i,
+			to,
+			motor,
 			time = this.getTime();
-		this.bots.forEach(function (bot) {
-			to = bot.check();
-			if (to) {
-				onTurn.call(this, to, time, bot.motor.id);
+		for (i = 0; i < this.motors.length; i++) {
+			motor = this.motors[i];
+			if (motor.bot) {
+				to = motor.ai(this);
+				if (to) {
+					onTurn.call(this, to, time, i);
+				}
 			}
-		});
+		}
 	};
 
 	/**
@@ -332,6 +321,7 @@ global.exports = (function () {
 	Match.prototype.run = function (onStuck) {
 		var time = this.getTime(),
 			count = 0,
+			human = 0,
 			winner,
 			motor,
 			i;
@@ -349,11 +339,14 @@ global.exports = (function () {
 						}
 						count++;
 					} else {
+						if (!motor.bot) {
+							human++;
+						}
 						winner = i;
 					}
 				}
 			}
-			if (count >= i - 1 && count > 0) {
+			if ((count >= i - 1 && count > 0) || human === 0) {
 				return winner || 0;
 			}
 		}
@@ -362,8 +355,7 @@ global.exports = (function () {
 
 	return {
 		Motor: Motor,
-		Match: Match,
-		Bot: Bot
+		Match: Match
 	};
 
 })();
