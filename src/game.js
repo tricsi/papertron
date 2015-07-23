@@ -211,6 +211,36 @@ global.exports = (function () {
 	}
 
 	/**
+	 * Save snapshot
+	 * @returns {object}
+	 */
+	Match.prototype.save = function () {
+		return {
+			time: this.getTime(),
+			data: this.motors
+		};
+	};
+
+	/**
+	 * Load snapshot
+	 * @params {object} snapshot
+	 */
+	Match.prototype.load = function (snapshot) {
+		var i,
+			data,
+			item,
+			param;
+		for (i = 0; i < snapshot.data.length; i++) {
+			data = snapshot.data[i];
+			item = this.motors[i] || this.add(data.nick);
+			for (param in data) {
+				item[param] = data[param];
+			}
+		}
+		this.start = new Date().getTime() - (snapshot.time * this.timer);
+	};
+
+	/**
 	 * Get current snapshot time
 	 * @returns {number}
 	 */

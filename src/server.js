@@ -30,37 +30,32 @@ io.on("connect", function (socket) {
      * Get match snapshot
      */
     function snapshot(game) {
-        var data = null,
-            match = matches[game];
-        if (match) {
-            data = {
-                time: match.getTime(),
-                data: match.motors
-            };
-        }
-        return data;
+        return matches[game] ? matches[game].save() : null;
     }
 
     /**
      * Thread run
      */
     function run() {
-        var winner;
+        var winner,
+            data,
+            game = socket.game;
         winner = match.run(function (id, time) {
-            socket.emit("stuck", id, time);
-            socket.to(socket.game).emit("stuck", id, time);
+            data = snapshot(game);
+            socket.emit("stuck", data);
+            socket.to(game).emit("stuck", data);
             console.log(match.motors[id].nick + " stuck at " + time);
         });
         if (winner !== false) {
             socket.emit("win", winner);
-            socket.to(socket.game).emit("win", winner);
+            socket.to(game).emit("win", winner);
             clearInterval(thread);
-            matches[socket.game] = null;
+            matches[game] = null;
             console.log(match.motors[winner].nick + " wins");
         } else {
             match.ai(function (to, time, id) {
                 socket.emit("turn", to, time, id);
-                socket.to(socket.game).emit("turn", to, time, id);
+                socket.to(game).emit("turn", to, time, id);
                 console.log("Robot turn " + to + " at " + time);
             });
         }
@@ -106,8 +101,7 @@ io.on("connect", function (socket) {
      * Player join or create game
      */
     socket.on("join", function (nick, game) {
-        var list,
-            data;
+        var list;
         game = game || nick;
         if (nick && (!players[game] || players[game].indexOf(socket) === -1)) {
             socket.join(game);
@@ -150,15 +144,16 @@ io.on("connect", function (socket) {
     socket.on("start", function (bots) {
         var i,
             list,
+            data,
             nick,
-            client,
+            player,
             clients = players[socket.game];
-        if (clients && !matches[socket.game]) {
+        if (clients) {
             list = nicks(socket.game);
             match = new logic.Match();
-            for (i = 0; i< clients.length; i++) {
-                client = clients[i];
-                client.motor = match.add(list[i]);
+            for (i = 0; i < clients.length; i++) {
+                player = clients[i];
+                player.motor = match.add(list[i]);
             }
             while (i++ < 4 && bots-- > 0) {
                 nick = "Robot";
@@ -166,8 +161,9 @@ io.on("connect", function (socket) {
                 list.push(nick);
             }
             matches[socket.game] = match;
+            data = snapshot(socket.game);
             clients.forEach(function(client, id) {
-                client.emit("start", list, id);
+                client.emit("start", data, id);
             });
             thread = setInterval(run, 1000 / match.timer);
             console.log(socket.nick + " started " + socket.game + " with bot number " + bots);
