@@ -1,4 +1,4 @@
-(function () {
+onload = (function () {
 
 	var canvas, //canvas object
 		gl, //WebGL context
@@ -8,32 +8,42 @@
 		colorLocation, //color location param
 		matrixLocation, //matrix location param
 		positionLocation, //position location param
+		normalsLocation, //lighting normal vectors
+		normalLocation, //light normal
 		fieldOfViewRadians, //FOV param
-		board; //board
+		rotate,
+		scale;
 
-	function Board(s) {
-		this.geometry = [
-			-s, -s, 0,
-			s, -s, 0,
-			-s, s, 0,
-			s, -s, 0,
-			s, s, 0,
-			-s, s, 0,
-		];
-		this.colors = [];
+	function Data() {
+		this.vert = [];
+		this.norm = [];
+		this.color = [];
+	}
+
+	Data.prototype.add = function (vert, norm, color) {
+		var i = this.vert.length;
+		this.vert = this.vert.concat(vert);
+		for (i; i < this.vert.length; i += 3) {
+			this.norm = this.norm.concat(norm);
+			this.color = this.color.concat(color);
+		}
 	};
 
-	Board.prototype.color = function(r, g, b) {
-		for (var i = 0; i < this.geometry.length; i += 3) {
-			this.colors[i] = r;
-			this.colors[i + 1] = g;
-			this.colors[i + 2] = b;
+	function createVec3(a, b, c, verts) {
+		var i,
+			data = [];
+		for (i = 0; i < verts * 9; i += 3) {
+			data[i] = a;
+			data[i + 1] = b;
+			data[i + 2] = c;
 		};
+		return data;
 	};
 
 	function createShader(gl, script, type) {
 		var shader = gl.createShader(type);
 		gl.shaderSource(shader, script);
+
 		gl.compileShader(shader);
 		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
 			gl.deleteShader(shader);
@@ -117,6 +127,45 @@
 		];
 	}
 
+	function matrixInverse(mat, dest) {
+        var a00 = mat[0], a01 = mat[1], a02 = mat[2],
+            a10 = mat[4], a11 = mat[5], a12 = mat[6],
+            a20 = mat[8], a21 = mat[9], a22 = mat[10],
+
+            b01 = a22 * a11 - a12 * a21,
+            b11 = -a22 * a10 + a12 * a20,
+            b21 = a21 * a10 - a11 * a20,
+
+            d = a00 * b01 + a01 * b11 + a02 * b21,
+            id;
+
+        if (!d) { return null; }
+        id = 1 / d;
+
+        dest[0] = b01 * id;
+        dest[1] = (-a22 * a01 + a02 * a21) * id;
+        dest[2] = (a12 * a01 - a02 * a11) * id;
+        dest[3] = b11 * id;
+        dest[4] = (a22 * a00 - a02 * a20) * id;
+        dest[5] = (-a12 * a00 + a02 * a10) * id;
+        dest[6] = b21 * id;
+        dest[7] = (-a21 * a00 + a01 * a20) * id;
+        dest[8] = (a11 * a00 - a01 * a10) * id;
+
+        return dest;
+    }
+
+	function matrixTranspose(a) {
+		var a01 = a[1], a02 = a[2], a12 = a[5];
+		a[1] = a[3];
+		a[2] = a[6];
+		a[3] = a01;
+		a[5] = a[7];
+		a[6] = a02;
+		a[7] = a12;
+		return a;
+	}
+
 	function matrixMultiply(a, b) {
 		var a00 = a[0 * 4 + 0],
 			a01 = a[0 * 4 + 1],
@@ -170,39 +219,136 @@
 		];
 	}
 
+	function board(s) {
+		return [
+			-s, -s, 0,
+			s, -s, 0,
+			-s, s, 0,
+			s, -s, 0,
+			s, s, 0,
+			-s, s, 0,
+		];
+	};
+
+	function line(x1, y1, x2, y2, z) {
+		return [
+			x1, y1, 0,
+			x1, y1, z,
+			x2, y2, z,
+			x2, y2, 0,
+			x1, y1, 0,
+			x2, y2, z,
+			x1, y1, 0,
+			x2, y2, z,
+			x1, y1, z,
+			x2, y2, 0,
+			x2, y2, z,
+			x1, y1, 0
+		];
+	}
+
 	function render() {
 		var aspect = canvas.clientWidth / canvas.clientHeight,
-			geometry = board.geometry,
-			colors = board.colors,
+			data = new Data(),
 			buffer,
-			matrix;
-		matrix = makeScale(1, 1, 1);
-		matrix = matrixMultiply(matrix, makeXRotation(-1));
-		matrix = matrixMultiply(matrix, makeYRotation(0));
-		matrix = matrixMultiply(matrix, makeZRotation(0));
-		matrix = matrixMultiply(matrix, makeTranslation(0, 0, -350));
+			matrix,
+			normal = [
+				0, 0, 0,
+				0, 0, 0,
+				0, 0, 0
+			],
+			dots = [
+				[0, 0],
+				[0, 50],
+				[50, 50],
+				[50, 20],
+				[20, 20]
+			],
+			dot,
+			i;
+
+		//board
+		data.add(board(100), [0, 0, 1], [255, 255, 255]);
+
+		//line
+		dot = dots[0];
+		for (i = 0; i < dots.length; i++) {
+			data.add(line(dot[0], dot[1], dots[i][0],  dots[i][1], 2), [0, 0, 1], [255, 0, 0]);
+			dot = dots[i];
+		}
+
+		matrix = makeScale(scale, scale, scale);
+		matrix = matrixMultiply(matrix, makeTranslation(-20, -20, 0));
+		matrix = matrixMultiply(matrix, makeXRotation(rotate.x));
+		matrix = matrixMultiply(matrix, makeYRotation(rotate.y));
+		matrix = matrixMultiply(matrix, makeZRotation(rotate.z));
+		matrix = matrixMultiply(matrix, makeTranslation(0, 0, -250));
 		matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspect, 1, 2000));
 
+		normal = matrixInverse(matrix, normal);
+		normal = matrixTranspose(normal, normal);
+
+		//normals
+		buffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+		gl.enableVertexAttribArray(normalsLocation);
+	  	gl.vertexAttribPointer(normalsLocation, 3, gl.FLOAT, false, 0, 0);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.norm), gl.STATIC_DRAW);
+
+		//coordinates
 		buffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 		gl.enableVertexAttribArray(positionLocation);
 		gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry), gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.vert), gl.STATIC_DRAW);
 
+		//colors
 		buffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 		gl.enableVertexAttribArray(colorLocation);
 		gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
-		gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(data.color), gl.STATIC_DRAW);
 
+		//render
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		gl.uniformMatrix4fv(matrixLocation, false, matrix);
-		gl.drawArrays(gl.TRIANGLES, 0, geometry.length / 3);
-
-		window.requestAnimationFrame(render);
+		gl.uniformMatrix3fv(normalLocation, false, normal);
+		gl.drawArrays(gl.TRIANGLES, 0, data.vert.length / 3);
 	}
 
-	function init() {
+	function anim() {
+		render();
+		requestAnimationFrame(anim);
+	}
+
+	function bind() {
+		var x,
+			y,
+			drag = false,
+			body = document.body;
+		body.addEventListener("mousedown", function(e) {
+			x = e.x;
+			y = e.y;
+			drag = true;
+		}, false);
+		body.addEventListener("mousemove", function(e) {
+			if (drag) {
+				rotate.x -= (y - e.y) / 100;
+				rotate.z -= (x - e.x) / 100;
+				x = e.x;
+				y = e.y;
+				e.preventDefault();
+			}
+		}, false);
+		body.addEventListener("mouseup", function(e) {
+			drag = false;
+		}, false);
+		body.addEventListener("mousewheel", function(e) {
+			scale -= e.deltaY / 1000;
+		}, false);
+	}
+
+	return function () {
 		canvas = document.getElementById("canvas");
 		gl = canvas.getContext("experimental-webgl");
 		vertexShader = createShader(gl, document.getElementById("3d-vertex-shader").text, gl.VERTEX_SHADER);
@@ -211,14 +357,17 @@
 		colorLocation = gl.getAttribLocation(program, "a_color");
 		matrixLocation = gl.getUniformLocation(program, "u_matrix");
 		positionLocation = gl.getAttribLocation(program, "a_position");
+		normalsLocation = gl.getAttribLocation(program, "a_normals"),
+		normalLocation = gl.getUniformLocation(program, "u_normal"),
+
 		fieldOfViewRadians = Math.PI / 180 * 60,
 		gl.enable(gl.CULL_FACE);
 		gl.enable(gl.DEPTH_TEST);
 
-		board = new Board(125);
-		board.color(255, 255, 255);
-		render();
-	}
+		rotate = {x:0, y:0, z:0};
+		scale = 1;
+		bind();
+		anim();
+	};
 
-	window.onload = init;
 })();
