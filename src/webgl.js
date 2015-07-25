@@ -22,11 +22,18 @@ onload = (function () {
 	}
 
 	Data.prototype.add = function (vert, norm, color) {
-		var i = this.vert.length;
-		this.vert = this.vert.concat(vert);
-		for (i; i < this.vert.length; i += 3) {
-			this.norm = this.norm.concat(norm);
-			this.color = this.color.concat(color);
+		var i,
+			j,
+			v,
+			n = norm.length,
+			c = color.length;
+		for (i = 0; i < vert.length; i += 3) {
+			v = Math.floor(i / 9) * 3;
+			for (j = 0; j < 3; j++) {
+				this.vert.push(vert[i + j]);
+				this.norm.push(norm[(v + j) % n]);
+				this.color.push(color[(v + j) % c]);
+			}
 		}
 	};
 
@@ -225,12 +232,12 @@ onload = (function () {
 			x1, y1, 0,
 			x1, y1, z,
 			x2, y2, z,
-			x2, y2, 0,
-			x1, y1, 0,
-			x2, y2, z,
 			x1, y1, 0,
 			x2, y2, z,
 			x1, y1, z,
+			x2, y2, 0,
+			x1, y1, 0,
+			x2, y2, z,
 			x2, y2, 0,
 			x2, y2, z,
 			x1, y1, 0
@@ -251,25 +258,8 @@ onload = (function () {
 		],
 		norm: [
 			-.3, 0, .5,
-			-.3, 0, .5,
-			-.3, 0, .5,
 			.3, 0, .5,
-			.3, 0, .5,
-			.3, 0, .5,
-			0, 1, 0,
-			0, 1, 0,
-			0, 1, 0
-		],
-		color: [
-			255, 0, 0,
-			255, 0, 0,
-			255, 0, 0,
-			255, 0, 0,
-			255, 0, 0,
-			255, 0, 0,
-			255, 0, 0,
-			255, 0, 0,
-			255, 0, 0
+			0, -1, 0
 		]
 	};
 
@@ -317,19 +307,16 @@ onload = (function () {
 		//line
 		dot = dots[0];
 		for (i = 0; i < dots.length; i++) {
-			data.add(line(dot[0], dot[1], dots[i][0],  dots[i][1], 2), [0, -1, 0], [255, 0, 0]);
+			data.add(line(dot[0], dot[1], dots[i][0],  dots[i][1], 2), [0, 1, 0, 0, -1, 0], [255, 0, 0]);
 			dot = dots[i];
 		}
-
-		data.vert = data.vert.concat(move(Bike.vert, 0, 0, 90));
-		data.norm = data.norm.concat(move(Bike.norm, 0, 0, 90));
-		data.color = data.color.concat(Bike.color);
+		data.add(move(Bike.vert, 0, 0, 90), move(Bike.norm, 0, 0, 90), [255, 0, 0]);
 
 		matrix = makeScale(1, 1, 1);
-		matrix = matrixMultiply(matrix, makeTranslation(0, 0, 0));
+		matrix = matrixMultiply(matrix, makeTranslation(50, 50, 0));
+		matrix = matrixMultiply(matrix, makeZRotation(rotate.z - (Math.PI / 180 * 90)));
 		matrix = matrixMultiply(matrix, makeXRotation(rotate.x));
 		matrix = matrixMultiply(matrix, makeYRotation(rotate.y));
-		matrix = matrixMultiply(matrix, makeZRotation(rotate.z));
 		matrix = matrixMultiply(matrix, makeTranslation(0, 0, scale-250));
 		matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspect, 1, 2000));
 
