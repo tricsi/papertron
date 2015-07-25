@@ -506,7 +506,7 @@ Scene = (function () {
             gl.enable(gl.CULL_FACE);
             gl.enable(gl.DEPTH_TEST);
             fieldOfViewRadians = Math.PI / 180 * 60;
-            onresize = resize;
+            on(window, 'resize', resize);
             resize();
         },
 
