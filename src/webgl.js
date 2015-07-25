@@ -12,7 +12,8 @@ onload = (function () {
 		normalLocation, //light normal
 		fieldOfViewRadians, //FOV param
 		rotate,
-		scale;
+		scale,
+		Bike;
 
 	function Data() {
 		this.vert = [];
@@ -27,17 +28,6 @@ onload = (function () {
 			this.norm = this.norm.concat(norm);
 			this.color = this.color.concat(color);
 		}
-	};
-
-	function createVec3(a, b, c, verts) {
-		var i,
-			data = [];
-		for (i = 0; i < verts * 9; i += 3) {
-			data[i] = a;
-			data[i + 1] = b;
-			data[i + 2] = c;
-		};
-		return data;
 	};
 
 	function createShader(gl, script, type) {
@@ -247,8 +237,62 @@ onload = (function () {
 		];
 	}
 
+	Bike = {
+		vert: [
+			1, 0, 0,
+			0, 5, 0,
+			0, 0, 2,
+			0, 0, 2,
+			0, 5, 0,
+			-1, 0, 0,
+			0, 0, 2,
+			-1, 0, 0,
+			1, 0, 0
+		],
+		norm: [
+			-.3, 0, .5,
+			-.3, 0, .5,
+			-.3, 0, .5,
+			.3, 0, .5,
+			.3, 0, .5,
+			.3, 0, .5,
+			0, 1, 0,
+			0, 1, 0,
+			0, 1, 0
+		],
+		color: [
+			255, 0, 0,
+			255, 0, 0,
+			255, 0, 0,
+			255, 0, 0,
+			255, 0, 0,
+			255, 0, 0,
+			255, 0, 0,
+			255, 0, 0,
+			255, 0, 0
+		]
+	};
+
+	function move(data, cx, cy, angle) {
+		var i,
+			x,
+			y,
+			res = [],
+			rad = (Math.PI / 180) * angle,
+			cos = Math.cos(rad),
+			sin = Math.sin(rad);
+		for (i = 0; i < data.length; i += 3) {
+			x = data[i];
+			y = data[i + 1];
+			res.push((cos * x) - (sin * y) + cx);
+			res.push((sin * x) + (cos * y) + cy);
+			res.push(data[i + 2]);
+		}
+	    return res;
+	};
+
 	function render() {
-		var aspect = canvas.clientWidth / canvas.clientHeight,
+		var aspect = canvas.width / canvas.height,
 			data = new Data(),
 			buffer,
 			matrix,
@@ -259,10 +303,10 @@ onload = (function () {
 			],
 			dots = [
 				[0, 0],
-				[0, 50],
-				[50, 50],
-				[50, 20],
-				[20, 20]
+				[0, -50],
+				[50, -50],
+				[50, -20],
+				[20, -20]
 			],
 			dot,
 			i;
@@ -273,16 +317,20 @@ onload = (function () {
 		//line
 		dot = dots[0];
 		for (i = 0; i < dots.length; i++) {
-			data.add(line(dot[0], dot[1], dots[i][0],  dots[i][1], 2), [0, 0, 1], [255, 0, 0]);
+			data.add(line(dot[0], dot[1], dots[i][0],  dots[i][1], 2), [0, -1, 0], [255, 0, 0]);
 			dot = dots[i];
 		}
 
-		matrix = makeScale(scale, scale, scale);
-		matrix = matrixMultiply(matrix, makeTranslation(-20, -20, 0));
+		data.vert = data.vert.concat(move(Bike.vert, 0, 0, 90));
+		data.norm = data.norm.concat(move(Bike.norm, 0, 0, 90));
+		data.color = data.color.concat(Bike.color);
+
+		matrix = makeScale(1, 1, 1);
+		matrix = matrixMultiply(matrix, makeTranslation(0, 0, 0));
 		matrix = matrixMultiply(matrix, makeXRotation(rotate.x));
 		matrix = matrixMultiply(matrix, makeYRotation(rotate.y));
 		matrix = matrixMultiply(matrix, makeZRotation(rotate.z));
-		matrix = matrixMultiply(matrix, makeTranslation(0, 0, -250));
+		matrix = matrixMultiply(matrix, makeTranslation(0, 0, scale-250));
 		matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspect, 1, 2000));
 
 		normal = matrixInverse(matrix, normal);
@@ -326,48 +374,59 @@ onload = (function () {
 			y,
 			drag = false,
 			body = document.body;
+
 		body.addEventListener("mousedown", function(e) {
 			x = e.x;
 			y = e.y;
 			drag = true;
 		}, false);
+
 		body.addEventListener("mousemove", function(e) {
 			if (drag) {
 				rotate.x -= (y - e.y) / 100;
-				rotate.z -= (x - e.x) / 100;
+				rotate.y -= (x - e.x) / 100;
 				x = e.x;
 				y = e.y;
 				e.preventDefault();
 			}
 		}, false);
+
 		body.addEventListener("mouseup", function(e) {
 			drag = false;
 		}, false);
+
 		body.addEventListener("mousewheel", function(e) {
-			scale -= e.deltaY / 1000;
+			scale -= e.deltaY / 10;
 		}, false);
+	}
+
+	function resize() {
+		canvas.width = canvas.clientWidth;
+		canvas.height = canvas.clientHeight;
+		gl.viewport(0, 0, canvas.width, canvas.height);
 	}
 
 	return function () {
 		canvas = document.getElementById("canvas");
-		gl = canvas.getContext("experimental-webgl");
-		vertexShader = createShader(gl, document.getElementById("3d-vertex-shader").text, gl.VERTEX_SHADER);
-		fragmentShader = createShader(gl, document.getElementById("3d-fragment-shader").text, gl.FRAGMENT_SHADER);
+		gl = canvas.getContext("webgl");
+		vertexShader = createShader(gl, document.getElementById("vert").text, gl.VERTEX_SHADER);
+		fragmentShader = createShader(gl, document.getElementById("frag").text, gl.FRAGMENT_SHADER);
 		program = createProgram(gl, [vertexShader, fragmentShader]);
 		colorLocation = gl.getAttribLocation(program, "a_color");
 		matrixLocation = gl.getUniformLocation(program, "u_matrix");
 		positionLocation = gl.getAttribLocation(program, "a_position");
 		normalsLocation = gl.getAttribLocation(program, "a_normals"),
 		normalLocation = gl.getUniformLocation(program, "u_normal"),
-
-		fieldOfViewRadians = Math.PI / 180 * 60,
 		gl.enable(gl.CULL_FACE);
 		gl.enable(gl.DEPTH_TEST);
-
+		fieldOfViewRadians = Math.PI / 180 * 60,
 		rotate = {x:0, y:0, z:0};
 		scale = 1;
+
+		resize();
 		bind();
 		anim();
+		onresize = resize;
 	};
 
 })();
