@@ -5,12 +5,49 @@
 <meta name="viewport" content="user-scalable=no, width=device-width" />
 <title>TRON</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<script id="vert" type="x-shader/x-vertex">
+attribute vec3 a_normals;
+attribute vec3 a_position;
+attribute vec3 a_color;
+
+uniform mat4 u_matrix;
+uniform mat3 u_normal;
+
+varying vec3 v_color;
+varying vec3 v_lighting;
+
+void main() {
+	gl_Position = u_matrix * vec4(a_position, 1.0);
+	v_color = a_color;
+
+	vec3 ambientLight = vec3(0.6, 0.6, 0.6);
+	vec3 directionalLightColor = vec3(0.5, 0.5, 0.75);
+	vec3 directionalVector = vec3(-0.5, 0.8, -0.75);
+
+	vec4 transformedNormal = vec4(u_normal * a_normals, 1.0);
+
+	float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
+	v_lighting = ambientLight + (directionalLightColor * directional);
+}
+</script>
+<script id="frag" type="x-shader/x-fragment">
+precision mediump float;
+
+varying vec3 v_color;
+varying vec3 v_lighting;
+
+void main() {
+	gl_FragColor = vec4(v_color * v_lighting, 1.0);
+}
+</script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="jsfxr.js"></script>
+<script src="game.js"></script>
+<script src="client.js"></script>
 </head>
 <body>
 
-<div id="container" style="transform:rotateX(45deg)">
-<canvas width="400" height="400"></canvas>
-</div>
+<canvas id="scene"></canvas>
 
 <form id="chat" class="hide">
 <input maxlength="50" placeholder="Chat">
@@ -40,9 +77,5 @@
 <a href="#join" class="btn">Join</a>
 </div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="jsfxr.js"></script>
-<script src="game.js"></script>
-<script src="client.js"></script>
 </body>
 </html>

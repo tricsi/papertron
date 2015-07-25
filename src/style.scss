@@ -1,4 +1,4 @@
-html, body {
+html, body, canvas {
 	width: 100%;
 	height: 100%;
 	margin: 0;
@@ -42,11 +42,6 @@ select[multiple] {
 	height: 150px;
 }
 
-canvas {
-	position: relative;
-	background: #fff;
-}
-
 .hide {
 	display: none;
 }
@@ -63,13 +58,6 @@ canvas {
 a.btn:hover {
 	background: #fff;
 	color: #000;
-}
-
-#container {
-	display: block;
-	width: 400px;
-	margin: 0 auto;
-	transition: transform .3s;
 }
 
 #menu,
@@ -99,6 +87,7 @@ a.btn:hover {
 
 #chat {
 	line-height: 20px;
+	overflow: hidden;
 
 	input {
 		width: 100%;
@@ -108,7 +97,7 @@ a.btn:hover {
 
 	div {
 		width: 50%;
-		height: 100px;
+		height: 100%;
 		padding: 5px;
 	}
 
