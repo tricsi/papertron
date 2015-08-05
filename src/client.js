@@ -282,45 +282,6 @@ Scene = (function () {
         ];
     }
 
-    function matrixInverse(mat, dest) {
-        var a00 = mat[0], a01 = mat[1], a02 = mat[2],
-            a10 = mat[4], a11 = mat[5], a12 = mat[6],
-            a20 = mat[8], a21 = mat[9], a22 = mat[10],
-
-            b01 = a22 * a11 - a12 * a21,
-            b11 = -a22 * a10 + a12 * a20,
-            b21 = a21 * a10 - a11 * a20,
-
-            d = a00 * b01 + a01 * b11 + a02 * b21,
-            id;
-
-        if (!d) { return null; }
-        id = 1 / d;
-
-        dest[0] = b01 * id;
-        dest[1] = (-a22 * a01 + a02 * a21) * id;
-        dest[2] = (a12 * a01 - a02 * a11) * id;
-        dest[3] = b11 * id;
-        dest[4] = (a22 * a00 - a02 * a20) * id;
-        dest[5] = (-a12 * a00 + a02 * a10) * id;
-        dest[6] = b21 * id;
-        dest[7] = (-a21 * a00 + a01 * a20) * id;
-        dest[8] = (a11 * a00 - a01 * a10) * id;
-
-        return dest;
-    }
-
-    function matrixTranspose(a) {
-        var a01 = a[1], a02 = a[2], a12 = a[5];
-        a[1] = a[3];
-        a[2] = a[6];
-        a[3] = a01;
-        a[5] = a[7];
-        a[6] = a02;
-        a[7] = a12;
-        return a;
-    }
-
     function matrixMultiply(a, b) {
         var a00 = a[0 * 4 + 0],
             a01 = a[0 * 4 + 1],
@@ -409,9 +370,9 @@ Scene = (function () {
             1, -5, 0
         ],
         norm: [
-            -.3, 0, .5,
             .3, 0, .5,
-            0, -1, 0
+            -.3, 0, .5,
+            0, 1, 0
         ]
     };
 
@@ -564,9 +525,9 @@ Scene = (function () {
                 buffer,
                 matrix,
                 normal = [
-                    0, 0, 0,
-                    0, 0, 0,
-                    0, 0, 0
+                    0, 1, -1,
+                    0, 1, -1,
+                    0, 1, -1
                 ];
 
             //board
@@ -579,7 +540,7 @@ Scene = (function () {
                     vec = item.vec,
                     color = colors[i],
                     vert = move(Bike.vert, x, -y, vec * -90),
-                    norm = move(Bike.norm, 0, 0, vec * -90);
+                    norm = move(Bike.norm, 0, 0, vec * 90);
 
                 data.add(vert, norm, color);
                 //lines
@@ -608,9 +569,6 @@ Scene = (function () {
             matrix = matrixMultiply(matrix, makeXRotation(-1));
             matrix = matrixMultiply(matrix, makeTranslation(0, 0, -50));
             matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
-
-            normal = matrixInverse(matrix, normal);
-            normal = matrixTranspose(normal, normal);
 
             //normals
             buffer = gl.createBuffer();
