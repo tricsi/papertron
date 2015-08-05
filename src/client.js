@@ -63,6 +63,7 @@ Game = (function () {
      */
     function run() {
         match.run();
+        Scene.anim();
         Scene.render(match, motor);
         if (running) {
             requestAnimationFrame(run);
@@ -93,10 +94,14 @@ Game = (function () {
             on(document.body, "keydown", function (e) {
                 switch (e.keyCode) {
                     case 37:
-                        Game.turn(logic.Motor.LEFT);
+                        if (Game.turn(logic.Motor.LEFT)) {
+                            Scene.turn(logic.Motor.LEFT);
+                        }
                         break;
                     case 39:
-                        Game.turn(logic.Motor.RIGHT);
+                        if (Game.turn(logic.Motor.RIGHT)) {
+                            Scene.turn(logic.Motor.RIGHT);
+                        }
                         break;
                 }
             });
@@ -109,6 +114,7 @@ Game = (function () {
             match = new logic.Match();
             match.load(snapshot);
             motor = match.motors[id] || null;
+            Scene.rotate(motor ? motor.vec * -90 : 0);
             running = true;
             run();
         },
@@ -189,6 +195,9 @@ Scene = (function () {
         normalLocation, //light normal
         fieldOfViewRadians, //FOV param
         aspectRatio,
+        rotateFrom,
+        rotateTo,
+        turnTo,
         colors = [
             [255, 0, 0],
             [0, 255, 0],
@@ -389,15 +398,15 @@ Scene = (function () {
 
     Bike = {
         vert: [
-            1, 0, 0,
-            0, 5, 0,
-            0, 0, 2,
-            0, 0, 2,
-            0, 5, 0,
-            -1, 0, 0,
-            0, 0, 2,
-            -1, 0, 0,
-            1, 0, 0
+            1, -5, 0,
+            0, 0, 0,
+            0, -5, 2,
+            0, -5, 2,
+            0, 0, 0,
+            -1, -5, 0,
+            0, -5, 2,
+            -1, -5, 0,
+            1, -5, 0
         ],
         norm: [
             -.3, 0, .5,
@@ -411,7 +420,7 @@ Scene = (function () {
             x,
             y,
             res = [],
-            rad = (Math.PI / 180) * angle,
+            rad = Math.PI / 180 * angle,
             cos = Math.cos(rad),
             sin = Math.sin(rad);
         for (i = 0; i < data.length; i += 3) {
@@ -435,50 +444,62 @@ Scene = (function () {
         ];
     }
 
-    function line(x1, y1, x2, y2, v, s, z) {
-        var xa = 0,
-            ya = 0,
-            xb = 0,
-            yb = 0;
-        switch (v) {
-            case 0:
-                xa = s;
-                yb = s;
-                break;
+	function line(x1, y1, x2, y2, v, s, z, part) {
+		var xa = 0,
+			ya = 0,
+			xb = 0,
+			yb = 0;
+		switch (v) {
+			case 0:
+				xa = s;
+				yb = s;
+				break;
+			case 1:
+				ya = -s;
+				xb = s;
+				break;
+			case 2:
+				xa = -s;
+				yb = -s;
+				break;
+			case 3:
+				ya = s;
+				xb = -s;
+				break;
+		}
+        switch (part) {
             case 1:
-                ya = -s;
-                xb = s;
-                break;
+                //begin
+        		return [
+        			x1 + xa + xb, y1 + ya + yb, 0,
+        			x1 - xa + xb, y1 - ya + yb, 0,
+        			x1, y1, z
+                ];
             case 2:
-                xa = -s;
-                yb = -s;
-                break;
-            case 3:
-                ya = s;
-                xb = -s;
-                break;
+                //end
+                return [
+        			x2 + xa - xb, y2 + ya - yb, 0,
+        			x2, y2, z,
+        			x2 - xa - xb, y2 - ya - yb, 0
+                ];
         }
-        return [
-            x1 + xa + xb, y1 + ya + yb, 0,
-            x1 - xa + xb, y1 - ya + yb, 0,
-            x1, y1, z,
-            x1 + xa + xb, y1 + ya + yb, 0,
-            x1, y1, z,
-            x2, y2, z,
-            x2 + xa - xb, y2 + ya - yb, 0,
-            x1 + xa + xb, y1 + ya + yb, 0,
-            x2, y2, z,
-            x1 - xa + xb, y1 - ya + yb, 0,
-            x2, y2, z,
-            x1, y1, z,
-            x2 - xa - xb, y2 - ya - yb, 0,
-            x2, y2, z,
-            x1 - xa + xb, y1 - ya + yb, 0,
-            x2 + xa - xb, y2 + ya - yb, 0,
-            x2, y2, z,
-            x2 - xa - xb, y2 - ya - yb, 0
-        ];
-    }
+        //body
+		return [
+			x1 + xa + xb, y1 + ya + yb, 0,
+			x1, y1, z,
+			x2, y2, z,
+			x1 - xa + xb, y1 - ya + yb, 0,
+			x2, y2, z,
+			x1, y1, z,
+			x2 + xa - xb, y2 + ya - yb, 0,
+			x1 + xa + xb, y1 + ya + yb, 0,
+			x2, y2, z,
+			x2 - xa - xb, y2 - ya - yb, 0,
+			x2, y2, z,
+			x1 - xa + xb, y1 - ya + yb, 0
+		];
+	}
+
 
     function resize() {
         canvas.width = canvas.clientWidth;
@@ -506,14 +527,39 @@ Scene = (function () {
             gl.enable(gl.CULL_FACE);
             gl.enable(gl.DEPTH_TEST);
             fieldOfViewRadians = Math.PI / 180 * 60;
+            rotateFrom = 0;
             on(window, 'resize', resize);
             resize();
+        },
+
+        turn: function(to) {
+            turnTo = to;
+            switch (to) {
+                case logic.Motor.LEFT:
+                    rotateTo -= 90;
+                    break;
+                case logic.Motor.RIGHT:
+                    rotateTo += 90;
+                    break;
+            }
+        },
+
+        anim: function() {
+            var diff = rotateTo - rotateFrom;
+            rotateFrom = Math.abs(diff) > 1
+                ? diff / 4 + rotateFrom
+                : rotateTo;
+        },
+
+        rotate: function(value) {
+            rotateTo = value;
+            rotateFrom = value;
         },
 
         render: function (match, motor) {
             var x = motor ? -motor.x : 0,
                 y = motor ? motor.y : 0,
-                angle = motor ? Math.PI / 2 * motor.vec : 0,
+                angle = Math.PI / 180 * rotateFrom,
                 data = new Data(),
                 buffer,
                 matrix,
@@ -531,16 +577,26 @@ Scene = (function () {
                 var x = item.x,
                     y = item.y,
                     vec = item.vec,
-                    angle = vec * -90,
-                    vert = move(Bike.vert, x, -y, angle),
-                    norm = move(Bike.norm, 0, 0, angle),
-                    color = colors[i];
+                    color = colors[i],
+                    vert = move(Bike.vert, x, -y, vec * -90),
+                    norm = move(Bike.norm, 0, 0, vec * -90);
+
                 data.add(vert, norm, color);
                 //lines
-                item.data.forEach(function (dot) {
-                    vert = line(x, -y, dot[0], -dot[1], dot[2], .3, 2);
-                    norm = [0, 1, 0];
+                item.data.forEach(function (dot, j) {
+                    if (j === 0) {
+                        vert = line(x, -y, dot[0], -dot[1], dot[2], .3, 2, 1);
+                        norm =  move([0, .5, 0], 0, 0, dot[2] * -90);
+                        data.add(vert, norm, color);
+                    }
+                    vert = line(x, -y, dot[0], -dot[1], dot[2], .3, 2, 0);
+                    norm =  move([0, 1, 0, 0, -1, 0], 0, 0, dot[2] * -90);
                     data.add(vert, norm, color);
+                    if (j === item.data.length - 1) {
+                        vert = line(x, -y, dot[0], -dot[1], dot[2], .3, 2, 2);
+                        norm =  move([0, -.5, 0], 0, 0, dot[2] * -90);
+                        data.add(vert, norm, color);
+                    }
                     x = dot[0];
                     y = dot[1];
                 });
@@ -550,7 +606,7 @@ Scene = (function () {
             matrix = matrixMultiply(matrix, makeTranslation(x, y, 0));
             matrix = matrixMultiply(matrix, makeZRotation(angle));
             matrix = matrixMultiply(matrix, makeXRotation(-1));
-            matrix = matrixMultiply(matrix, makeTranslation(0, 0, -100));
+            matrix = matrixMultiply(matrix, makeTranslation(0, 0, -50));
             matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
 
             normal = matrixInverse(matrix, normal);

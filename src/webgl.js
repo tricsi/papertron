@@ -227,7 +227,7 @@ onload = (function () {
 		];
 	};
 
-	function line(x1, y1, x2, y2, v, s, z) {
+	function line(x1, y1, x2, y2, v, s, z, part) {
 		var xa = 0,
 			ya = 0,
 			xb = 0,
@@ -250,40 +250,51 @@ onload = (function () {
 				xb = -s;
 				break;
 		}
+        switch (part) {
+            case 1:
+                //begin
+        		return [
+        			x1 + xa + xb, y1 + ya + yb, 0,
+        			x1 - xa + xb, y1 - ya + yb, 0,
+        			x1, y1, z
+                ];
+            case 2:
+                //end
+                return [
+        			x2 + xa - xb, y2 + ya - yb, 0,
+        			x2, y2, z,
+        			x2 - xa - xb, y2 - ya - yb, 0
+                ];
+        }
+        //body
 		return [
 			x1 + xa + xb, y1 + ya + yb, 0,
-			x1 - xa + xb, y1 - ya + yb, 0,
-			x1, y1, z,
-			x1 + xa + xb, y1 + ya + yb, 0,
 			x1, y1, z,
 			x2, y2, z,
+			x1 - xa + xb, y1 - ya + yb, 0,
+			x2, y2, z,
+			x1, y1, z,
 			x2 + xa - xb, y2 + ya - yb, 0,
 			x1 + xa + xb, y1 + ya + yb, 0,
 			x2, y2, z,
-			x1 - xa + xb, y1 - ya + yb, 0,
-			x2, y2, z,
-			x1, y1, z,
 			x2 - xa - xb, y2 - ya - yb, 0,
 			x2, y2, z,
-			x1 - xa + xb, y1 - ya + yb, 0,
-			x2 + xa - xb, y2 + ya - yb, 0,
-			x2, y2, z,
-			x2 - xa - xb, y2 - ya - yb, 0
+			x1 - xa + xb, y1 - ya + yb, 0
 		];
 	}
 
 	Bike = {
 		vert: [
-			1, 0, 0,
-			0, 5, 0,
-			0, 0, 2,
-			0, 0, 2,
-			0, 5, 0,
-			-1, 0, 0,
-			0, 0, 2,
-			-1, 0, 0,
-			1, 0, 0
-		],
+            1, -5, 0,
+            0, 0, 0,
+            0, -5, 2,
+            0, -5, 2,
+            0, 0, 0,
+            -1, -5, 0,
+            0, -5, 2,
+            -1, -5, 0,
+            1, -5, 0
+        ],
 		norm: [
 			-.3, 0, .5,
 			.3, 0, .5,
@@ -320,7 +331,7 @@ onload = (function () {
 				0, 0, 0
 			],
 			dots = [
-				[0, 50, 0],
+				[0, 0, 0],
 				[0, 0, 0]
 			],
 			dot,
@@ -329,20 +340,28 @@ onload = (function () {
 		//board
 		data.add(board(100), [0, 0, 1], [255, 255, 255]);
 
+        //bike
+        data.add(move(Bike.vert, 0, 0, 0), move(Bike.norm, 0, 0, 0), [255, 0, 0]);
+
 		//line
 		dot = dots[0];
 		for (i = 0; i < dots.length; i++) {
+            if (i === 0) {
+                data.add(line(dot[0], dot[1], dots[i][0],  dots[i][1], dots[i][2], .5, 2, 1), [
+    				0, .5, 0
+    			], [255, 0, 0]);
+            }
 			data.add(line(dot[0], dot[1], dots[i][0],  dots[i][1], dots[i][2], .5, 2), [
 				0, 1, 0,
-				0, 1, 0,
-				0, 1, 0,
-				0, -1, 0,
-				0, -1, 0,
 				0, -1, 0
 			], [255, 0, 0]);
+            if (i === dots.length - 1) {
+                data.add(line(dot[0], dot[1], dots[i][0],  dots[i][1], dots[i][2], .5, 2, 2), [
+    				0, -.5, 0
+    			], [255, 0, 0]);
+            }
 			dot = dots[i];
 		}
-		data.add(move(Bike.vert, -50, -50, 90), move(Bike.norm, 0, 0, 0), [255, 0, 0]);
 
 		matrix = makeScale(1, 1, 1);
 		matrix = matrixMultiply(matrix, makeTranslation(0, 0, 0));
