@@ -15,42 +15,6 @@ onload = (function () {
 		scale,
         models;
 
-	function Data() {
-		this.vert = [];
-		this.norm = [];
-		this.color = [];
-	}
-
-	Data.prototype.add = function (vert, norm, color) {
-		var i,
-			j,
-			v,
-			n = norm.length,
-			c = color.length;
-		for (i = 0; i < vert.length; i += 3) {
-			v = Math.floor(i / 9) * 3;
-			for (j = 0; j < 3; j++) {
-				this.vert.push(vert[i + j]);
-				this.norm.push(norm[(v + j) % n]);
-				this.color.push(color[(v + j) % c]);
-			}
-		}
-	};
-
-	Data.prototype.addModel = function (data, color) {
-		var i,
-			j,
-			v;
-		for (i = 0; i < data.indices.length; i++) {
-			v = data.indices[i] * 3;
-			for (j = 0; j < 3; j++) {
-				this.vert.push(data.vertexPositions[v + j]);
-				this.norm.push(data.vertexNormals[v + j]);
-				this.color.push(j);
-			}
-		}
-	};
-
 	function createShader(gl, script, type) {
 		var shader = gl.createShader(type);
 		gl.shaderSource(shader, script);
@@ -230,11 +194,12 @@ onload = (function () {
         return a;
     }
 
-	function line(x1, y1, x2, y2, v, s, z, part) {
+	function createPart(x1, y1, x2, y2, v, s, z, end) {
 		var xa = 0,
 			ya = 0,
 			xb = 0,
-			yb = 0;
+			yb = 0,
+			data = {};
 		switch (v) {
 			case 0:
 				xa = s;
@@ -253,37 +218,70 @@ onload = (function () {
 				xb = -s;
 				break;
 		}
-        switch (part) {
-            case 1:
-                //begin
-        		return [
-        			x1 + xa + xb, y1 + ya + yb, 0,
-        			x1 - xa + xb, y1 - ya + yb, 0,
-        			x1, y1, z
-                ];
-            case 2:
-                //end
-                return [
-        			x2 + xa - xb, y2 + ya - yb, 0,
-        			x2, y2, z,
-        			x2 - xa - xb, y2 - ya - yb, 0
-                ];
-        }
-        //body
-		return [
+		data.vert = [
 			x1 + xa + xb, y1 + ya + yb, 0,
 			x1, y1, z,
 			x2, y2, z,
 			x1 - xa + xb, y1 - ya + yb, 0,
-			x2, y2, z,
-			x1, y1, z,
 			x2 + xa - xb, y2 + ya - yb, 0,
-			x1 + xa + xb, y1 + ya + yb, 0,
-			x2, y2, z,
-			x2 - xa - xb, y2 - ya - yb, 0,
-			x2, y2, z,
-			x1 - xa + xb, y1 - ya + yb, 0
+			x2 - xa - xb, y2 - ya - yb, 0
 		];
+		data.norm = [
+			0, -1, 0,
+			0, 0, 1,
+			0, 0, 1,
+			0, 1, 0,
+			0, -1, 0,
+			0, 1, 0
+		];
+		data.idx = [
+			0, 1, 2,
+			3, 2, 1,
+			4, 0, 2,
+			5, 2, 3
+		];
+		if (end & 1) {
+			data.idx.push(0, 3, 1);
+		}
+		if (end & 2) {
+			data.idx.push(4, 2, 5);
+		}
+		return data;
+	}
+
+	function createLine(dots, color) {
+		var i,
+			j,
+			k,
+			dot,
+			end,
+			part,
+			data = {
+				color: color,
+				vert: [],
+				norm: [],
+				idx: []
+			};
+		dot = dots[0];
+		for (i = 1; i < dots.length; i++) {
+			j = data.vert.length / 3;
+			end = 0;
+			if (i === 1) {
+				end = 1;
+			}
+			if (i === dots.length - 1) {
+				end = end | 2;
+			}
+			part = createPart(dot[0], dot[1], dots[i][0],  dots[i][1], dots[i][2], .3, 2, end);
+			data.vert = data.vert.concat(part.vert);
+			data.norm = data.norm.concat(part.norm);
+			for (k = 0; k < part.idx.length; k++) {
+				data.idx.push(part.idx[k] + j);
+			}
+			dot = dots[i];
+		}
+		console.log(data);
+		return data;
 	}
 
     function createModel(data) {
@@ -328,43 +326,12 @@ onload = (function () {
 
 	function render() {
 		var aspect = canvas.width / canvas.height,
-			buffer,
 			matrix,
 			normal = [
 				0, 0, 0,
 				0, 0, 0,
 				0, 0, 0
-			],
-			dots = [
-				[0, 0, 0],
-				[0, -50, 0],
-				[50, -50, 3]
-			],
-			dot,
-			i;
-
-        /*
-        data.add(move(Bike.vert, 0, 0, 180), move(Bike.norm, 0, 0, 180), [255, 0, 0]);
-		dot = dots[0];
-		for (i = 0; i < dots.length; i++) {
-            if (i === 0) {
-                data.add(line(dot[0], dot[1], dots[i][0],  dots[i][1], dots[i][2], .5, 2, 1), [
-    				0, .5, 0
-    			], [255, 0, 0]);
-            }
-			data.add(line(dot[0], dot[1], dots[i][0],  dots[i][1], dots[i][2], .5, 2), [
-				0, 1, 0,
-				0, -1, 0
-			], [255, 0, 0]);
-            if (i === dots.length - 1) {
-                data.add(line(dot[0], dot[1], dots[i][0],  dots[i][1], dots[i][2], .5, 2, 2), [
-    				0, -.5, 0
-    			], [255, 0, 0]);
-            }
-			dot = dots[i];
-		}
-        */
-
+			];
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         for (var name in models) {
             var model = models[name];
@@ -461,12 +428,17 @@ onload = (function () {
 		positionLocation = gl.getAttribLocation(program, "a_position");
 		normalsLocation = gl.getAttribLocation(program, "a_normals"),
 		normalLocation = gl.getUniformLocation(program, "u_normal"),
-		gl.enable(gl.CULL_FACE);
+		//gl.enable(gl.CULL_FACE);
 		gl.enable(gl.DEPTH_TEST);
 		fieldOfViewRadians = Math.PI / 180 * 60,
 		rotate = {x:0, y:0, z:0};
 		scale = 1;
         models = {};
+		models.Line = createModel(createLine([
+			[0, 0, 0],
+			[0, -50, 0],
+			[50, -50, 3]
+		], [255, 0, 0]));
         models.Board = createModel({
             color: [255, 255, 255],
             vert: [
