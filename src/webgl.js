@@ -418,18 +418,19 @@ onload = (function () {
 			body = document.body;
 
 		body.addEventListener("mousedown", function(e) {
-			x = e.x;
-			y = e.y;
+			x = e.clientX;
+			y = e.clientY;
 			drag = true;
 		}, false);
 
 		body.addEventListener("mousemove", function(e) {
 			if (drag) {
-				rotate.x -= (y - e.y) / 100;
-				rotate.y -= (x - e.x) / 100;
-				x = e.x;
-				y = e.y;
-				e.preventDefault();
+                e.preventDefault();
+				rotate.x -= (y - e.clientY) / 100;
+				rotate.y -= (x - e.clientX) / 100;
+				x = e.clientX;
+				y = e.clientY;
+                render();
 			}
 		}, false);
 
@@ -438,7 +439,8 @@ onload = (function () {
 		}, false);
 
 		body.addEventListener("mousewheel", function(e) {
-			scale -= e.deltaY / 10;
+			scale += e.wheelDelta / 10;
+            render();
 		}, false);
 	}
 
@@ -450,7 +452,7 @@ onload = (function () {
 
 	return function () {
 		canvas = document.getElementById("canvas");
-		gl = canvas.getContext("webgl");
+		gl = canvas.getContext("experimental-webgl");
 		vertexShader = createShader(gl, document.getElementById("vert").text, gl.VERTEX_SHADER);
 		fragmentShader = createShader(gl, document.getElementById("frag").text, gl.FRAGMENT_SHADER);
 		program = createProgram(gl, [vertexShader, fragmentShader]);
@@ -517,7 +519,7 @@ onload = (function () {
 
 		resize();
 		bind();
-		anim();
+		render();
 		onresize = resize;
 	};
 
