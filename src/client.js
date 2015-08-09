@@ -451,7 +451,7 @@ Scene = (function () {
 		return data;
 	}
 
-	function createLine(motor, color, dec) {
+	function createLine(motor, color, dec, onturn) {
 		var i,
 			j,
 			k,
@@ -477,6 +477,17 @@ Scene = (function () {
             t = dec - t;
             x = dots[0][0];
             y = dots[0][1];
+            switch (dots[0][2] - dots[1][2]) {
+                case -1:
+                case 3:
+                    onturn.call(Scene, -t / dec);
+                    break;
+                case 1:
+                case -3:
+                    onturn.call(Scene, t / dec);
+                    break;
+            }
+
         } else {
             t = dec;
         }
@@ -623,13 +634,18 @@ Scene = (function () {
             //motors
             match.motors.forEach(function (item, i) {
                 var bike = Bikes[i],
-                    line = createLine(item, colors[i], 5);
-                bike.trans = [item.x, -item.y, 0];
-                bike.rotate = [0, 0, Math.PI / 2 * -item.vec];
-                renderObject(bike, x, y, a);
+                    turn = 0,
+                    line;
+                line = createLine(item, colors[i], 5, function(angle) {
+                    turn = angle;
+                    console.log(angle);
+                });
                 if (line) {
                     renderObject(createModel(line), x, y, a);
                 }
+                bike.trans = [item.x, -item.y, 0];
+                bike.rotate = [0, 0, Math.PI / 2 * (turn - item.vec)];
+                renderObject(bike, x, y, a);
             });
         },
 
@@ -994,9 +1010,11 @@ window.onload = function () {
         var match = new logic.Match(),
             motor = match.add("Player");
         motor.move(50);
-        /*
+        motor.turn(3);
+        motor.move(52);
         motor.turn(1);
-        motor.move(150);
+        motor.move(55);
+        /*
         motor.turn(1);
         motor.move(200);
         */
