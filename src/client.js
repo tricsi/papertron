@@ -204,7 +204,8 @@ Scene = (function () {
             [0, 0, 255],
             [255, 0, 255]
         ],
-        Bike;
+        Bikes = [],
+        Board;
 
     function createShader(script, type) {
         var shader = gl.createShader(type);
@@ -261,6 +262,17 @@ Scene = (function () {
             0, 0, 0, 1
         ];
     }
+
+	function makeYRotation(angleInRadians) {
+		var c = Math.cos(angleInRadians);
+		var s = Math.sin(angleInRadians);
+		return [
+			c, 0, -s, 0,
+			0, 1, 0, 0,
+			s, 0, c, 0,
+			0, 0, 0, 1
+		];
+	};
 
     function makeZRotation(angleInRadians) {
         var c = Math.cos(angleInRadians);
@@ -335,132 +347,215 @@ Scene = (function () {
         ];
     }
 
-    function Data() {
-        this.vert = [];
-        this.norm = [];
-        this.color = [];
+    function matrixInverse(mat, dest) {
+        var a00 = mat[0], a01 = mat[1], a02 = mat[2],
+            a10 = mat[4], a11 = mat[5], a12 = mat[6],
+            a20 = mat[8], a21 = mat[9], a22 = mat[10],
+
+            b01 = a22 * a11 - a12 * a21,
+            b11 = -a22 * a10 + a12 * a20,
+            b21 = a21 * a10 - a11 * a20,
+
+            d = a00 * b01 + a01 * b11 + a02 * b21,
+            id;
+
+        if (!d) { return null; }
+        id = 1 / d;
+
+        dest[0] = b01 * id;
+        dest[1] = (-a22 * a01 + a02 * a21) * id;
+        dest[2] = (a12 * a01 - a02 * a11) * id;
+        dest[3] = b11 * id;
+        dest[4] = (a22 * a00 - a02 * a20) * id;
+        dest[5] = (-a12 * a00 + a02 * a10) * id;
+        dest[6] = b21 * id;
+        dest[7] = (-a21 * a00 + a01 * a20) * id;
+        dest[8] = (a11 * a00 - a01 * a10) * id;
+
+        return dest;
     }
 
-    Data.prototype.add = function (vert, norm, color) {
-        var i,
-            j,
-            v,
-            n = norm.length,
-            c = color.length;
-        for (i = 0; i < vert.length; i += 3) {
-            v = Math.floor(i / 9) * 3;
-            for (j = 0; j < 3; j++) {
-                this.vert.push(vert[i + j]);
-                this.norm.push(norm[(v + j) % n]);
-                this.color.push(color[(v + j) % c]);
-            }
-        }
-    };
-
-    Bike = {
-        vert: [
-            1, -5, 0,
-            0, 0, 0,
-            0, -5, 2,
-            0, -5, 2,
-            0, 0, 0,
-            -1, -5, 0,
-            0, -5, 2,
-            -1, -5, 0,
-            1, -5, 0
-        ],
-        norm: [
-            .3, 0, .5,
-            -.3, 0, .5,
-            0, 1, 0
-        ]
-    };
-
-    function move(data, cx, cy, angle) {
-        var i,
-            x,
-            y,
-            res = [],
-            rad = Math.PI / 180 * angle,
-            cos = Math.cos(rad),
-            sin = Math.sin(rad);
-        for (i = 0; i < data.length; i += 3) {
-            x = data[i];
-            y = data[i + 1];
-            res.push((cos * x) - (sin * y) + cx);
-            res.push((sin * x) + (cos * y) + cy);
-            res.push(data[i + 2]);
-        }
-        return res;
+    function matrixTranspose(a) {
+        var a01 = a[1], a02 = a[2], a12 = a[5];
+        a[1] = a[3];
+        a[2] = a[6];
+        a[3] = a01;
+        a[5] = a[7];
+        a[6] = a02;
+        a[7] = a12;
+        return a;
     }
 
-    function board(s) {
-        return [
-            -s, -s, 0,
-            s, -s, 0,
-            -s, s, 0,
-            s, -s, 0,
-            s, s, 0,
-            -s, s, 0
-        ];
-    }
-
-	function line(x1, y1, x2, y2, v, s, z, part) {
+	function createPart(x1, y1, x2, y2, v, s, z, end) {
 		var xa = 0,
 			ya = 0,
 			xb = 0,
-			yb = 0;
+			yb = 0,
+            xn = 0,
+            yn = 0,
+			data = {};
 		switch (v) {
 			case 0:
 				xa = s;
 				yb = s;
+                xn = 1;
+                yn = 1;
 				break;
 			case 1:
 				ya = -s;
 				xb = s;
+                xn = 1;
+                yn = -1;
 				break;
 			case 2:
 				xa = -s;
 				yb = -s;
+                xn = -1;
+                yn = -1;
 				break;
 			case 3:
 				ya = s;
 				xb = -s;
+                xn = -1;
+                yn = 1;
 				break;
 		}
-        switch (part) {
-            case 1:
-                //begin
-        		return [
-        			x1 + xa + xb, y1 + ya + yb, 0,
-        			x1 - xa + xb, y1 - ya + yb, 0,
-        			x1, y1, z
-                ];
-            case 2:
-                //end
-                return [
-        			x2 + xa - xb, y2 + ya - yb, 0,
-        			x2, y2, z,
-        			x2 - xa - xb, y2 - ya - yb, 0
-                ];
-        }
-        //body
-		return [
+		data.vert = [
 			x1 + xa + xb, y1 + ya + yb, 0,
 			x1, y1, z,
 			x2, y2, z,
 			x1 - xa + xb, y1 - ya + yb, 0,
-			x2, y2, z,
-			x1, y1, z,
 			x2 + xa - xb, y2 + ya - yb, 0,
-			x1 + xa + xb, y1 + ya + yb, 0,
-			x2, y2, z,
-			x2 - xa - xb, y2 - ya - yb, 0,
-			x2, y2, z,
-			x1 - xa + xb, y1 - ya + yb, 0
+			x2 - xa - xb, y2 - ya - yb, 0
 		];
+		data.norm = [
+			xn, yn, 0,
+			0, 0, 1,
+			0, 0, 1,
+			-xn, yn, 0,
+			xn, -yn, 0,
+			-xn, -yn, 0
+		];
+		data.idx = [
+			0, 1, 2,
+			3, 2, 1,
+			4, 0, 2,
+			5, 2, 3
+		];
+		if (end & 1) {
+			data.idx.push(0, 3, 1);
+		}
+		if (end & 2) {
+			data.idx.push(4, 2, 5);
+		}
+		return data;
 	}
 
+	function createLine(motor, color, dec) {
+		var i,
+			j,
+			k,
+			end,
+			part,
+            dots = motor.data,
+			data = {
+				color: color,
+				vert: [],
+				norm: [],
+				idx: []
+			},
+            x = motor.x,
+            y = motor.y,
+            t = motor.time - dots[0][3],
+            s = 0;
+
+        if (t < dec) {
+            if (dots.length < 2) {
+                return null;
+            }
+            s = 1;
+            t = dec - t;
+            x = dots[0][0];
+            y = dots[0][1];
+        } else {
+            t = dec;
+        }
+
+        switch (dots[s][2]) {
+            case 0:
+                y += t;
+                break;
+            case 1:
+                x -= t;
+                break;
+            case 2:
+                y -= t;
+                break;
+            case 3:
+                x += t;
+                break;
+        }
+
+		for (i = s; i < dots.length; i++) {
+			j = data.vert.length / 3;
+			end = 0;
+			if (i === s) {
+				end = 1;
+			}
+			if (i === dots.length - 1) {
+				end = end | 2;
+			}
+			part = createPart(x, -y, dots[i][0],  -dots[i][1], dots[i][2], .3, 2, end);
+			data.vert = data.vert.concat(part.vert);
+			data.norm = data.norm.concat(part.norm);
+			for (k = 0; k < part.idx.length; k++) {
+				data.idx.push(part.idx[k] + j);
+			}
+			x = dots[i][0];
+            y = dots[i][1];
+		}
+		return data;
+	}
+
+    function createModel(data) {
+        var model = {
+                scale: [1, 1, 1],
+                trans: [0, 0, 0],
+                rotate: [0, 0, 0]
+            },
+            color = [],
+            i;
+
+		//normals
+		model.norm = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
+		gl.enableVertexAttribArray(normalsLocation);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.norm), gl.STATIC_DRAW);
+
+		//coordinates
+		model.vert = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
+		gl.enableVertexAttribArray(positionLocation);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.vert), gl.STATIC_DRAW);
+
+		//colors
+        for (i = 0; i < data.vert.length; i++) {
+            color.push(data.color[i % data.color.length]);
+        }
+
+		model.color = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
+		gl.enableVertexAttribArray(colorLocation);
+		gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(color), gl.STATIC_DRAW);
+
+        //index
+        model.idx = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.idx);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data.idx), gl.STATIC_DRAW);
+        model.size = data.idx.length;
+
+        return model;
+    }
 
     function resize() {
         canvas.width = canvas.clientWidth;
@@ -469,14 +564,81 @@ Scene = (function () {
         gl.viewport(0, 0, canvas.width, canvas.height);
     }
 
+    function renderObject(model, x, y, angle) {
+        var matrix,
+			normal = [
+				0, 0, 0,
+				0, 0, 0,
+				0, 0, 0
+			];
+
+		matrix = makeScale(model.scale[0], model.scale[1], model.scale[2]);
+		matrix = matrixMultiply(matrix, makeZRotation(model.rotate[2]));
+		matrix = matrixMultiply(matrix, makeXRotation(model.rotate[0]));
+		matrix = matrixMultiply(matrix, makeYRotation(model.rotate[1]));
+		matrix = matrixMultiply(matrix, makeTranslation(model.trans[0], model.trans[1], model.trans[2]));
+
+        normal = matrixInverse(matrix, normal);
+        normal = matrixTranspose(normal, normal);
+
+		matrix = matrixMultiply(matrix, makeTranslation(x, y, 0));
+		matrix = matrixMultiply(matrix, makeZRotation(Math.PI / 180 * angle));
+		matrix = matrixMultiply(matrix, makeXRotation(-1));
+		matrix = matrixMultiply(matrix, makeTranslation(0, 0, -70));
+		matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
+
+		gl.uniformMatrix4fv(matrixLocation, false, matrix);
+		gl.uniformMatrix3fv(normalLocation, false, normal);
+
+		//normals
+		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
+	  	gl.vertexAttribPointer(normalsLocation, 3, gl.FLOAT, false, 0, 0);
+
+		//coordinates
+		gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
+		gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+		//colors
+		gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
+		gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+
+        //index
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.idx);
+
+		//render
+		gl.drawElements(gl.TRIANGLES, model.size, gl.UNSIGNED_SHORT, 0);
+    }
+
     return {
+
+        render: function (match, motor) {
+            var x = motor ? -motor.x : 0,
+                y = motor ? motor.y : 0,
+                a = rotateFrom;
+
+    		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            renderObject(Board, x, y, a);
+
+            //motors
+            match.motors.forEach(function (item, i) {
+                var bike = Bikes[i],
+                    line = createLine(item, colors[i], 5);
+                bike.trans = [item.x, -item.y, 0];
+                bike.rotate = [0, 0, Math.PI / 2 * -item.vec];
+                renderObject(bike, x, y, a);
+                if (line) {
+                    renderObject(createModel(line), x, y, a);
+                }
+            });
+        },
 
         /**
          * Init scene
          */
         init: function () {
             canvas = $("#scene");
-            gl = canvas.getContext("webgl");
+            gl = canvas.getContext("experimental-webgl");
             vertexShader = createShader($("#vert").text, gl.VERTEX_SHADER);
             fragmentShader = createShader($("#frag").text, gl.FRAGMENT_SHADER);
             shaderProgram = createProgram([vertexShader, fragmentShader]);
@@ -485,10 +647,56 @@ Scene = (function () {
             positionLocation = gl.getAttribLocation(shaderProgram, "a_position");
             normalsLocation = gl.getAttribLocation(shaderProgram, "a_normals");
             normalLocation = gl.getUniformLocation(shaderProgram, "u_normal");
-            gl.enable(gl.CULL_FACE);
+            //gl.enable(gl.CULL_FACE);
             gl.enable(gl.DEPTH_TEST);
             fieldOfViewRadians = Math.PI / 180 * 60;
             rotateFrom = 0;
+
+            //Board model
+            Board = createModel({
+                color: [255, 255, 255],
+                vert: [
+                    -100, -100, 0,
+        			100, -100, 0,
+        			-100, 100, 0,
+        			100, 100, 0
+                ],
+                norm: [
+                    0, 0, 1,
+                    0, 0, 1,
+                    0, 0, 1,
+                    0, 0, 1
+                ],
+                idx: [
+                    0, 1, 2,
+                    1, 3, 2
+                ]
+            });
+
+            //Bike models
+            colors.forEach(function (color) {
+                Bikes.push(createModel({
+                    color: color,
+            		vert: [
+                        1, -5, 0,
+                        0, 0, 0,
+                        0, -5, 2,
+                        -1, -5, 0
+                    ],
+            		norm: [
+                        0, 1, 0,
+                        0, 0, 1,
+            			0, 0, 1,
+            			0, -1, 0
+            		],
+                    idx: [
+                        0, 1, 2,
+                        2, 1, 3,
+                        2, 3, 0
+                    ]
+            	}));
+            });
+
             on(window, 'resize', resize);
             resize();
         },
@@ -515,88 +723,8 @@ Scene = (function () {
         rotate: function(value) {
             rotateTo = value;
             rotateFrom = value;
-        },
-
-        render: function (match, motor) {
-            var x = motor ? -motor.x : 0,
-                y = motor ? motor.y : 0,
-                angle = Math.PI / 180 * rotateFrom,
-                data = new Data(),
-                buffer,
-                matrix,
-                normal = [
-                    0, 1, -1,
-                    0, 1, -1,
-                    0, 1, -1
-                ];
-
-            //board
-            data.add(board(100), [0, 0, 1], [255, 255, 255]);
-
-            //motors
-            match.motors.forEach(function (item, i) {
-                var x = item.x,
-                    y = item.y,
-                    vec = item.vec,
-                    color = colors[i],
-                    vert = move(Bike.vert, x, -y, vec * -90),
-                    norm = move(Bike.norm, 0, 0, vec * 90);
-
-                data.add(vert, norm, color);
-                //lines
-                item.data.forEach(function (dot, j) {
-                    if (j === 0) {
-                        vert = line(x, -y, dot[0], -dot[1], dot[2], .3, 2, 1);
-                        norm =  move([0, .5, 0], 0, 0, dot[2] * -90);
-                        data.add(vert, norm, color);
-                    }
-                    vert = line(x, -y, dot[0], -dot[1], dot[2], .3, 2, 0);
-                    norm =  move([0, 1, 0, 0, -1, 0], 0, 0, dot[2] * -90);
-                    data.add(vert, norm, color);
-                    if (j === item.data.length - 1) {
-                        vert = line(x, -y, dot[0], -dot[1], dot[2], .3, 2, 2);
-                        norm =  move([0, -.5, 0], 0, 0, dot[2] * -90);
-                        data.add(vert, norm, color);
-                    }
-                    x = dot[0];
-                    y = dot[1];
-                });
-            });
-
-            matrix = makeScale(1, 1, 1);
-            matrix = matrixMultiply(matrix, makeTranslation(x, y, 0));
-            matrix = matrixMultiply(matrix, makeZRotation(angle));
-            matrix = matrixMultiply(matrix, makeXRotation(-1));
-            matrix = matrixMultiply(matrix, makeTranslation(0, 0, -50));
-            matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
-
-            //normals
-            buffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.enableVertexAttribArray(normalsLocation);
-            gl.vertexAttribPointer(normalsLocation, 3, gl.FLOAT, false, 0, 0);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.norm), gl.STATIC_DRAW);
-
-            //coordinates
-            buffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.enableVertexAttribArray(positionLocation);
-            gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.vert), gl.STATIC_DRAW);
-
-            //colors
-            buffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.enableVertexAttribArray(colorLocation);
-            gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
-            gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(data.color), gl.STATIC_DRAW);
-
-            //render
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.uniformMatrix4fv(matrixLocation, false, matrix);
-            gl.uniformMatrix3fv(normalLocation, false, normal);
-            gl.drawArrays(gl.TRIANGLES, 0, data.vert.length / 3);
         }
+
     };
 })();
 
@@ -795,7 +923,7 @@ Sfx = (function () {
 /**
  * Bind events
  */
-function bind() {
+function bindIo() {
 
     socket.on("connect", function () {
         emit("games");
@@ -858,18 +986,20 @@ window.onload = function () {
     Chat.init();
     Menu.init();
     Game.init();
-    if (typeof (io) !== "undefined") {
+    if (typeof io !== "undefined") {
         socket = io();
-        bind();
+        bindIo();
         Menu.show();
     } else {
         var match = new logic.Match(),
             motor = match.add("Player");
-        motor.move(100);
+        motor.move(50);
+        /*
         motor.turn(1);
         motor.move(150);
         motor.turn(1);
         motor.move(200);
+        */
         Scene.render(match, motor);
         //@TODO offline mode
     }
