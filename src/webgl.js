@@ -237,12 +237,12 @@ onload = (function () {
 			x2 - xa - xb, y2 - ya - yb, 0
 		];
 		data.norm = [
-			xn, yn, 0,
+			xn, yn, s,
 			0, 0, 1,
 			0, 0, 1,
-			-xn, yn, 0,
-			xn, -yn, 0,
-			-xn, -yn, 0
+			-xn, yn, s,
+			xn, -yn, s,
+			-xn, -yn, s
 		];
 		data.idx = [
 			0, 1, 2,
@@ -464,16 +464,17 @@ onload = (function () {
 		positionLocation = gl.getAttribLocation(program, "a_position");
 		normalsLocation = gl.getAttribLocation(program, "a_normals"),
 		normalLocation = gl.getUniformLocation(program, "u_normal"),
-		//gl.enable(gl.CULL_FACE);
+		gl.enable(gl.CULL_FACE);
 		gl.enable(gl.DEPTH_TEST);
 		fieldOfViewRadians = Math.PI / 180 * 60,
 		rotate = {x:0, y:0, z:0};
 		scale = 1;
         models = {};
 		models.Line = createModel(createLine([
-			[0, 0, 0, 100],
-			[0, -50, 0, 50],
-			[50, -50, 3, 0]
+			[0, 0, 1, 150],
+			[0, -50, 0, 100],
+			[50, -50, 3, 50],
+			[50, 0, 2, 0]
 		], [255, 0, 0], 5));
         models.Board = createModel({
             color: [255, 255, 255],

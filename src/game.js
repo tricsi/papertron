@@ -234,8 +234,9 @@ global.exports = (function () {
 	 * Get current snapshot time
 	 * @returns {number}
 	 */
-	Match.prototype.getTime = function () {
-		return Math.round((new Date().getTime() - this.start) / this.timer);
+	Match.prototype.getTime = function (milisec) {
+        var time = (new Date().getTime() - this.start) / this.timer;
+		return milisec ? time : Math.round(time);
 	};
 
 	/**
@@ -319,7 +320,7 @@ global.exports = (function () {
 	 * @callback onStuck
 	 */
 	Match.prototype.run = function (onStuck) {
-		var time = this.getTime(),
+		var time = this.getTime(!onStuck),
 			count = 0,
 			human = 0,
 			winner,
@@ -328,24 +329,27 @@ global.exports = (function () {
 		if (time > 0) {
 			for (i = 0; i < this.motors.length; i++) {
 				motor = this.motors[i];
-				if (motor.stuck) {
-					count++;
-				} else {
+				if (!motor.stuck) {
 					motor.move(time);
-					if (this.check(motor)) {
-						motor.stuck = time;
-						if (onStuck) {
-							onStuck.call(this, i, time);
-						}
-						count++;
-					} else {
-						if (!motor.bot) {
-							human++;
-						}
-						winner = i;
-					}
 				}
 			}
+			for (i = 0; i < this.motors.length; i++) {
+				motor = this.motors[i];
+				if (motor.stuck) {
+					count++;
+				} else if (this.check(motor)) {
+					motor.stuck = time;
+					if (onStuck) {
+						onStuck.call(this, i, time);
+					}
+					count++;
+				} else {
+					if (!motor.bot) {
+						human++;
+					}
+					winner = i;
+				}
+            }
 			if ((count >= i - 1 && count > 0) || human === 0) {
 				return winner || 0;
 			}

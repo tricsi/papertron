@@ -429,12 +429,12 @@ Scene = (function () {
 			x2 - xa - xb, y2 - ya - yb, 0
 		];
 		data.norm = [
-			xn, yn, 0,
+			xn, yn, s,
 			0, 0, 1,
 			0, 0, 1,
-			-xn, yn, 0,
-			xn, -yn, 0,
-			-xn, -yn, 0
+			-xn, yn, s,
+			xn, -yn, s,
+			-xn, -yn, s
 		];
 		data.idx = [
 			0, 1, 2,
@@ -474,7 +474,7 @@ Scene = (function () {
                 return null;
             }
             s = 1;
-            t = dec - t;
+            t = dec - t - .5;
             x = dots[0][0];
             y = dots[0][1];
             switch (dots[0][2] - dots[1][2]) {
@@ -663,7 +663,7 @@ Scene = (function () {
             positionLocation = gl.getAttribLocation(shaderProgram, "a_position");
             normalsLocation = gl.getAttribLocation(shaderProgram, "a_normals");
             normalLocation = gl.getUniformLocation(shaderProgram, "u_normal");
-            //gl.enable(gl.CULL_FACE);
+            gl.enable(gl.CULL_FACE);
             gl.enable(gl.DEPTH_TEST);
             fieldOfViewRadians = Math.PI / 180 * 60;
             rotateFrom = 0;
@@ -939,7 +939,7 @@ Sfx = (function () {
 /**
  * Bind events
  */
-function bindIo() {
+function bind() {
 
     socket.on("connect", function () {
         emit("games");
@@ -1004,7 +1004,7 @@ window.onload = function () {
     Game.init();
     if (typeof io !== "undefined") {
         socket = io();
-        bindIo();
+        bind();
         Menu.show();
     } else {
         var match = new logic.Match(),
