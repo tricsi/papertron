@@ -197,7 +197,6 @@ Scene = (function () {
         aspectRatio,
         rotateFrom,
         rotateTo,
-        turnTo,
         colors = [
             [255, 0, 0],
             [0, 255, 0],
@@ -263,16 +262,16 @@ Scene = (function () {
         ];
     }
 
-	function makeYRotation(angleInRadians) {
-		var c = Math.cos(angleInRadians);
-		var s = Math.sin(angleInRadians);
-		return [
-			c, 0, -s, 0,
-			0, 1, 0, 0,
-			s, 0, c, 0,
-			0, 0, 0, 1
-		];
-	};
+    function makeYRotation(angleInRadians) {
+        var c = Math.cos(angleInRadians);
+        var s = Math.sin(angleInRadians);
+        return [
+            c, 0, -s, 0,
+            0, 1, 0, 0,
+            s, 0, c, 0,
+            0, 0, 0, 1
+        ];
+    }
 
     function makeZRotation(angleInRadians) {
         var c = Math.cos(angleInRadians);
@@ -386,84 +385,84 @@ Scene = (function () {
         return a;
     }
 
-	function createPart(x1, y1, x2, y2, v, s, z, end) {
-		var xa = 0,
-			ya = 0,
-			xb = 0,
-			yb = 0,
+    function createPart(x1, y1, x2, y2, v, s, z, end) {
+        var xa = 0,
+            ya = 0,
+            xb = 0,
+            yb = 0,
             xn = 0,
             yn = 0,
-			data = {};
-		switch (v) {
-			case 0:
-				xa = s;
-				yb = s;
+            data = {};
+        switch (v) {
+            case 0:
+                xa = s;
+                yb = s;
                 xn = 1;
                 yn = 1;
-				break;
-			case 1:
-				ya = -s;
-				xb = s;
+                break;
+            case 1:
+                ya = -s;
+                xb = s;
                 xn = 1;
                 yn = -1;
-				break;
-			case 2:
-				xa = -s;
-				yb = -s;
+                break;
+            case 2:
+                xa = -s;
+                yb = -s;
                 xn = -1;
                 yn = -1;
-				break;
-			case 3:
-				ya = s;
-				xb = -s;
+                break;
+            case 3:
+                ya = s;
+                xb = -s;
                 xn = -1;
                 yn = 1;
-				break;
-		}
-		data.vert = [
-			x1 + xa + xb, y1 + ya + yb, 0,
-			x1, y1, z,
-			x2, y2, z,
-			x1 - xa + xb, y1 - ya + yb, 0,
-			x2 + xa - xb, y2 + ya - yb, 0,
-			x2 - xa - xb, y2 - ya - yb, 0
-		];
-		data.norm = [
-			xn, yn, s,
-			0, 0, 1,
-			0, 0, 1,
-			-xn, yn, s,
-			xn, -yn, s,
-			-xn, -yn, s
-		];
-		data.idx = [
-			0, 1, 2,
-			3, 2, 1,
-			4, 0, 2,
-			5, 2, 3
-		];
-		if (end & 1) {
-			data.idx.push(0, 3, 1);
-		}
-		if (end & 2) {
-			data.idx.push(4, 2, 5);
-		}
-		return data;
-	}
+                break;
+        }
+        data.vert = [
+            x1 + xa + xb, y1 + ya + yb, 0,
+            x1, y1, z,
+            x2, y2, z,
+            x1 - xa + xb, y1 - ya + yb, 0,
+            x2 + xa - xb, y2 + ya - yb, 0,
+            x2 - xa - xb, y2 - ya - yb, 0
+        ];
+        data.norm = [
+            xn, yn, s,
+            0, 0, 1,
+            0, 0, 1,
+            -xn, yn, s,
+            xn, -yn, s,
+            -xn, -yn, s
+        ];
+        data.idx = [
+            0, 1, 2,
+            3, 2, 1,
+            4, 0, 2,
+            5, 2, 3
+        ];
+        if (end & 1) {
+            data.idx.push(0, 3, 1);
+        }
+        if (end & 2) {
+            data.idx.push(4, 2, 5);
+        }
+        return data;
+    }
 
-	function createLine(motor, color, dec, onturn) {
-		var i,
-			j,
-			k,
-			end,
-			part,
+    function createLine(motor, color, dec, onturn) {
+        var i,
+            j,
+            k,
+            end,
+            part,
             dots = motor.data,
-			data = {
-				color: color,
-				vert: [],
-				norm: [],
-				idx: []
-			},
+            data = {
+                color: color,
+                vert: [],
+                norm: [],
+                idx: []
+            },
             x = motor.x,
             y = motor.y,
             t = motor.time - dots[0][3],
@@ -507,26 +506,26 @@ Scene = (function () {
                 break;
         }
 
-		for (i = s; i < dots.length; i++) {
-			j = data.vert.length / 3;
-			end = 0;
-			if (i === s) {
-				end = 1;
-			}
-			if (i === dots.length - 1) {
-				end = end | 2;
-			}
-			part = createPart(x, -y, dots[i][0],  -dots[i][1], dots[i][2], .3, 2, end);
-			data.vert = data.vert.concat(part.vert);
-			data.norm = data.norm.concat(part.norm);
-			for (k = 0; k < part.idx.length; k++) {
-				data.idx.push(part.idx[k] + j);
-			}
-			x = dots[i][0];
+        for (i = s; i < dots.length; i++) {
+            j = data.vert.length / 3;
+            end = 0;
+            if (i === s) {
+                end = 1;
+            }
+            if (i === dots.length - 1) {
+                end = end | 2;
+            }
+            part = createPart(x, -y, dots[i][0], -dots[i][1], dots[i][2], .3, 2, end);
+            data.vert = data.vert.concat(part.vert);
+            data.norm = data.norm.concat(part.norm);
+            for (k = 0; k < part.idx.length; k++) {
+                data.idx.push(part.idx[k] + j);
+            }
+            x = dots[i][0];
             y = dots[i][1];
-		}
-		return data;
-	}
+        }
+        return data;
+    }
 
     function createModel(data) {
         var model = {
@@ -537,27 +536,27 @@ Scene = (function () {
             color = [],
             i;
 
-		//normals
-		model.norm = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
-		gl.enableVertexAttribArray(normalsLocation);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.norm), gl.STATIC_DRAW);
+        //normals
+        model.norm = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
+        gl.enableVertexAttribArray(normalsLocation);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.norm), gl.STATIC_DRAW);
 
-		//coordinates
-		model.vert = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
-		gl.enableVertexAttribArray(positionLocation);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.vert), gl.STATIC_DRAW);
+        //coordinates
+        model.vert = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
+        gl.enableVertexAttribArray(positionLocation);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.vert), gl.STATIC_DRAW);
 
-		//colors
+        //colors
         for (i = 0; i < data.vert.length; i++) {
             color.push(data.color[i % data.color.length]);
         }
 
-		model.color = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
-		gl.enableVertexAttribArray(colorLocation);
-		gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(color), gl.STATIC_DRAW);
+        model.color = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
+        gl.enableVertexAttribArray(colorLocation);
+        gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(color), gl.STATIC_DRAW);
 
         //index
         model.idx = gl.createBuffer();
@@ -577,57 +576,62 @@ Scene = (function () {
 
     function renderObject(model, x, y, angle) {
         var matrix,
-			normal = [
-				0, 0, 0,
-				0, 0, 0,
-				0, 0, 0
-			];
+            normal = [
+                0, 0, 0,
+                0, 0, 0,
+                0, 0, 0
+            ];
 
-		matrix = makeScale(model.scale[0], model.scale[1], model.scale[2]);
-		matrix = matrixMultiply(matrix, makeZRotation(model.rotate[2]));
-		matrix = matrixMultiply(matrix, makeXRotation(model.rotate[0]));
-		matrix = matrixMultiply(matrix, makeYRotation(model.rotate[1]));
-		matrix = matrixMultiply(matrix, makeTranslation(model.trans[0], model.trans[1], model.trans[2]));
+        matrix = makeScale(model.scale[0], model.scale[1], model.scale[2]);
+        matrix = matrixMultiply(matrix, makeZRotation(model.rotate[2]));
+        matrix = matrixMultiply(matrix, makeXRotation(model.rotate[0]));
+        matrix = matrixMultiply(matrix, makeYRotation(model.rotate[1]));
+        matrix = matrixMultiply(matrix, makeTranslation(model.trans[0], model.trans[1], model.trans[2]));
 
         normal = matrixInverse(matrix, normal);
         normal = matrixTranspose(normal, normal);
 
-		matrix = matrixMultiply(matrix, makeTranslation(x, y, 0));
-		matrix = matrixMultiply(matrix, makeZRotation(Math.PI / 180 * angle));
-		matrix = matrixMultiply(matrix, makeXRotation(-1));
-		matrix = matrixMultiply(matrix, makeTranslation(0, 0, -70));
-		matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
+        matrix = matrixMultiply(matrix, makeTranslation(x, y, 0));
+        matrix = matrixMultiply(matrix, makeZRotation(Math.PI / 180 * angle));
+        matrix = matrixMultiply(matrix, makeXRotation(-1));
+        matrix = matrixMultiply(matrix, makeTranslation(0, 0, -70));
+        matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
 
-		gl.uniformMatrix4fv(matrixLocation, false, matrix);
-		gl.uniformMatrix3fv(normalLocation, false, normal);
+        gl.uniformMatrix4fv(matrixLocation, false, matrix);
+        gl.uniformMatrix3fv(normalLocation, false, normal);
 
-		//normals
-		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
-	  	gl.vertexAttribPointer(normalsLocation, 3, gl.FLOAT, false, 0, 0);
+        //normals
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
+          gl.vertexAttribPointer(normalsLocation, 3, gl.FLOAT, false, 0, 0);
 
-		//coordinates
-		gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
-		gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+        //coordinates
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
+        gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
 
-		//colors
-		gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
-		gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+        //colors
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
+        gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
         //index
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.idx);
 
-		//render
-		gl.drawElements(gl.TRIANGLES, model.size, gl.UNSIGNED_SHORT, 0);
+        //render
+        gl.drawElements(gl.TRIANGLES, model.size, gl.UNSIGNED_SHORT, 0);
     }
 
     return {
 
+        /**
+         * Render scene
+         * @param {Match} match
+         * @param {Motor} motor
+         */
         render: function (match, motor) {
             var x = motor ? -motor.x : 0,
                 y = motor ? motor.y : 0,
                 a = rotateFrom;
 
-    		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
             renderObject(Board, x, y, a);
 
@@ -638,7 +642,6 @@ Scene = (function () {
                     line;
                 line = createLine(item, colors[i], 5, function(angle) {
                     turn = angle;
-                    console.log(angle);
                 });
                 if (line) {
                     renderObject(createModel(line), x, y, a);
@@ -673,9 +676,9 @@ Scene = (function () {
                 color: [255, 255, 255],
                 vert: [
                     -100, -100, 0,
-        			100, -100, 0,
-        			-100, 100, 0,
-        			100, 100, 0
+                    100, -100, 0,
+                    -100, 100, 0,
+                    100, 100, 0
                 ],
                 norm: [
                     0, 0, 1,
@@ -693,38 +696,37 @@ Scene = (function () {
             colors.forEach(function (color) {
                 Bikes.push(createModel({
                     color: color,
-            		vert: [
+                    vert: [
                         1, -5, 0,
                         0, 0, 0,
                         0, -5, 2,
                         -1, -5, 0
                     ],
-            		norm: [
+                    norm: [
                         0, 1, 0,
                         0, 0, 1,
-            			0, 0, 1,
-            			0, -1, 0
-            		],
+                        0, 0, 1,
+                        0, -1, 0
+                    ],
                     idx: [
                         0, 1, 2,
                         2, 1, 3,
                         2, 3, 0
                     ]
-            	}));
+                }));
             });
 
-            on(window, 'resize', resize);
+            on(window, "resize", resize);
             resize();
         },
 
         turn: function(to) {
-            turnTo = to;
             switch (to) {
-                case logic.Motor.LEFT:
-                    rotateTo -= 90;
-                    break;
-                case logic.Motor.RIGHT:
+                case 1:
                     rotateTo += 90;
+                    break;
+                case 3:
+                    rotateTo -= 90;
                     break;
             }
         },
