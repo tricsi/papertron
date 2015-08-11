@@ -13,7 +13,9 @@ onload = (function () {
 		fieldOfViewRadians, //FOV param
 		rotate,
 		scale,
-        models;
+        models,
+        outShader,
+        cellShader;
 
 	function createShader(gl, script, type) {
 		var shader = gl.createShader(type);
@@ -332,13 +334,15 @@ onload = (function () {
 		//normals
 		model.norm = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
-		gl.enableVertexAttribArray(normalsLocation);
+        gl.enableVertexAttribArray(outShader.normals);
+		gl.enableVertexAttribArray(cellShader.normals);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.norm), gl.STATIC_DRAW);
 
 		//coordinates
 		model.vert = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
-		gl.enableVertexAttribArray(positionLocation);
+		gl.enableVertexAttribArray(outShader.position);
+		gl.enableVertexAttribArray(cellShader.position);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.vert), gl.STATIC_DRAW);
 
 		//colors
@@ -348,7 +352,7 @@ onload = (function () {
 
 		model.color = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
-		gl.enableVertexAttribArray(colorLocation);
+		gl.enableVertexAttribArray(cellShader.color);
 		gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(color), gl.STATIC_DRAW);
 
         //index
@@ -385,27 +389,46 @@ onload = (function () {
     		matrix = matrixMultiply(matrix, makeYRotation(rotate.y));
     		matrix = matrixMultiply(matrix, makeTranslation(0, 0, scale - 200));
     		matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspect, 1, 2000));
-
-    		gl.uniformMatrix4fv(matrixLocation, false, matrix);
-    		gl.uniformMatrix3fv(normalLocation, false, normal);
+/*
+            gl.useProgram(outShader.program);
+    		gl.uniformMatrix4fv(outShader.matrix, false, matrix);
 
     		//normals
     		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
-    	  	gl.vertexAttribPointer(normalsLocation, 3, gl.FLOAT, false, 0, 0);
+    	  	gl.vertexAttribPointer(outShader.normals, 3, gl.FLOAT, false, 0, 0);
 
     		//coordinates
     		gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
-    		gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-
-    		//colors
-    		gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
-    		gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+    		gl.vertexAttribPointer(outShader.position, 3, gl.FLOAT, false, 0, 0);
 
             //index
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.idx);
 
     		//render
     		gl.drawElements(gl.TRIANGLES, model.size, gl.UNSIGNED_SHORT, 0);
+*/
+            gl.useProgram(cellShader.program);
+    		gl.uniformMatrix4fv(cellShader.matrix, false, matrix);
+    		gl.uniformMatrix3fv(cellShader.normal, false, normal);
+
+    		//normals
+    		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
+    	  	gl.vertexAttribPointer(cellShader.normals, 3, gl.FLOAT, false, 0, 0);
+
+    		//coordinates
+    		gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
+    		gl.vertexAttribPointer(cellShader.position, 3, gl.FLOAT, false, 0, 0);
+
+    		//colors
+    		gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
+    		gl.vertexAttribPointer(cellShader.color, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+
+            //index
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.idx);
+
+    		//render
+    		gl.drawElements(gl.TRIANGLES, model.size, gl.UNSIGNED_SHORT, 0);
+
         }
 	}
 
@@ -456,14 +479,28 @@ onload = (function () {
 	return function () {
 		canvas = document.getElementById("canvas");
 		gl = canvas.getContext("experimental-webgl");
-		vertexShader = createShader(gl, document.getElementById("vert").text, gl.VERTEX_SHADER);
-		fragmentShader = createShader(gl, document.getElementById("frag").text, gl.FRAGMENT_SHADER);
-		program = createProgram(gl, [vertexShader, fragmentShader]);
-		colorLocation = gl.getAttribLocation(program, "a_color");
-		matrixLocation = gl.getUniformLocation(program, "u_matrix");
-		positionLocation = gl.getAttribLocation(program, "a_position");
-		normalsLocation = gl.getAttribLocation(program, "a_normals"),
-		normalLocation = gl.getUniformLocation(program, "u_normal"),
+        program = createProgram(gl, [
+            createShader(gl, document.getElementById("outVert").text, gl.VERTEX_SHADER),
+            createShader(gl, document.getElementById("outFrag").text, gl.FRAGMENT_SHADER)
+        ]);
+        outShader = {
+            program: program,
+            matrix: gl.getUniformLocation(program, "u_matrix"),
+            position: gl.getAttribLocation(program, "a_position"),
+            normals: gl.getAttribLocation(program, "a_normals")
+        };
+        program = createProgram(gl, [
+            createShader(gl, document.getElementById("cellVert").text, gl.VERTEX_SHADER),
+            createShader(gl, document.getElementById("cellFrag").text, gl.FRAGMENT_SHADER)
+        ]);
+        cellShader = {
+            program: program,
+            color: gl.getAttribLocation(program, "a_color"),
+            matrix: gl.getUniformLocation(program, "u_matrix"),
+            position: gl.getAttribLocation(program, "a_position"),
+            normals: gl.getAttribLocation(program, "a_normals"),
+            normal: gl.getUniformLocation(program, "u_normal")
+        };
 		gl.enable(gl.CULL_FACE);
 		gl.enable(gl.DEPTH_TEST);
 		fieldOfViewRadians = Math.PI / 180 * 60,

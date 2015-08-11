@@ -594,7 +594,7 @@ Scene = (function () {
         matrix = matrixMultiply(matrix, makeTranslation(x, y, 0));
         matrix = matrixMultiply(matrix, makeZRotation(Math.PI / 180 * angle));
         matrix = matrixMultiply(matrix, makeXRotation(-1));
-        matrix = matrixMultiply(matrix, makeTranslation(0, 0, -70));
+        matrix = matrixMultiply(matrix, makeTranslation(0, 0, -50));
         matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
 
         gl.uniformMatrix4fv(matrixLocation, false, matrix);
@@ -602,7 +602,7 @@ Scene = (function () {
 
         //normals
         gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
-          gl.vertexAttribPointer(normalsLocation, 3, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(normalsLocation, 3, gl.FLOAT, false, 0, 0);
 
         //coordinates
         gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
