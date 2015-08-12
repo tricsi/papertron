@@ -105,6 +105,16 @@ Game = (function () {
                         break;
                 }
             });
+            on($(".texts"), "touchstart", function() {
+                if (Game.turn(logic.Motor.LEFT)) {
+                    Scene.turn(logic.Motor.LEFT);
+                }
+            });
+            on($(".room"), "touchstart", function() {
+                if (Game.turn(logic.Motor.RIGHT)) {
+                    Scene.turn(logic.Motor.RIGHT);
+                }
+            });
         },
 
         /**
