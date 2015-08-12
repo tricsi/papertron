@@ -920,16 +920,30 @@ Menu = (function () {
 
 Sfx = (function () {
 
-    var sounds;
+    var context,
+        buffers = {};
+
+    function createSource(name, config) {
+        var url = jsfxr(config),
+            request = new XMLHttpRequest();
+        request.open("GET", url, true);
+        request.responseType = "arraybuffer";
+        request.onload = function() {
+            context.decodeAudioData(request.response, function(buffer) {
+                buffers[name] = buffer;
+            });
+        };
+        request.send();
+    }
 
     return {
+
         init: function () {
-            sounds = {
-                exp: new Audio(jsfxr([3, , 0.1608, 0.5877, 0.4919, 0.1058, , , , , , , , , , 0.7842, -0.1553, -0.2125, 1, , , , , 0.5])),
-                btn: new Audio(jsfxr([0, , 0.0373, 0.3316, 0.1534, 0.785, , , , , , , , , , , , , 1, , , , , 0.5])),
-                over: new Audio(jsfxr([2, , 0.0551, , 0.131, 0.37, , 0.1096, , , , , , 0.1428, , 0.6144, , , 1, , , , , 0.5])),
-                turn: new Audio(jsfxr([1, , 0.18, , 0.1, 0.3465, , 0.2847, , , , , , 0.4183, , , , , 0.5053, , , , , 0.5]))
-            };
+            context = new AudioContext();
+            createSource("exp", [3, , 0.1608, 0.5877, 0.4919, 0.1058, , , , , , , , , , 0.7842, -0.1553, -0.2125, 1, , , , , 0.5]);
+            createSource("btn", [0, , 0.0373, 0.3316, 0.1534, 0.785, , , , , , , , , , , , , 1, , , , , 0.5]);
+            createSource("over", [2, , 0.0551, , 0.131, 0.37, , 0.1096, , , , , , 0.1428, , 0.6144, , , 1, , , , , 0.5]);
+            createSource("turn", [1, , 0.18, , 0.1, 0.3465, , 0.2847, , , , , , 0.4183, , , , , 0.5053, , , , , 0.5]);
             on(document.body, "click", function (e) {
                 if (e.target.tagName === "A") {
                     Sfx.play("btn");
@@ -941,9 +955,16 @@ Sfx = (function () {
                 }
             });
         },
+
         play: function (name) {
-            sounds[name].play();
+            if (name in buffers) {
+                var source = context.createBufferSource();
+                source.buffer = buffers[name];
+                source.connect(context.destination);
+                source.start(0);
+            }
         }
+        
     };
 
 })();
