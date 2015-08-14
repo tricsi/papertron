@@ -43,8 +43,8 @@ void main() {
 	gl_Position = u_matrix * vec4(a_position, 1.0);
 	v_color = a_color;
 
-	vec3 ambientLight = vec3(0.6, 0.6, 0.6);
-	vec3 directionalLightColor = vec3(0.5, 0.5, 0.75);
+	vec3 ambientLight = vec3(0.5, 0.5, 0.5);
+	vec3 directionalLightColor = vec3(0.9, 0.8, 0.7);
 	vec3 directionalVector = vec3(-0.5, 0.8, 0.75);
 
 	vec4 transformedNormal = vec4(u_normal * a_normals, 1.0);
