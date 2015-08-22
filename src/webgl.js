@@ -209,24 +209,20 @@ onload = (function () {
 				xa = s;
 				yb = s;
                 xn = 1;
-                yn = 1;
 				break;
 			case 1:
 				ya = -s;
 				xb = s;
-                xn = 1;
                 yn = -1;
 				break;
 			case 2:
 				xa = -s;
 				yb = -s;
                 xn = -1;
-                yn = -1;
 				break;
 			case 3:
 				ya = s;
 				xb = -s;
-                xn = -1;
                 yn = 1;
 				break;
 		}
@@ -235,28 +231,52 @@ onload = (function () {
 			x1, y1, z,
 			x2, y2, z,
 			x1 - xa + xb, y1 - ya + yb, 0,
+			x2, y2, z,
+			x1, y1, z,
 			x2 + xa - xb, y2 + ya - yb, 0,
-			x2 - xa - xb, y2 - ya - yb, 0
+			x1 + xa + xb, y1 + ya + yb, 0,
+			x2, y2, z,
+			x2 - xa - xb, y2 - ya - yb, 0,
+			x2, y2, z,
+			x1 - xa + xb, y1 - ya + yb, 0
 		];
 		data.norm = [
-			xn, yn, s,
-			0, 0, 1,
-			0, 0, 1,
-			-xn, yn, s,
-			xn, -yn, s,
-			-xn, -yn, s
-		];
-		data.idx = [
-			0, 1, 2,
-			3, 2, 1,
-			4, 0, 2,
-			5, 2, 3
+			xn, yn, 0,
+			xn, yn, 0,
+			xn, yn, 0,
+			-xn, -yn, 0,
+			-xn, -yn, 0,
+			-xn, -yn, 0,
+			xn, yn, 0,
+			xn, yn, 0,
+			xn, yn, 0,
+			-xn, -yn, 0,
+			-xn, -yn, 0,
+			-xn, -yn, 0
 		];
 		if (end & 1) {
-			data.idx.push(0, 3, 1);
+            data.vert.push(
+                x1 + xa + xb, y1 + ya + yb, 0,
+                x1 - xa + xb, y1 - ya + yb, 0,
+                x1, y1, z
+            );
+            data.norm.push(
+                yn, xn, 0,
+                yn, xn, 0,
+                yn, xn, 0
+            );
 		}
 		if (end & 2) {
-			data.idx.push(4, 2, 5);
+            data.vert.push(
+                x2 + xa - xb, y2 + ya - yb, 0,
+                x2, y2, z,
+                x2 - xa - xb, y2 - ya - yb, 0
+            );
+            data.norm.push(
+                yn, -xn, 0,
+                yn, -xn, 0,
+                yn, -xn, 0
+            );
 		}
 		return data;
 	}
@@ -264,7 +284,6 @@ onload = (function () {
 	function createLine(dots, color, dec) {
 		var i,
 			j,
-			k,
             x,
             y,
             t,
@@ -310,17 +329,85 @@ onload = (function () {
 			if (i === dots.length - 1) {
 				end = end | 2;
 			}
-			part = createPart(x, y, dots[i][0],  dots[i][1], dots[i][2], .3, 2, end);
+			part = createPart(x, y, dots[i][0],  dots[i][1], dots[i][2], .2, 2, end);
 			data.vert = data.vert.concat(part.vert);
 			data.norm = data.norm.concat(part.norm);
-			for (k = 0; k < part.idx.length; k++) {
-				data.idx.push(part.idx[k] + j);
-			}
 			x = dots[i][0];
             y = dots[i][1];
 		}
 		return data;
 	}
+
+    function createBoard(color, s, z) {
+        var n = z > 0 ? 1 : -1;
+        return {
+            color: color,
+            vert: [
+                -s, -s, 0,
+    			s, -s, 0,
+    			-s, s, 0,
+    			-s, s, 0,
+     			s, -s, 0,
+                s, s, 0,
+                -s, -s, 0,
+    			-s, -s, z,
+    			s, -s, 0,
+               s, -s, 0,
+    			-s, -s, z,
+    			s, -s, z,
+    			s, s, 0,
+    			s, -s, 0,
+    			s, -s, z,
+    			s, s, 0,
+    			s, -s, z,
+    			s, s, z,
+    			-s, s, 0,
+    			s, s, 0,
+    			s, s, z,
+    			-s, s, 0,
+    			s, s, z,
+    			-s, s, z,
+    			-s, -s, 0,
+    			-s, s, 0,
+    			-s, s, z,
+    			-s, -s, z,
+    			-s, -s, 0,
+    			-s, s, z
+             ],
+            norm: [
+                -1, -1, 1,
+                1, -1, 1,
+                -1, 1, 1,
+                -1, 1, 1,
+                1, -1, 1,
+                1, 1, 1,
+                0, n, 0,
+                0, n, 0,
+                0, n, 0,
+                0, n, 0,
+                0, n, 0,
+                0, n, 0,
+                -n, 0, 0,
+                -n, 0, 0,
+                -n, 0, 0,
+                -n, 0, 0,
+                -n, 0, 0,
+                -n, 0, 0,
+                0, -n, 0,
+                0, -n, 0,
+                0, -n, 0,
+                0, -n, 0,
+                0, -n, 0,
+                0, -n, 0,
+                n, 0, 0,
+                n, 0, 0,
+                n, 0, 0,
+                n, 0, 0,
+                n, 0, 0,
+                n, 0, 0
+            ]
+        };
+    }
 
     function createModel(data) {
         var model = {
@@ -331,36 +418,27 @@ onload = (function () {
             color = [],
             i;
 
-		//normals
-		model.norm = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
-        gl.enableVertexAttribArray(outShader.normals);
-		gl.enableVertexAttribArray(cellShader.normals);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.norm), gl.STATIC_DRAW);
+        for (i = 0; i < data.vert.length; i++) {
+
+            color.push(data.color[i % data.color.length]);
+        }
 
 		//coordinates
 		model.vert = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
-		gl.enableVertexAttribArray(outShader.position);
-		gl.enableVertexAttribArray(cellShader.position);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.vert), gl.STATIC_DRAW);
 
-		//colors
-        for (i = 0; i < data.vert.length; i++) {
-            color.push(data.color[i % data.color.length]);
-        }
+		//normals
+		model.norm = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.norm), gl.STATIC_DRAW);
 
+		//colors
 		model.color = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
-		gl.enableVertexAttribArray(cellShader.color);
 		gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(color), gl.STATIC_DRAW);
 
-        //index
-        model.idx = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.idx);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data.idx), gl.STATIC_DRAW);
-        model.size = data.idx.length;
-
+        model.size = data.vert.length / 3;
         return model;
     }
 
@@ -387,48 +465,30 @@ onload = (function () {
     		matrix = matrixMultiply(matrix, makeZRotation(rotate.z));
     		matrix = matrixMultiply(matrix, makeXRotation(rotate.x));
     		matrix = matrixMultiply(matrix, makeYRotation(rotate.y));
-    		matrix = matrixMultiply(matrix, makeTranslation(0, 0, scale - 200));
+    		matrix = matrixMultiply(matrix, makeTranslation(0, 0, scale - 30));
     		matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspect, 1, 2000));
-/*
-            gl.useProgram(outShader.program);
-    		gl.uniformMatrix4fv(outShader.matrix, false, matrix);
 
-    		//normals
-    		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
-    	  	gl.vertexAttribPointer(outShader.normals, 3, gl.FLOAT, false, 0, 0);
-
-    		//coordinates
-    		gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
-    		gl.vertexAttribPointer(outShader.position, 3, gl.FLOAT, false, 0, 0);
-
-            //index
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.idx);
-
-    		//render
-    		gl.drawElements(gl.TRIANGLES, model.size, gl.UNSIGNED_SHORT, 0);
-*/
             gl.useProgram(cellShader.program);
     		gl.uniformMatrix4fv(cellShader.matrix, false, matrix);
     		gl.uniformMatrix3fv(cellShader.normal, false, normal);
 
     		//normals
     		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
+            gl.enableVertexAttribArray(cellShader.normals);
     	  	gl.vertexAttribPointer(cellShader.normals, 3, gl.FLOAT, false, 0, 0);
 
     		//coordinates
     		gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
+            gl.enableVertexAttribArray(cellShader.position);
     		gl.vertexAttribPointer(cellShader.position, 3, gl.FLOAT, false, 0, 0);
 
     		//colors
     		gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
+            gl.enableVertexAttribArray(cellShader.color);
     		gl.vertexAttribPointer(cellShader.color, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
-            //index
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.idx);
-
     		//render
-    		gl.drawElements(gl.TRIANGLES, model.size, gl.UNSIGNED_SHORT, 0);
-
+    		gl.drawArrays(gl.TRIANGLES, 0, model.size);
         }
 	}
 
@@ -480,31 +540,21 @@ onload = (function () {
 		canvas = document.getElementById("canvas");
 		gl = canvas.getContext("experimental-webgl");
         program = createProgram(gl, [
-            createShader(gl, document.getElementById("outVert").text, gl.VERTEX_SHADER),
-            createShader(gl, document.getElementById("outFrag").text, gl.FRAGMENT_SHADER)
-        ]);
-        outShader = {
-            program: program,
-            matrix: gl.getUniformLocation(program, "u_matrix"),
-            position: gl.getAttribLocation(program, "a_position"),
-            normals: gl.getAttribLocation(program, "a_normals")
-        };
-        program = createProgram(gl, [
             createShader(gl, document.getElementById("cellVert").text, gl.VERTEX_SHADER),
             createShader(gl, document.getElementById("cellFrag").text, gl.FRAGMENT_SHADER)
         ]);
         cellShader = {
             program: program,
             color: gl.getAttribLocation(program, "a_color"),
-            matrix: gl.getUniformLocation(program, "u_matrix"),
             position: gl.getAttribLocation(program, "a_position"),
             normals: gl.getAttribLocation(program, "a_normals"),
+            matrix: gl.getUniformLocation(program, "u_matrix"),
             normal: gl.getUniformLocation(program, "u_normal")
         };
 		gl.enable(gl.CULL_FACE);
 		gl.enable(gl.DEPTH_TEST);
 		fieldOfViewRadians = Math.PI / 180 * 60,
-		rotate = {x:0, y:0, z:0};
+		rotate = {x:-1.2, y:1, z:0};
 		scale = 1;
         models = {};
 		models.Line = createModel(createLine([
@@ -512,86 +562,15 @@ onload = (function () {
 			[0, -50, 0, 100],
 			[50, -50, 3, 50],
 			[50, 0, 2, 0]
-		], [255, 0, 0], 5));
-        models.Board = createModel({
-            color: [255, 255, 255],
-            vert: [
-                -100, -100, 0,
-    			100, -100, 0,
-    			-100, 100, 0,
-    			100, 100, 0,
-                -100, -100, 0,
-    			100, -100, 0,
-                -100, -100, 200,
-    			100, -100, 200,
-     			100, -100, 0,
-    			100, 100, 0,
-    			100, -100, 200,
-    			100, 100, 200,
-    			100, 100, 0,
-    			-100, 100, 0,
-    			100, 100, 200,
-    			-100, 100, 200,
-    			-100, 100, 0,
-    			-100, -100, 0,
-    			-100, 100, 200,
-    			-100, -100, 200
-           ],
-            norm: [
-                0, 0, 1,
-                0, 0, 1,
-                0, 0, 1,
-                0, 0, 1,
-                0, 1, 0,
-                0, 1, 0,
-                0, 1, 0,
-                0, 1, 0,
-                -1, 0, 0,
-                -1, 0, 0,
-                -1, 0, 0,
-                -1, 0, 0,
-                0, -1, 0,
-                0, -1, 0,
-                0, -1, 0,
-                0, -1, 0,
-                1, 0, 0,
-                1, 0, 0,
-                1, 0, 0,
-                1, 0, 0
-            ],
-            idx: [
-                0, 1, 2,
-                1, 3, 2,
-                5, 4, 6,
-				6, 7, 5,
-				9, 8, 10,
-				9, 10, 11,
-				13, 12, 14,
-				13, 14, 15,
-				17, 16, 18,
-				17, 18, 19
-			]
-        });
+		], [160, 16, 0], 5));
+        models.Board = createModel(createBoard([192, 128, 64], 100, 200));
         models.Bike = createModel({
-            color: [255, 0, 0],
-    		vert: [
-                1, -5, 0,
-                0, 0, 0,
-                0, -5, 2,
-                -1, -5, 0
-            ],
-    		norm: [
-                0, -1, 0,
-                0, 0, 1,
-    			0, 0, 1,
-    			0, 1, 0
-    		],
-            idx: [
-                0, 1, 2,
-                2, 1, 3,
-                2, 3, 0
-            ]
+            color: [160, 16, 0],
+            vert: [1,4,2,-1,4,2,-0.5,4,4,1,4,2,0.5,4,4,1,2,4,-0.5,0,4,0.5,0,4,0.5,0.5,4,-1,4,2,-0.5,4,0,-1,2,-0,0.5,0,-0,-0.5,0,-0,-1,2,-0,-0.5,0.5,4,-0.5,0.5,6,-0.5,3.5,6,-0.5,3.5,4,-1,2,4,-0.5,0.5,4,0.5,0.5,4,1,2,4,0.5,3.5,4,0.5,3.5,6,0.5,3.5,4,0.5,3.5,2,0.5,3.5,4,0.5,3.5,6,0.5,0.5,6,1,4,8,0.5,4,10,1,2,10,0.5,0.5,6,0.5,3.5,6,1,2,6,-0.5,3.5,6,-0.5,0.5,6,-1,2,6,0.5,0.5,6,0.5,0,6,-0.5,0,6,0.5,4,10,-0.5,4,10,-1,2,10,-1,0,8,-0.5,0,10,-1,2,10,1,4,8,-1,4,8,-0.5,4,10,0.5,4,6,-0.5,4,6,-1,4,8,-1,4,8,-0.4,2,8,-1,2,10,-1,2,6,-0.4,2,8,-1,4,8,-1,2,6,-0.5,0,6,-1,0,8,1,2,10,-1,2,10,-0.5,0,10,1,0,8,0.4,2,8,1,2,10,1,2,6,0.4,2,8,1,0,8,1,2,6,0.5,4,6,1,4,8,1,2,0,-1,2,-0,-0.5,4,0,-1,0,2,-0.4,2,2,-1,2,-0,-1,2,4,-0.4,2,2,-1,0,2,-1,2,4,-0.5,4,4,-1,4,2,1,0,2,0.4,2,2,1,2,4,1,2,0,0.4,2,2,1,0,2,1,2,0,0.5,4,0,1,4,2,0.5,4,0,-0.5,4,0,-1,4,2,-0.5,3.5,8,-0.5,3.5,8,-0.5,3.5,2,-0.5,3.5,4,-0.5,3.5,6,-0.5,3.5,8,0.5,3.5,2,0.5,3.5,2,0.5,3.5,8,-0.5,3.5,2,-0.5,3.5,2,0.5,3.5,2,0.5,3.5,2,0.5,3.5,2,0.5,3.5,8,0.5,3.5,8,0.5,3.5,8,-0.5,3.5,8,-0.5,3.5,2,-0.5,3.5,8,-0.5,4.3,8,0.5,3.5,8,0.5,3.5,8,-0.5,3.5,8,-0.5,3.5,8,-0.5,3.5,8,-0.5,3.5,2,-0.5,3.5,2,-0.5,3.5,2,0.5,3.5,2,0.5,5.5,2,-0.5,5.5,2,-0.5,4.3,8,-0.5,3.5,2,-0.5,5.5,2,0.5,5.5,2,0.5,3.5,2,0.5,5.5,2,0.5,4.3,8,0.5,3.5,8,0.5,4.3,8,-0.5,4.3,8,0.5,4,4,1,4,2,-0.5,4,4,0.4,2,2,1,4,2,1,2,4,-0.5,0.5,4,-0.5,0,4,0.5,0.5,4,-0.4,2,2,-1,4,2,-1,2,-0,1,2,0,0.5,0,-0,-1,2,-0,-0.5,3.5,4,-0.5,0.5,4,-0.5,3.5,6,-1,2,4,-0.5,3.5,4,-0.5,4,4,-1,2,4,-0.5,0,4,-0.5,0.5,4,1,2,4,0.5,0.5,4,0.5,0,4,1,2,4,0.5,4,4,0.5,3.5,4,0.5,3.5,8,0.5,3.5,6,0.5,3.5,2,0.5,0.5,4,0.5,3.5,4,0.5,0.5,6,0.4,2,8,1,4,8,1,2,10,1,2,6,0.5,0,6,0.5,0.5,6,0.5,3.5,6,0.5,4,6,1,2,6,-1,2,6,-0.5,4,6,-0.5,3.5,6,-0.5,0.5,6,-0.5,0,6,-1,2,6,-0.5,0.5,6,0.5,0.5,6,-0.5,0,6,1,2,10,0.5,4,10,-1,2,10,-0.4,2,8,-1,0,8,-1,2,10,0.5,4,10,1,4,8,-0.5,4,10,1,4,8,0.5,4,6,-1,4,8,-0.5,4,10,-1,4,8,-1,2,10,-0.5,4,6,-1,2,6,-1,4,8,-0.4,2,8,-1,2,6,-1,0,8,0.5,0,10,1,2,10,-0.5,0,10,0.5,0,10,1,0,8,1,2,10,0.5,0,6,1,2,6,1,0,8,0.4,2,8,1,2,6,1,4,8,0.5,4,0,1,2,0,-0.5,4,0,-0.5,0,-0,-1,0,2,-1,2,-0,-0.5,0,4,-1,2,4,-1,0,2,-0.4,2,2,-1,2,4,-1,4,2,0.5,0,4,1,0,2,1,2,4,0.5,0,-0,1,2,0,1,0,2,0.4,2,2,1,2,0,1,4,2,1,4,2,0.5,4,0,-1,4,2,-0.5,3.5,2,-0.5,3.5,8,-0.5,3.5,2,-0.5,3.5,2,-0.5,3.5,4,-0.5,3.5,8,0.5,3.5,8,0.5,3.5,2,0.5,3.5,8,0.5,3.5,2,-0.5,3.5,2,0.5,3.5,2,0.5,3.5,8,0.5,3.5,2,0.5,3.5,8,-0.5,3.5,8,0.5,3.5,8,-0.5,3.5,8,-0.5,5.5,2,-0.5,3.5,2,-0.5,4.3,8,-0.5,3.5,8,0.5,3.5,8,-0.5,3.5,8,-0.5,3.5,2,-0.5,3.5,8,-0.5,3.5,2,0.5,3.5,2,-0.5,3.5,2,0.5,3.5,2,0.5,4.3,8,0.5,5.5,2,-0.5,4.3,8,0.5,3.5,2,-0.5,3.5,2,0.5,5.5,2,0.5,3.5,8,0.5,3.5,2,0.5,4.3,8,-0.5,3.5,8,0.5,3.5,8,-0.5,4.3,8],
+            norm: [0,1,0,0,1,0,0,1,0,1,-0,0,0.9,0.2,0.2,1,0,-0,0,0,1,0,0,1,0,0,1,-1,-0,0,-0.9,0.2,-0.2,-1,0,0,0,0,-1,0,0,-1,0,0,-1,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0.9,-0.4,0,0,-1,0,0.1,0.9,0.5,1,0,0,1,0,0,1,0,0,1,-0,0,0.9,0.2,0.2,1,0,-0,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,1,0,0,1,0,0,1,-1,0,0,-0.9,-0.2,0.2,-1,0,-0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,-1,-0,0,-1,0,0,-1,0,-0,-1,0,0,-1,0,0,-1,-0,0,-1,0,0,-0.9,-0.2,-0.2,-1,0,0,0,0,1,0,0,1,0,0,1,1,0,0,1,0,0,1,0,-0,1,0,0,1,0,0,1,0,0,1,0,0,0.9,0.2,-0.2,1,-0,0,0,0,-1,0,0,-1,0,0,-1,-1,0,0,-1,0,0,-1,0,0,-1,0,-0,-1,0,0,-1,0,0,-1,0,-0,-0.9,0.2,0.2,-1,-0,0,1,0,0,1,0,0,1,0,-0,1,0,0,1,0,0,1,0,0,1,0,0,0.9,0.2,-0.2,1,-0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,1,-0.7,0.7,0,-1,0,0,-0.1,0.4,0.9,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,1,0.2,0,1,0.2,0,1,0.2,0,0,-1,0,0,-1,0,0,-1,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0,1,0,0,1,-0,0,1,0,-0,0,0,1,0,0,1,0,0,1,-1,0,0,-1,-0,0,-1,0,0,0,0,-1,0,0,-1,0,0,-1,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0.1,0.4,0.9,0.9,-0.4,0,0.1,0.9,0.5,1,0,0,1,0,0,1,0,0,1,0,0,1,-0,0,1,0,-0,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,1,0,0,1,0,0,1,-1,0,0,-1,0,0,-1,0,-0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,-0.9,0.2,0.2,-1,-0,0,-1,0,-0,-0.9,0.2,-0.2,-1,0,0,-1,-0,0,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0.9,-0.2,0.2,1,0,0,1,0,-0,0.9,-0.2,-0.2,1,0,0,1,0,0,1,0,0,1,0,0,1,-0,0,0,0,-1,0,0,-1,0,0,-1,-0.9,-0.2,-0.2,-1,0,0,-1,0,0,-0.9,-0.2,0.2,-1,0,-0,-1,0,0,-1,0,0,-1,0,-0,-1,-0,0,0.9,-0.2,0.2,1,0,0,1,0,-0,0.9,-0.2,-0.2,1,0,0,1,0,0,1,0,0,1,0,0,1,-0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,1,-0.1,0.9,0.5,-0.7,0.7,0,-0.1,0.4,0.9,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,1,0.2,0,1,0.2,0,1,0.2,0,0,-1,0,0,-1,0,0,-1,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1]
     	});
+        models.Bike.rotate = [Math.PI / 2, 0, 0];
+        models.Bike.scale = [.5, .5, .5];
 		resize();
 		bind();
 		render();

@@ -208,10 +208,10 @@ Scene = (function () {
         rotateFrom,
         rotateTo,
         colors = [
-            [255, 0, 0],
-            [0, 255, 0],
-            [0, 0, 255],
-            [255, 0, 255]
+            [160, 16, 0],
+            [0, 160, 16],
+            [0, 16, 160],
+            [160, 16, 160]
         ],
         Bikes = [],
         Board;
@@ -395,83 +395,101 @@ Scene = (function () {
         return a;
     }
 
-    function createPart(x1, y1, x2, y2, v, s, z, end) {
-        var xa = 0,
-            ya = 0,
-            xb = 0,
-            yb = 0,
+	function createPart(x1, y1, x2, y2, v, s, z, end) {
+		var xa = 0,
+			ya = 0,
+			xb = 0,
+			yb = 0,
             xn = 0,
             yn = 0,
-            data = {};
-        switch (v) {
-            case 0:
-                xa = s;
-                yb = s;
+			data = {};
+		switch (v) {
+			case 0:
+				xa = s;
+				yb = s;
                 xn = 1;
-                yn = 1;
-                break;
-            case 1:
-                ya = -s;
-                xb = s;
-                xn = 1;
+				break;
+			case 1:
+				ya = -s;
+				xb = s;
                 yn = -1;
-                break;
-            case 2:
-                xa = -s;
-                yb = -s;
+				break;
+			case 2:
+				xa = -s;
+				yb = -s;
                 xn = -1;
-                yn = -1;
-                break;
-            case 3:
-                ya = s;
-                xb = -s;
-                xn = -1;
+				break;
+			case 3:
+				ya = s;
+				xb = -s;
                 yn = 1;
-                break;
-        }
-        data.vert = [
-            x1 + xa + xb, y1 + ya + yb, 0,
-            x1, y1, z,
-            x2, y2, z,
-            x1 - xa + xb, y1 - ya + yb, 0,
-            x2 + xa - xb, y2 + ya - yb, 0,
-            x2 - xa - xb, y2 - ya - yb, 0
-        ];
-        data.norm = [
-            xn, yn, s,
-            0, 0, 1,
-            0, 0, 1,
-            -xn, yn, s,
-            xn, -yn, s,
-            -xn, -yn, s
-        ];
-        data.idx = [
-            0, 1, 2,
-            3, 2, 1,
-            4, 0, 2,
-            5, 2, 3
-        ];
-        if (end & 1) {
-            data.idx.push(0, 3, 1);
-        }
-        if (end & 2) {
-            data.idx.push(4, 2, 5);
-        }
-        return data;
-    }
+				break;
+		}
+		data.vert = [
+			x1 + xa + xb, y1 + ya + yb, 0,
+			x1, y1, z,
+			x2, y2, z,
+			x1 - xa + xb, y1 - ya + yb, 0,
+			x2, y2, z,
+			x1, y1, z,
+			x2 + xa - xb, y2 + ya - yb, 0,
+			x1 + xa + xb, y1 + ya + yb, 0,
+			x2, y2, z,
+			x2 - xa - xb, y2 - ya - yb, 0,
+			x2, y2, z,
+			x1 - xa + xb, y1 - ya + yb, 0
+		];
+		data.norm = [
+			xn, yn, 0,
+			xn, yn, 0,
+			xn, yn, 0,
+			-xn, -yn, 0,
+			-xn, -yn, 0,
+			-xn, -yn, 0,
+			xn, yn, 0,
+			xn, yn, 0,
+			xn, yn, 0,
+			-xn, -yn, 0,
+			-xn, -yn, 0,
+			-xn, -yn, 0
+		];
+		if (end & 1) {
+            data.vert.push(
+                x1 + xa + xb, y1 + ya + yb, 0,
+                x1 - xa + xb, y1 - ya + yb, 0,
+                x1, y1, z
+            );
+            data.norm.push(
+                yn, xn, 0,
+                yn, xn, 0,
+                yn, xn, 0
+            );
+		}
+		if (end & 2) {
+            data.vert.push(
+                x2 + xa - xb, y2 + ya - yb, 0,
+                x2, y2, z,
+                x2 - xa - xb, y2 - ya - yb, 0
+            );
+            data.norm.push(
+                yn, -xn, 0,
+                yn, -xn, 0,
+                yn, -xn, 0
+            );
+		}
+		return data;
+	}
 
     function createLine(motor, color, dec, onturn) {
         var i,
             j,
-            k,
             end,
             part,
             dots = motor.data,
             data = {
                 color: color,
                 vert: [],
-                norm: [],
-                idx: []
+                norm: []
             },
             x = motor.x,
             y = motor.y,
@@ -525,16 +543,84 @@ Scene = (function () {
             if (i === dots.length - 1) {
                 end = end | 2;
             }
-            part = createPart(x, -y, dots[i][0], -dots[i][1], dots[i][2], .3, 2, end);
+            part = createPart(x, -y, dots[i][0], -dots[i][1], dots[i][2], .2, 2, end);
             data.vert = data.vert.concat(part.vert);
             data.norm = data.norm.concat(part.norm);
-            for (k = 0; k < part.idx.length; k++) {
-                data.idx.push(part.idx[k] + j);
-            }
             x = dots[i][0];
             y = dots[i][1];
         }
         return data;
+    }
+
+    function createBoard(color, s, z) {
+        var n = z > 0 ? 1 : -1;
+        return {
+            color: color,
+            vert: [
+                -s, -s, 0,
+    			s, -s, 0,
+    			-s, s, 0,
+    			-s, s, 0,
+     			s, -s, 0,
+                s, s, 0,
+                -s, -s, 0,
+    			-s, -s, z,
+    			s, -s, 0,
+               s, -s, 0,
+    			-s, -s, z,
+    			s, -s, z,
+    			s, s, 0,
+    			s, -s, 0,
+    			s, -s, z,
+    			s, s, 0,
+    			s, -s, z,
+    			s, s, z,
+    			-s, s, 0,
+    			s, s, 0,
+    			s, s, z,
+    			-s, s, 0,
+    			s, s, z,
+    			-s, s, z,
+    			-s, -s, 0,
+    			-s, s, 0,
+    			-s, s, z,
+    			-s, -s, z,
+    			-s, -s, 0,
+    			-s, s, z
+             ],
+            norm: [
+                -1, -1, 1,
+                1, -1, 1,
+                -1, 1, 1,
+                -1, 1, 1,
+                1, -1, 1,
+                1, 1, 1,
+                0, n, 0,
+                0, n, 0,
+                0, n, 0,
+                0, n, 0,
+                0, n, 0,
+                0, n, 0,
+                -n, 0, 0,
+                -n, 0, 0,
+                -n, 0, 0,
+                -n, 0, 0,
+                -n, 0, 0,
+                -n, 0, 0,
+                0, -n, 0,
+                0, -n, 0,
+                0, -n, 0,
+                0, -n, 0,
+                0, -n, 0,
+                0, -n, 0,
+                n, 0, 0,
+                n, 0, 0,
+                n, 0, 0,
+                n, 0, 0,
+                n, 0, 0,
+                n, 0, 0
+            ]
+        };
     }
 
     function createModel(data) {
@@ -546,34 +632,28 @@ Scene = (function () {
             color = [],
             i;
 
-        //normals
-        model.norm = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
-        gl.enableVertexAttribArray(normalsLocation);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.norm), gl.STATIC_DRAW);
-
         //coordinates
         model.vert = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
         gl.enableVertexAttribArray(positionLocation);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.vert), gl.STATIC_DRAW);
 
+        //normals
+        model.norm = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
+        gl.enableVertexAttribArray(normalsLocation);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.norm), gl.STATIC_DRAW);
+
         //colors
         for (i = 0; i < data.vert.length; i++) {
             color.push(data.color[i % data.color.length]);
         }
-
         model.color = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
         gl.enableVertexAttribArray(colorLocation);
         gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(color), gl.STATIC_DRAW);
 
-        //index
-        model.idx = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.idx);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data.idx), gl.STATIC_DRAW);
-        model.size = data.idx.length;
-
+        model.size = data.vert.length / 3;
         return model;
     }
 
@@ -593,8 +673,8 @@ Scene = (function () {
             ];
 
         matrix = makeScale(model.scale[0], model.scale[1], model.scale[2]);
-        matrix = matrixMultiply(matrix, makeZRotation(model.rotate[2]));
         matrix = matrixMultiply(matrix, makeXRotation(model.rotate[0]));
+        matrix = matrixMultiply(matrix, makeZRotation(model.rotate[2]));
         matrix = matrixMultiply(matrix, makeYRotation(model.rotate[1]));
         matrix = matrixMultiply(matrix, makeTranslation(model.trans[0], model.trans[1], model.trans[2]));
 
@@ -603,8 +683,8 @@ Scene = (function () {
 
         matrix = matrixMultiply(matrix, makeTranslation(x, y, 0));
         matrix = matrixMultiply(matrix, makeZRotation(Math.PI / 180 * angle));
-        matrix = matrixMultiply(matrix, makeXRotation(-1));
-        matrix = matrixMultiply(matrix, makeTranslation(0, 0, -50));
+        matrix = matrixMultiply(matrix, makeXRotation(-1.2));
+        matrix = matrixMultiply(matrix, makeTranslation(0, 0, -30));
         matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
 
         gl.uniformMatrix4fv(matrixLocation, false, matrix);
@@ -622,11 +702,8 @@ Scene = (function () {
         gl.bindBuffer(gl.ARRAY_BUFFER, model.color);
         gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
-        //index
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.idx);
-
         //render
-        gl.drawElements(gl.TRIANGLES, model.size, gl.UNSIGNED_SHORT, 0);
+        gl.drawArrays(gl.TRIANGLES, 0, model.size);
     }
 
     return {
@@ -656,8 +733,9 @@ Scene = (function () {
                 if (line) {
                     renderObject(createModel(line), x, y, a);
                 }
+                bike.scale = [.5, .5, .5];
                 bike.trans = [item.x, -item.y, 0];
-                bike.rotate = [0, 0, Math.PI / 2 * (turn - item.vec)];
+                bike.rotate = [Math.PI / 2, 0, Math.PI / 2 * (turn - item.vec)];
                 renderObject(bike, x, y, a);
             });
         },
@@ -682,47 +760,14 @@ Scene = (function () {
             rotateFrom = 0;
 
             //Board model
-            Board = createModel({
-                color: [255, 255, 255],
-                vert: [
-                    -100, -100, 0,
-                    100, -100, 0,
-                    -100, 100, 0,
-                    100, 100, 0
-                ],
-                norm: [
-                    0, 0, 1,
-                    0, 0, 1,
-                    0, 0, 1,
-                    0, 0, 1
-                ],
-                idx: [
-                    0, 1, 2,
-                    1, 3, 2
-                ]
-            });
+            Board = createModel(createBoard([192, 128, 64], 100, 200));
 
             //Bike models
             colors.forEach(function (color) {
                 Bikes.push(createModel({
                     color: color,
-                    vert: [
-                        1, -5, 0,
-                        0, 0, 0,
-                        0, -5, 2,
-                        -1, -5, 0
-                    ],
-                    norm: [
-                        0, 1, 0,
-                        0, 0, 1,
-                        0, 0, 1,
-                        0, -1, 0
-                    ],
-                    idx: [
-                        0, 1, 2,
-                        2, 1, 3,
-                        2, 3, 0
-                    ]
+                    vert: [1,4,2,-1,4,2,-0.5,4,4,1,4,2,0.5,4,4,1,2,4,-0.5,0,4,0.5,0,4,0.5,0.5,4,-1,4,2,-0.5,4,0,-1,2,-0,0.5,0,-0,-0.5,0,-0,-1,2,-0,-0.5,0.5,4,-0.5,0.5,6,-0.5,3.5,6,-0.5,3.5,4,-1,2,4,-0.5,0.5,4,0.5,0.5,4,1,2,4,0.5,3.5,4,0.5,3.5,6,0.5,3.5,4,0.5,3.5,2,0.5,3.5,4,0.5,3.5,6,0.5,0.5,6,1,4,8,0.5,4,10,1,2,10,0.5,0.5,6,0.5,3.5,6,1,2,6,-0.5,3.5,6,-0.5,0.5,6,-1,2,6,0.5,0.5,6,0.5,0,6,-0.5,0,6,0.5,4,10,-0.5,4,10,-1,2,10,-1,0,8,-0.5,0,10,-1,2,10,1,4,8,-1,4,8,-0.5,4,10,0.5,4,6,-0.5,4,6,-1,4,8,-1,4,8,-0.4,2,8,-1,2,10,-1,2,6,-0.4,2,8,-1,4,8,-1,2,6,-0.5,0,6,-1,0,8,1,2,10,-1,2,10,-0.5,0,10,1,0,8,0.4,2,8,1,2,10,1,2,6,0.4,2,8,1,0,8,1,2,6,0.5,4,6,1,4,8,1,2,0,-1,2,-0,-0.5,4,0,-1,0,2,-0.4,2,2,-1,2,-0,-1,2,4,-0.4,2,2,-1,0,2,-1,2,4,-0.5,4,4,-1,4,2,1,0,2,0.4,2,2,1,2,4,1,2,0,0.4,2,2,1,0,2,1,2,0,0.5,4,0,1,4,2,0.5,4,0,-0.5,4,0,-1,4,2,-0.5,3.5,8,-0.5,3.5,8,-0.5,3.5,2,-0.5,3.5,4,-0.5,3.5,6,-0.5,3.5,8,0.5,3.5,2,0.5,3.5,2,0.5,3.5,8,-0.5,3.5,2,-0.5,3.5,2,0.5,3.5,2,0.5,3.5,2,0.5,3.5,2,0.5,3.5,8,0.5,3.5,8,0.5,3.5,8,-0.5,3.5,8,-0.5,3.5,2,-0.5,3.5,8,-0.5,4.3,8,0.5,3.5,8,0.5,3.5,8,-0.5,3.5,8,-0.5,3.5,8,-0.5,3.5,8,-0.5,3.5,2,-0.5,3.5,2,-0.5,3.5,2,0.5,3.5,2,0.5,5.5,2,-0.5,5.5,2,-0.5,4.3,8,-0.5,3.5,2,-0.5,5.5,2,0.5,5.5,2,0.5,3.5,2,0.5,5.5,2,0.5,4.3,8,0.5,3.5,8,0.5,4.3,8,-0.5,4.3,8,0.5,4,4,1,4,2,-0.5,4,4,0.4,2,2,1,4,2,1,2,4,-0.5,0.5,4,-0.5,0,4,0.5,0.5,4,-0.4,2,2,-1,4,2,-1,2,-0,1,2,0,0.5,0,-0,-1,2,-0,-0.5,3.5,4,-0.5,0.5,4,-0.5,3.5,6,-1,2,4,-0.5,3.5,4,-0.5,4,4,-1,2,4,-0.5,0,4,-0.5,0.5,4,1,2,4,0.5,0.5,4,0.5,0,4,1,2,4,0.5,4,4,0.5,3.5,4,0.5,3.5,8,0.5,3.5,6,0.5,3.5,2,0.5,0.5,4,0.5,3.5,4,0.5,0.5,6,0.4,2,8,1,4,8,1,2,10,1,2,6,0.5,0,6,0.5,0.5,6,0.5,3.5,6,0.5,4,6,1,2,6,-1,2,6,-0.5,4,6,-0.5,3.5,6,-0.5,0.5,6,-0.5,0,6,-1,2,6,-0.5,0.5,6,0.5,0.5,6,-0.5,0,6,1,2,10,0.5,4,10,-1,2,10,-0.4,2,8,-1,0,8,-1,2,10,0.5,4,10,1,4,8,-0.5,4,10,1,4,8,0.5,4,6,-1,4,8,-0.5,4,10,-1,4,8,-1,2,10,-0.5,4,6,-1,2,6,-1,4,8,-0.4,2,8,-1,2,6,-1,0,8,0.5,0,10,1,2,10,-0.5,0,10,0.5,0,10,1,0,8,1,2,10,0.5,0,6,1,2,6,1,0,8,0.4,2,8,1,2,6,1,4,8,0.5,4,0,1,2,0,-0.5,4,0,-0.5,0,-0,-1,0,2,-1,2,-0,-0.5,0,4,-1,2,4,-1,0,2,-0.4,2,2,-1,2,4,-1,4,2,0.5,0,4,1,0,2,1,2,4,0.5,0,-0,1,2,0,1,0,2,0.4,2,2,1,2,0,1,4,2,1,4,2,0.5,4,0,-1,4,2,-0.5,3.5,2,-0.5,3.5,8,-0.5,3.5,2,-0.5,3.5,2,-0.5,3.5,4,-0.5,3.5,8,0.5,3.5,8,0.5,3.5,2,0.5,3.5,8,0.5,3.5,2,-0.5,3.5,2,0.5,3.5,2,0.5,3.5,8,0.5,3.5,2,0.5,3.5,8,-0.5,3.5,8,0.5,3.5,8,-0.5,3.5,8,-0.5,5.5,2,-0.5,3.5,2,-0.5,4.3,8,-0.5,3.5,8,0.5,3.5,8,-0.5,3.5,8,-0.5,3.5,2,-0.5,3.5,8,-0.5,3.5,2,0.5,3.5,2,-0.5,3.5,2,0.5,3.5,2,0.5,4.3,8,0.5,5.5,2,-0.5,4.3,8,0.5,3.5,2,-0.5,3.5,2,0.5,5.5,2,0.5,3.5,8,0.5,3.5,2,0.5,4.3,8,-0.5,3.5,8,0.5,3.5,8,-0.5,4.3,8],
+                    norm: [0,1,0,0,1,0,0,1,0,1,-0,0,0.9,0.2,0.2,1,0,-0,0,0,1,0,0,1,0,0,1,-1,-0,0,-0.9,0.2,-0.2,-1,0,0,0,0,-1,0,0,-1,0,0,-1,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0.9,-0.4,0,0,-1,0,0.1,0.9,0.5,1,0,0,1,0,0,1,0,0,1,-0,0,0.9,0.2,0.2,1,0,-0,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,1,0,0,1,0,0,1,-1,0,0,-0.9,-0.2,0.2,-1,0,-0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,-1,-0,0,-1,0,0,-1,0,-0,-1,0,0,-1,0,0,-1,-0,0,-1,0,0,-0.9,-0.2,-0.2,-1,0,0,0,0,1,0,0,1,0,0,1,1,0,0,1,0,0,1,0,-0,1,0,0,1,0,0,1,0,0,1,0,0,0.9,0.2,-0.2,1,-0,0,0,0,-1,0,0,-1,0,0,-1,-1,0,0,-1,0,0,-1,0,0,-1,0,-0,-1,0,0,-1,0,0,-1,0,-0,-0.9,0.2,0.2,-1,-0,0,1,0,0,1,0,0,1,0,-0,1,0,0,1,0,0,1,0,0,1,0,0,0.9,0.2,-0.2,1,-0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,1,-0.7,0.7,0,-1,0,0,-0.1,0.4,0.9,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,1,0.2,0,1,0.2,0,1,0.2,0,0,-1,0,0,-1,0,0,-1,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0,1,0,0,1,-0,0,1,0,-0,0,0,1,0,0,1,0,0,1,-1,0,0,-1,-0,0,-1,0,0,0,0,-1,0,0,-1,0,0,-1,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0.1,0.4,0.9,0.9,-0.4,0,0.1,0.9,0.5,1,0,0,1,0,0,1,0,0,1,0,0,1,-0,0,1,0,-0,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,1,0,0,1,0,0,1,-1,0,0,-1,0,0,-1,0,-0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,-0.9,0.2,0.2,-1,-0,0,-1,0,-0,-0.9,0.2,-0.2,-1,0,0,-1,-0,0,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0.9,-0.2,0.2,1,0,0,1,0,-0,0.9,-0.2,-0.2,1,0,0,1,0,0,1,0,0,1,0,0,1,-0,0,0,0,-1,0,0,-1,0,0,-1,-0.9,-0.2,-0.2,-1,0,0,-1,0,0,-0.9,-0.2,0.2,-1,0,-0,-1,0,0,-1,0,0,-1,0,-0,-1,-0,0,0.9,-0.2,0.2,1,0,0,1,0,-0,0.9,-0.2,-0.2,1,0,0,1,0,0,1,0,0,1,0,0,1,-0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,1,-0.1,0.9,0.5,-0.7,0.7,0,-0.1,0.4,0.9,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,1,0.2,0,1,0.2,0,1,0.2,0,0,-1,0,0,-1,0,0,-1,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1]
                 }));
             });
 
@@ -964,7 +1009,7 @@ Sfx = (function () {
                 source.start(0);
             }
         }
-        
+
     };
 
 })();
@@ -1043,11 +1088,11 @@ window.onload = function () {
         var match = new logic.Match(),
             motor = match.add("Player");
         motor.move(50);
+        /*
         motor.turn(3);
         motor.move(52);
         motor.turn(1);
         motor.move(55);
-        /*
         motor.turn(1);
         motor.move(200);
         */
