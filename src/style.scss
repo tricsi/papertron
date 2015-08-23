@@ -7,18 +7,18 @@ html, body, canvas {
 
 body {
 	font-family: Arial, Helvetica, sans-serif;
-	background: #ccc;
-	perspective: 1000px;
+	background: #963;
 	line-height: 100%;
 	font-size: 28px;
+    perspective: 1000px;
 }
 
 h1 {
 	font-weight: bold;
-	font-size: 48px;
-	padding: 0;
+	font-size: 50px;
+    letter-spacing: -2px;
+	padding: 40px 0 0 0;
 	margin: 0;
-	line-height: 100px;
 }
 
 input, select {
@@ -28,7 +28,7 @@ input, select {
 }
 
 input {
-	border: 0;
+	border: 2px solid #000;
 	background: rgba(0, 0, 0, 0);
 }
 
@@ -47,20 +47,18 @@ select[multiple] {
 }
 
 .btn {
-	background: #000;
+    color: #000;
 	border: 2px solid #000;
-	color: #fff;
 	padding: 5px 20px;
 	text-decoration: none;
 	cursor: pointer;
 }
 
 a.btn:hover {
-	background: #fff;
-	color: #000;
+	background: #000;
+	color: #963;
 }
 
-#menu,
 #game,
 #chat {
 	position: fixed;
@@ -71,14 +69,21 @@ a.btn:hover {
 	overflow: auto;
 }
 
+#count {
+	position: fixed;
+    color: rgba(0, 0, 0, .7);
+	top: 50%;
+	width: 100%;
+    font-size: 250px;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+}
+
 #menu,
 #game {
 	text-align: center;
 	line-height: 60px;
-}
-
-#menu {
-	background: rgba(255, 255, 255, .7);
 }
 
 #game {
@@ -93,6 +98,7 @@ a.btn:hover {
 		width: 100%;
 		height: 30px;
 		text-align: left;
+        border: 0;
 	}
 
 	div {
@@ -107,3 +113,40 @@ a.btn:hover {
 	}
 }
 
+.bt,
+.bb {
+    background: #963;
+    position: fixed;
+    transition: 1s;
+}
+
+.bt {
+    border-bottom: 2px solid #642;
+    top: 0;
+    bottom: 50%;
+    width: 100%;
+    transform-origin: 50% 0;
+
+    div {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+    }
+}
+
+.bb {
+    border-top: 2px solid #642;
+    top: 50%;
+    bottom: 0;
+    width: 100%;
+    transform-origin: 50% 100%;
+}
+
+.open {
+    .bt {
+        transform: rotateX(90deg);
+    }
+    .bb {
+        transform: rotateX(-90deg);
+    }
+}

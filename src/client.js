@@ -53,6 +53,7 @@ function emit() {
 Game = (function () {
 
     var container, //game container
+        count, //counter
         bots, //robot select
         match, //actual match
         motor, //player's motor
@@ -62,6 +63,11 @@ Game = (function () {
      * Run animations and game logic
      */
     function run() {
+        var time = match.getTime(),
+            text = time < 0 ? Math.ceil(Math.abs(time / (1000 / match.timer))) : "";
+        if (count.innerHTML !== text) {
+           count.innerHTML = text;
+        }
         match.run();
         Scene.anim();
         Scene.render(match, motor);
@@ -77,6 +83,7 @@ Game = (function () {
          */
         init: function () {
             container = $("#game");
+            count = $("#count");
             bots = $("select", container);
             on(container, "click", function (e) {
                 var id = attr(e.target, "href");
@@ -183,6 +190,7 @@ Game = (function () {
          */
         hide: function () {
             attr(container, "class", "hide");
+            count.innerHTML = "";
         }
     };
 
@@ -895,14 +903,8 @@ Menu = (function () {
             container = $("#menu");
             games = $("select", container);
             nick = $("input", container);
-            on(container, "click", function (e) {
-                var id = attr(e.target, "href");
-                switch (id) {
-                    case "#join":
-                        emit("join", Menu.nick(), Menu.game());
-                        break;
-                }
-                e.preventDefault();
+            on(games, "click", function (e) {
+                emit("join", Menu.nick(), Menu.game());
             });
         },
 
@@ -923,7 +925,7 @@ Menu = (function () {
          * Hide menu
          */
         hide: function () {
-            attr(container, "class", "hide");
+            attr(container, "class", "open");
             Game.show();
             Chat.show();
             clearInterval(ping);
@@ -1078,7 +1080,9 @@ function bind() {
  */
 window.onload = function () {
     logic = exports;
-    Sfx.init();
+    if (window.AudioContext) {
+        Sfx.init();
+    }
     Scene.init();
     Chat.init();
     Menu.init();

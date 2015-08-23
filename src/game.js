@@ -189,7 +189,7 @@ global.exports = (function () {
 	function Match() {
 		this.timer = 40; // Snapshot time
 		this.distance = 100; // Wall distance
-		this.start = new Date().getTime() + 2000; // Start time
+		this.start = new Date().getTime() + 3000; // Start time
 		this.motors = []; // Motors
 		this.bots = []; // Robots
 		this.pos = [
