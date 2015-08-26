@@ -8,9 +8,11 @@ html, body, canvas {
 body {
 	font-family: Arial, Helvetica, sans-serif;
 	background: #963;
-	line-height: 100%;
 	font-size: 28px;
-    -webkit-perspective: 1000px;
+	line-height: 60px;
+	text-align: center;
+    perspective: 500px;
+    -webkit-perspective: 500px;
 }
 
 h1, h2 {
@@ -77,12 +79,6 @@ a.btn:hover {
     vertical-align: middle;
 }
 
-#menu,
-#game {
-	text-align: center;
-	line-height: 60px;
-}
-
 #game {
 	top: 30px;
 }
@@ -116,7 +112,7 @@ a.btn:hover {
 .bb,
 .bl {
     background: #963;
-    position: fixed;
+    position: absolute;
     display: flex;
 	top: 0;
 	left: 0;
@@ -124,7 +120,7 @@ a.btn:hover {
 	bottom: 0;
     padding: 10px;
     box-sizing: border-box;
-    transition: transform .7s;
+    transition: transform 1s;
 }
 
 .bt {
@@ -166,24 +162,24 @@ a.btn:hover {
     }
 }
 
-#menu {
-
-    &.open, &.start {
-        .bt {
-            transform: rotateX(90deg);
-        }
-        .bb {
-            transform: rotateX(-90deg);
-        }
+.open, .start {
+    .bt {
+        transform: rotateX(90deg);
+        -webkit-transform: rotateX(90deg);
     }
-
-    &.start {
-        .bl {
-            transform: rotateY(-90deg);
-        }
-        .br {
-            transform: rotateY(90deg);
-        }
+    .bb {
+        transform: rotateX(-90deg);
+        -webkit-transform: rotateX(-90deg);
     }
+}
 
+.start {
+    .bl {
+        transform: rotateY(-90deg);
+        -webkit-transform: rotateY(-90deg);
+    }
+    .br {
+        transform: rotateY(90deg);
+        -webkit-transform: rotateY(90deg);
+    }
 }
