@@ -54,7 +54,6 @@ Game = (function () {
 
     var container, //game container
         count, //counter
-        bots, //robot select
         match, //actual match
         motor, //player's motor
         running; //match running
@@ -84,16 +83,15 @@ Game = (function () {
         init: function () {
             container = $("#game");
             count = $("#count");
-            bots = $("select", container);
             on(container, "click", function (e) {
                 var id = attr(e.target, "href");
                 switch (id) {
                     case "#start":
-                        emit("start", parseInt(bots.value));
+                        emit("start");
                         break;
                     case "#leave":
                         emit("leave");
-                        Menu.show();
+                        Menu.show("open");
                         break;
                 }
                 e.preventDefault();
@@ -892,7 +890,8 @@ Menu = (function () {
     var container, //menu container
         games, //game list
         nick, //nickname
-        ping;
+        bots, //bot count
+        ping; //ping timer
 
     return {
 
@@ -902,33 +901,30 @@ Menu = (function () {
         init: function () {
             container = $("#menu");
             games = $("select", container);
+            bots = $("select", container);
             nick = $("input", container);
-            on(games, "click", function (e) {
-                emit("join", Menu.nick(), Menu.game());
+            on(container, "click", function (e) {
+                var id = attr(e.target, "href");
+                switch (id) {
+                    case "#join":
+                        Menu.show("start");
+                       break;
+                    case "#create":
+                        Menu.show("start");
+                        break;
+                    case "#open":
+                        Menu.show("open");
+                        break;
+                }
+                e.preventDefault();
             });
         },
 
         /**
          * Show menu
          */
-        show: function () {
-            emit("games");
-            attr(container, "class", "");
-            Game.hide();
-            Chat.hide();
-            ping = setInterval(function () {
-                emit("games");
-            }, 3000);
-        },
-
-        /**
-         * Hide menu
-         */
-        hide: function () {
-            attr(container, "class", "open");
-            Game.show();
-            Chat.show();
-            clearInterval(ping);
+        show: function (name) {
+            attr(container, "class", name);
         },
 
         /**
@@ -1080,6 +1076,10 @@ function bind() {
  */
 window.onload = function () {
     logic = exports;
+    if (typeof io !== "undefined") {
+        socket = io();
+        bind();
+    }
     if (window.AudioContext) {
         Sfx.init();
     }
@@ -1087,23 +1087,4 @@ window.onload = function () {
     Chat.init();
     Menu.init();
     Game.init();
-    if (typeof io !== "undefined") {
-        socket = io();
-        bind();
-        Menu.show();
-    } else {
-        var match = new logic.Match(),
-            motor = match.add("Player");
-        motor.move(50);
-        /*
-        motor.turn(3);
-        motor.move(52);
-        motor.turn(1);
-        motor.move(55);
-        motor.turn(1);
-        motor.move(200);
-        */
-        Scene.render(match, motor);
-        //@TODO offline mode
-    }
 };

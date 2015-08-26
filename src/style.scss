@@ -7,10 +7,14 @@ html, body, canvas {
 
 body {
 	font-family: Arial, Helvetica, sans-serif;
-	background: #963;
+	//background: #963;
 	line-height: 100%;
 	font-size: 28px;
     perspective: 1000px;
+}
+
+h1, h2 {
+	margin: 0;
 }
 
 h1 {
@@ -18,28 +22,20 @@ h1 {
 	font-size: 50px;
     letter-spacing: -2px;
 	padding: 40px 0 0 0;
-	margin: 0;
 }
 
 input, select {
 	color: #000;
+	background: #a74;
+	border: 2px solid #000;
 	font-size: 28px;
 	text-align: center;
-}
-
-input {
-	border: 2px solid #000;
-	background: rgba(0, 0, 0, 0);
-}
-
-select {
-	width: 240px;
-	border: 2px solid #000;
-	background: #fff;
+    width: 250px;
 }
 
 select[multiple] {
 	height: 150px;
+    width: 150px;
 }
 
 .hide {
@@ -48,6 +44,7 @@ select[multiple] {
 
 .btn {
     color: #000;
+    background: #963;
 	border: 2px solid #000;
 	padding: 5px 20px;
 	text-decoration: none;
@@ -98,6 +95,7 @@ a.btn:hover {
 		width: 100%;
 		height: 30px;
 		text-align: left;
+        background: rgba(0, 0, 0, 0);
         border: 0;
 	}
 
@@ -114,23 +112,39 @@ a.btn:hover {
 }
 
 .bt,
-.bb {
+.br,
+.bb,
+.bl {
     background: #963;
     position: fixed;
-    transition: 1s;
+    display: flex;
+    top: 0;
+    padding: 10px;
+    box-sizing: border-box;
+    transition: transform 1s;
 }
 
 .bt {
     border-bottom: 2px solid #642;
-    top: 0;
-    bottom: 50%;
     width: 100%;
-    transform-origin: 50% 0;
+    height: 50%;
+    transform-origin: center top;
+    justify-content: center;
 
     div {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
+        align-self: flex-end;
+    }
+}
+
+.br {
+    border-left: 2px solid #642;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    transform-origin: right center;
+
+    div {
+        align-self:  center;
     }
 }
 
@@ -139,14 +153,40 @@ a.btn:hover {
     top: 50%;
     bottom: 0;
     width: 100%;
-    transform-origin: 50% 100%;
+    transform-origin: center bottom;
+    justify-content: center;
 }
 
-.open {
-    .bt {
-        transform: rotateX(90deg);
+.bl {
+    border-right: 2px solid #642;
+    width: 50%;
+    height: 100%;
+    transform-origin: left center;
+    justify-content: flex-end;
+
+    div {
+        align-self:  center;
     }
-    .bb {
-        transform: rotateX(-90deg);
+}
+
+#menu {
+
+    &.open, &.start {
+        .bt {
+            transform: rotateX(90deg);
+        }
+        .bb {
+            transform: rotateX(-90deg);
+        }
     }
+
+    &.start {
+        .bl {
+            transform: rotateY(-90deg);
+        }
+        .br {
+            transform: rotateY(90deg);
+        }
+    }
+
 }

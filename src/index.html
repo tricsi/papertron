@@ -50,35 +50,54 @@ void main() {
 <canvas id="scene"></canvas>
 <div id="count"></div>
 
-<form id="chat" class="hide">
+<form id="chat">
 <input maxlength="50" placeholder="Chat">
 <input type="submit" class="hide">
 <div class="room"></div>
 <div class="texts"></div>
 </form>
 
-<div id="game" class="hide">
+<div id="game">
 <h1></h1>
-<select>
-<option value="0">No robots</option>
-<option value="1">One robot</option>
-<option value="2">Two robot</option>
-<option value="3">Three robot</option>
-</select><br />
+<br />
 <a href="#start" class="btn">Start</a>
 <a href="#leave" class="btn">Leave</a>
 </div>
 
 <div id="menu">
+
+<div class="bl">
+<div>
+<select name="games" multiple></select><br />
+<a href="#join" class="btn">Join</a>
+</div>
+</div>
+
+<div class="br">
+<div>
+<select name="bots" multiple>
+<option value="0" selected>No bots</option>
+<option value="1">1 bot</option>
+<option value="2">2 bots</option>
+<option value="3">3 bots</option>
+</select><br />
+<a href="#create" class="btn">Create</a>
+</div>
+</div>
+
 <div class="bt">
 <div>
 <h1>PAPERTRON</h1>
-<input placeholder="Your name" size="10" maxlength="10">
 </div>
 </div>
+
 <div class="bb">
-<select multiple><option value="">NEW GAME</option></select>
+<div>
+<input placeholder="Your name" maxlength="10" autofocus><br />
+<a href="#open" class="btn">Open</a>
 </div>
+</div>
+
 </div>
 
 </body>
