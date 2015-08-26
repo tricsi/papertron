@@ -7,10 +7,10 @@ html, body, canvas {
 
 body {
 	font-family: Arial, Helvetica, sans-serif;
-	//background: #963;
+	background: #963;
 	line-height: 100%;
 	font-size: 28px;
-    perspective: 1000px;
+    -webkit-perspective: 1000px;
 }
 
 h1, h2 {
@@ -118,16 +118,18 @@ a.btn:hover {
     background: #963;
     position: fixed;
     display: flex;
-    top: 0;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
     padding: 10px;
     box-sizing: border-box;
-    transition: transform 1s;
+    transition: transform .7s;
 }
 
 .bt {
     border-bottom: 2px solid #642;
-    width: 100%;
-    height: 50%;
+    bottom: 50%;
     transform-origin: center top;
     justify-content: center;
 
@@ -138,9 +140,7 @@ a.btn:hover {
 
 .br {
     border-left: 2px solid #642;
-    right: 0;
-    width: 50%;
-    height: 100%;
+    left: 50%;
     transform-origin: right center;
 
     div {
@@ -151,16 +151,13 @@ a.btn:hover {
 .bb {
     border-top: 2px solid #642;
     top: 50%;
-    bottom: 0;
-    width: 100%;
     transform-origin: center bottom;
     justify-content: center;
 }
 
 .bl {
     border-right: 2px solid #642;
-    width: 50%;
-    height: 100%;
+    right: 50%;
     transform-origin: left center;
     justify-content: flex-end;
 

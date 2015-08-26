@@ -2,6 +2,7 @@ var logic = require("./game.js"); //game.logic
 
 var io = require("socket.io")(), //server
     games = [], //game list
+    names = [], //nicknames
     matches = {}, //game matches
     players = {}; //game players
 
@@ -61,6 +62,14 @@ io.on("connect", function (socket) {
         }
     }
 
+    function removeNick()
+    {
+        var index = names.indexOf(socket.nick);
+        if (index >= 0) {
+            names.splice(index, 1);
+        }
+    }
+
     /**
      * Leave game
      */
@@ -86,7 +95,24 @@ io.on("connect", function (socket) {
      */
     socket.on("disconnect", function () {
         leave();
+        removeNick();
         console.log(socket.nick + " disconnected");
+    });
+
+    /**
+     * Open game
+     */
+    socket.on("open", function (nick) {
+        if (!nick || !nick.match(/^[0-9a-zA-Z]+$/)) {
+            socket.emit("alert", "Invalid name!");
+        } else if (names.indexOf(nick) >= 0) {
+            socket.emit("alert", "Name exists!");
+        } else {
+            removeNick();
+            names.push(nick);
+            socket.nick = nick;
+            socket.emit("open");
+        }
     });
 
     /**
@@ -100,12 +126,12 @@ io.on("connect", function (socket) {
     /**
      * Player join or create game
      */
-    socket.on("join", function (nick, game) {
-        var list;
+    socket.on("join", function (game) {
+        var list,
+            nick = socket.nick;
         game = game || nick;
         if (nick && (!players[game] || players[game].indexOf(socket) === -1)) {
             socket.join(game);
-            socket.nick = nick;
             socket.game = game;
             if (!players[game]) {
                 players[game] = [];

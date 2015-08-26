@@ -87,7 +87,7 @@ Game = (function () {
                 var id = attr(e.target, "href");
                 switch (id) {
                     case "#start":
-                        emit("start");
+                        emit("start", Menu.bots());
                         break;
                     case "#leave":
                         emit("leave");
@@ -900,20 +900,23 @@ Menu = (function () {
          */
         init: function () {
             container = $("#menu");
-            games = $("select", container);
-            bots = $("select", container);
+            games = $("[name=games]", container);
+            bots = $("[name=bots]", container);
             nick = $("input", container);
             on(container, "click", function (e) {
-                var id = attr(e.target, "href");
+                var id = attr(e.target, "href"),
+                    game = Menu.game();
                 switch (id) {
                     case "#join":
-                        Menu.show("start");
+                        if (game) {
+                            emit("join", game);
+                        }
                        break;
                     case "#create":
-                        Menu.show("start");
+                        emit("join", null);
                         break;
                     case "#open":
-                        Menu.show("open");
+                        emit("open", Menu.nick());
                         break;
                 }
                 e.preventDefault();
@@ -924,6 +927,14 @@ Menu = (function () {
          * Show menu
          */
         show: function (name) {
+            if (name === "open") {
+                emit("games");
+                ping = setInterval(function () {
+                    emit("games");
+                }, 3000);
+            } else if (ping) {
+                clearInterval(ping);
+            }
             attr(container, "class", name);
         },
 
@@ -944,14 +955,22 @@ Menu = (function () {
         },
 
         /**
+         * Get game name
+         * @return string
+         */
+        bots: function () {
+            return parseInt(bots.value);
+        },
+
+        /**
          * Set games list
          * @param {string[]} list
          */
         games: function (list) {
             var selected = games.value;
             games.selectedIndex = 0;
-            while (games.options.length > 1) {
-                games.remove(1);
+            while (games.options.length > 0) {
+                games.remove(0);
             }
             list.forEach(function (game, index) {
                 games.add(new Option(game + "'s game", game));
@@ -1020,8 +1039,12 @@ Sfx = (function () {
  */
 function bind() {
 
-    socket.on("connect", function () {
-        emit("games");
+    socket.on("alert", function (message) {
+        alert(message);
+    });
+
+    socket.on("open", function () {
+        Menu.show("open");
     });
 
     socket.on("games", function (list) {
@@ -1029,7 +1052,7 @@ function bind() {
     });
 
     socket.on("join", function (list, snapshot) {
-        Menu.hide();
+        Menu.show("start");
         Chat.room(list);
         if (snapshot) {
             Game.start(snapshot, false);
