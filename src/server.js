@@ -3,8 +3,7 @@ var logic = require("./game.js"); //game.logic
 var io = require("socket.io")(), //server
     games = [], //game list
     names = [], //nicknames
-    matches = {}, //game matches
-    players = {}; //game players
+    store = {}; //game data
 
 io.on("connect", function (socket) {
 
@@ -19,8 +18,8 @@ io.on("connect", function (socket) {
      */
     function nicks(game) {
         var list = [];
-        if (players[game]) {
-            players[game].forEach(function(client) {
+        if (store[game]) {
+            store[game].players.forEach(function(client) {
                 list.push(client.nick);
             });
         }
@@ -31,7 +30,9 @@ io.on("connect", function (socket) {
      * Get match snapshot
      */
     function snapshot(game) {
-        return matches[game] ? matches[game].save() : null;
+        return store[game] && store[game].match
+            ? store[game].match.save()
+            : null;
     }
 
     /**
@@ -51,7 +52,7 @@ io.on("connect", function (socket) {
             socket.emit("win", winner);
             socket.to(game).emit("win", winner);
             clearInterval(thread);
-            matches[game] = null;
+            store[game].match = null;
             console.log(match.motors[winner].nick + " wins");
         } else {
             match.ai(function (to, time, id) {
@@ -75,14 +76,16 @@ io.on("connect", function (socket) {
      */
     function leave() {
         var nick = socket.nick,
-            game = socket.game;
+            game = socket.game,
+            players;
         if (game) {
             socket.game = null;
-            players[game].splice(players[game].indexOf(socket), 1);
+            players = store[game].players;
+            players.splice(players.indexOf(socket), 1);
             console.log(nick + " leave " + game);
-            if (players[game].length === 0) {
+            if (players.length === 0) {
                 games.splice(games.indexOf(game), 1);
-                delete players[game];
+                delete store[game];
                 console.log("room deleted: " + game);
             } else {
                 socket.to(game).emit("left", nick, nicks(game));
@@ -124,21 +127,39 @@ io.on("connect", function (socket) {
     });
 
     /**
+     * Create new game
+     */
+    socket.on("create", function (game, bots) {
+        if (!game) {
+            socket.emit("alert", "Invalid name!");
+        } else if (games.indexOf(game) >= 0) {
+            socket.emit("alert", "Game exists!");
+        } else {
+            socket.leave(socket.game);
+            leave();
+            games.push(game);
+            store[game] = {
+                bots: parseInt(bots),
+                players: [socket]
+            };
+            socket.join(game);
+            socket.game = game;
+            socket.emit("join", [socket.nick]);
+            console.log(socket.nick + " created " + game);
+        }
+    });
+
+    /**
      * Player join or create game
      */
     socket.on("join", function (game) {
         var list,
             nick = socket.nick;
         game = game || nick;
-        if (nick && (!players[game] || players[game].indexOf(socket) === -1)) {
+        if (nick && store[game] && store[game].players.indexOf(socket) === -1) {
             socket.join(game);
             socket.game = game;
-            if (!players[game]) {
-                players[game] = [];
-                games.push(game);
-                console.log("new room: " + game);
-            }
-            players[game].push(socket);
+            store[game].players.push(socket);
             list = nicks(game);
             socket.emit("join", list, snapshot(game));
             socket.to(game).emit("joined", nick, list);
@@ -167,27 +188,29 @@ io.on("connect", function (socket) {
     /**
      * Player start game
      */
-    socket.on("start", function (bots) {
+    socket.on("start", function () {
         var i,
             data,
+            bots,
             player,
-            clients = players[socket.game];
-        if (clients) {
+            game = store[socket.game];
+       if (game) {
+            bots = game.bots;
             match = new logic.Match();
-            for (i = 0; i < clients.length; i++) {
-                player = clients[i];
+            for (i = 0; i < game.players.length; i++) {
+                player = game.players[i];
                 player.motor = match.add(player.nick);
             }
             while (i++ < 4 && bots-- > 0) {
                 player = match.add();
             }
-            matches[socket.game] = match;
+            game.match = match;
             data = snapshot(socket.game);
-            clients.forEach(function(client, id) {
+            game.players.forEach(function(client, id) {
                 client.emit("start", data, id);
             });
             thread = setInterval(run, 1000 / match.timer);
-            console.log(socket.nick + " started " + socket.game + " with bot number " + bots);
+            console.log(socket.nick + " started " + socket.game + " with bot number " + game.bots);
         }
     });
 

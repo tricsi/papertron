@@ -87,7 +87,7 @@ Game = (function () {
                 var id = attr(e.target, "href");
                 switch (id) {
                     case "#start":
-                        emit("start", Menu.bots());
+                        emit("start");
                         break;
                     case "#leave":
                         emit("leave");
@@ -827,18 +827,16 @@ Chat = (function () {
          */
         init: function () {
             container = $("#chat");
-            text = $("input", container);
+            text = $("[name=text]", container);
             texts = $(".texts", container);
             room = $(".room", container);
-            on(container, "submit", function (e) {
-                var value = text.value.trim(),
-                    nick = Menu.nick();
-                if (value !== "") {
+            on(text, "keydown", function (e) {
+                var value = text.value.trim();
+                if (e.keyCode === 13 && value !== "") {
                     emit("message", value);
-                    Chat.add(nick + ": " + value);
+                    Chat.add(Menu.nick() + ": " + value);
+                    text.value = "";
                 }
-                text.value = "";
-                e.preventDefault();
             });
         },
 
@@ -889,6 +887,7 @@ Menu = (function () {
 
     var container, //menu container
         games, //game list
+        game, //game name
         nick, //nickname
         bots, //bot count
         ping; //ping timer
@@ -901,19 +900,19 @@ Menu = (function () {
         init: function () {
             container = $("body");
             games = $("[name=games]", container);
+            game = $("[name=game]", container);
             bots = $("[name=bots]", container);
             nick = $("[name=nick]", container);
             on(container, "click", function (e) {
-                var id = attr(e.target, "href"),
-                    game = Menu.game();
+                var id = attr(e.target, "href");
                 switch (id) {
                     case "#join":
-                        if (game) {
-                            emit("join", game);
+                        if (games.value) {
+                            emit("join", games.value);
                         }
                         break;
                     case "#create":
-                        emit("join", null);
+                        emit("create", game.value.trim(), parseInt(bots.value));
                         break;
                     case "#open":
                         emit("open", Menu.nick());
@@ -928,6 +927,9 @@ Menu = (function () {
          */
         show: function (name) {
             if (name === "open") {
+                if (!game.value) {
+                    game.value = Menu.nick() + "'s game";
+                }
                 emit("games");
                 ping = setInterval(function () {
                     emit("games");
@@ -947,22 +949,6 @@ Menu = (function () {
         },
 
         /**
-         * Get game name
-         * @return string
-         */
-        game: function () {
-            return games.value;
-        },
-
-        /**
-         * Get game name
-         * @return string
-         */
-        bots: function () {
-            return parseInt(bots.value);
-        },
-
-        /**
          * Set games list
          * @param {string[]} list
          */
@@ -973,7 +959,7 @@ Menu = (function () {
                 games.remove(0);
             }
             list.forEach(function (game, index) {
-                games.add(new Option(game + "'s game", game));
+                games.add(new Option(game));
                 if (game === selected) {
                     games.selectedIndex = index + 1;
                 }

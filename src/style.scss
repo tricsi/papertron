@@ -8,8 +8,8 @@ html, body, canvas {
 body {
 	font-family: Arial, Helvetica, sans-serif;
 	background: #963;
-	font-size: 28px;
-	line-height: 60px;
+	font-size: 24px;
+	line-height: 50px;
 	text-align: center;
     perspective: 500px;
     -webkit-perspective: 500px;
@@ -30,13 +30,13 @@ input, select {
 	color: #000;
 	background: #a74;
 	border: 2px solid #000;
-	font-size: 28px;
+	font-size: 24px;
 	text-align: center;
-    width: 250px;
+    width: 150px;
 }
 
 select[multiple] {
-	height: 150px;
+	height: 100px;
     width: 150px;
 }
 
@@ -101,6 +101,10 @@ a.btn:hover {
 		padding: 5px;
 	}
 
+	div.texts {
+		text-align: left;
+	}
+
 	div.room {
 		float: right;
 		text-align: right;
@@ -111,6 +115,7 @@ a.btn:hover {
 .br,
 .bb,
 .bl {
+    border: 2px solid #642;
     background: #963;
     position: absolute;
     display: flex;
@@ -124,7 +129,6 @@ a.btn:hover {
 }
 
 .bt {
-    border-bottom: 2px solid #642;
     bottom: 50%;
     transform-origin: center top;
     justify-content: center;
@@ -135,7 +139,6 @@ a.btn:hover {
 }
 
 .br {
-    border-left: 2px solid #642;
     left: 50%;
     transform-origin: right center;
 
@@ -145,14 +148,12 @@ a.btn:hover {
 }
 
 .bb {
-    border-top: 2px solid #642;
     top: 50%;
     transform-origin: center bottom;
     justify-content: center;
 }
 
 .bl {
-    border-right: 2px solid #642;
     right: 50%;
     transform-origin: left center;
     justify-content: flex-end;
