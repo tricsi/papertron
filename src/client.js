@@ -180,14 +180,14 @@ Game = (function () {
             $("h1", container).innerHTML = winner !== undefined
                 ? match.motors[winner].nick + " wins!"
                 : "New Game";
-            attr(container, "class", "");
+            container.style.display = null;
         },
 
         /**
          * Hide game
          */
         hide: function () {
-            attr(container, "class", "hide");
+            container.style.display = "none";
             count.innerHTML = "";
         }
     };
@@ -889,7 +889,6 @@ Menu = (function () {
         games, //game list
         game, //game name
         nick, //nickname
-        bots, //bot count
         ping; //ping timer
 
     return {
@@ -899,10 +898,9 @@ Menu = (function () {
          */
         init: function () {
             container = $("body");
-            games = $("[name=games]", container);
-            game = $("[name=game]", container);
-            bots = $("[name=bots]", container);
-            nick = $("[name=nick]", container);
+            games = $("[name=games]");
+            game = $("[name=game]");
+            nick = $("[name=nick]");
             on(container, "click", function (e) {
                 var id = attr(e.target, "href");
                 switch (id) {
@@ -912,7 +910,7 @@ Menu = (function () {
                         }
                         break;
                     case "#create":
-                        emit("create", game.value.trim(), parseInt(bots.value));
+                        emit("create", game.value.trim(), Menu.opts());
                         break;
                     case "#open":
                         emit("open", Menu.nick());
@@ -946,6 +944,18 @@ Menu = (function () {
          */
         nick: function () {
             return nick.value.trim();
+        },
+
+        /**
+         * Game options
+         * @return object
+         */
+        opts: function () {
+            return {
+                map: parseInt($("[name=map]").value),
+                bots: parseInt($("[name=bots]").value),
+                mode: parseInt($("[name=mode]").value)
+            };
         },
 
         /**
@@ -1043,6 +1053,8 @@ function bind() {
         if (snapshot) {
             Game.start(snapshot, false);
             Game.hide();
+        } else {
+            Game.show();
         }
     });
 

@@ -9,53 +9,47 @@ body {
 	font-family: Arial, Helvetica, sans-serif;
 	background: #963;
 	font-size: 24px;
-	line-height: 50px;
+	line-height: 60px;
 	text-align: center;
     perspective: 500px;
     -webkit-perspective: 500px;
 }
 
 h1, h2 {
-	margin: 0;
+    margin: 0;
+	padding: 0;
+    letter-spacing: -2px;
+	font-weight: bold;
 }
 
 h1 {
-	font-weight: bold;
 	font-size: 50px;
-    letter-spacing: -2px;
-	padding: 40px 0 0 0;
+}
+
+h2 {
+	font-size: 30px;
 }
 
 input, select {
+    display: block;
 	color: #000;
 	background: #a74;
-	border: 2px solid #000;
+    border: none;
+	margin: 2px 0;
 	font-size: 24px;
 	text-align: center;
-    width: 150px;
+    box-sizing: border-box;
+    width: 140px;
+    height: 40px;
+}
+
+input {
+    padding: 0 2px;
 }
 
 select[multiple] {
-	height: 100px;
-    width: 150px;
-}
-
-.hide {
-	display: none;
-}
-
-.btn {
-    color: #000;
-    background: #963;
-	border: 2px solid #000;
-	padding: 5px 20px;
-	text-decoration: none;
-	cursor: pointer;
-}
-
-a.btn:hover {
-	background: #000;
-	color: #963;
+	height: 168px;
+    width: 140px;
 }
 
 #game,
@@ -80,7 +74,13 @@ a.btn:hover {
 }
 
 #game {
-	top: 30px;
+    top: 30px;
+    display: flex;
+    justify-content: center;
+
+    div {
+        align-self:  center;
+    }
 }
 
 #chat {
@@ -109,6 +109,22 @@ a.btn:hover {
 		float: right;
 		text-align: right;
 	}
+}
+
+.btn {
+    display: inline-block;
+    color: #000;
+    background: #963;
+	border: 2px solid #000;
+    line-height: 40px;
+	text-decoration: none;
+	cursor: pointer;
+    width: 135px;
+}
+
+a.btn:hover {
+	background: #000;
+	color: #963;
 }
 
 .bt,

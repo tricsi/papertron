@@ -129,7 +129,7 @@ io.on("connect", function (socket) {
     /**
      * Create new game
      */
-    socket.on("create", function (game, bots) {
+    socket.on("create", function (game, opts) {
         if (!game) {
             socket.emit("alert", "Invalid name!");
         } else if (games.indexOf(game) >= 0) {
@@ -138,10 +138,8 @@ io.on("connect", function (socket) {
             socket.leave(socket.game);
             leave();
             games.push(game);
-            store[game] = {
-                bots: parseInt(bots),
-                players: [socket]
-            };
+            opts.players = [socket];
+            store[game] = opts;
             socket.join(game);
             socket.game = game;
             socket.emit("join", [socket.nick]);
@@ -195,7 +193,7 @@ io.on("connect", function (socket) {
             player,
             game = store[socket.game];
        if (game) {
-            bots = game.bots;
+            bots = parseInt(game.bots);
             match = new logic.Match();
             for (i = 0; i < game.players.length; i++) {
                 player = game.players[i];

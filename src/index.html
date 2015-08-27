@@ -57,28 +57,38 @@ void main() {
 </div>
 
 <div id="game">
+<div>
 <h1></h1>
-<br />
 <a href="#start" class="btn">Start</a>
 <a href="#leave" class="btn">Leave</a>
+</div>
 </div>
 
 <div class="bl">
 <div>
-<select name="games" multiple></select><br />
+<h2>Game List</h2>
+<select name="games" multiple></select>
 <a href="#join" class="btn">Join</a>
 </div>
 </div>
 
 <div class="br">
 <div>
-<input name="game" placeholder="Game name" maxlength="15"><br />
+<h2>New Game</h2>
+<input name="game" placeholder="Game name" maxlength="15">
+<select name="map">
+<option selected>Crossroad</option>
+</select>
 <select name="bots">
-<option value="0" selected>No bots</option>
-<option value="1">1 bot</option>
-<option value="2">2 bots</option>
-<option value="3">3 bots</option>
-</select><br />
+<option selected>No bots</option>
+<option>1 bot</option>
+<option>2 bots</option>
+<option>3 bots</option>
+</select>
+<select name="mode">
+<option selected>Normal</option>
+<option>Reverse</option>
+</select>
 <a href="#create" class="btn">Create</a>
 </div>
 </div>
@@ -91,7 +101,7 @@ void main() {
 
 <div class="bb">
 <div>
-<input name="nick" placeholder="Your name" maxlength="10"><br />
+<input name="nick" placeholder="Your name" maxlength="10">
 <a href="#open" class="btn">Open</a>
 </div>
 </div>
