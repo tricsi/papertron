@@ -723,6 +723,10 @@ Scene = (function () {
                 a = Math.PI / 180 * rotateFrom,
                 d = 5.5;
 
+            if (match.mode) {
+                a += Math.PI;
+            }
+
             camera = matrixMultiply(camera, makeTranslation(x, y, 0));
             camera = matrixMultiply(camera, makeZRotation(a));
             camera = matrixMultiply(camera, makeXRotation(-1.2));
@@ -956,9 +960,9 @@ Menu = (function () {
          */
         opts: function () {
             return {
-                map: parseInt($("[name=map]").value),
-                bots: parseInt($("[name=bots]").value),
-                mode: parseInt($("[name=mode]").value)
+                map: $("select[name=map]").selectedIndex,
+                bots: $("select[name=bots]").selectedIndex,
+                mode: $("select[name=mode]").selectedIndex
             };
         },
 

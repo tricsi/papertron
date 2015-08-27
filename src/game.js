@@ -207,6 +207,7 @@ global.exports = (function () {
 	 */
 	Match.prototype.save = function () {
 		return {
+            mode: this.mode,
 			time: this.getTime(),
 			data: this.motors
 		};
@@ -228,6 +229,7 @@ global.exports = (function () {
 				item[param] = data[param];
 			}
 		}
+        this.mode = snapshot.mode ? 1 : 0;
 		this.start = new Date().getTime() - (snapshot.time * this.timer);
 	};
 
