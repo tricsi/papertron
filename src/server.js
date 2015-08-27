@@ -194,7 +194,7 @@ io.on("connect", function (socket) {
             game = store[socket.game];
        if (game) {
             bots = parseInt(game.bots);
-            match = new logic.Match();
+            match = new logic.Match(parseInt(game.mode));
             for (i = 0; i < game.players.length; i++) {
                 player = game.players[i];
                 player.motor = match.add(player.nick);

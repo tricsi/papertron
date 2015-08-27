@@ -199,12 +199,13 @@ Game = (function () {
  */
 Scene = (function () {
 
-    var canvas, //canvas object
-        gl, //WebGL context
+    var gl, //WebGL context
+        canvas, //canvas object
         shaderProgram, //shader program
         vertexShader, //vertex shader
         fragmentShader, //fragment shader
         colorLocation, //color location param
+        cameraLocation, //matrix location param
         matrixLocation, //matrix location param
         positionLocation, //position location param
         normalsLocation, //lighting normal vectors
@@ -670,7 +671,7 @@ Scene = (function () {
         gl.viewport(0, 0, canvas.width, canvas.height);
     }
 
-    function renderObject(model, x, y, angle) {
+    function renderObject(model, camera) {
         var matrix,
             deg = Math.PI / 180,
             normal = [
@@ -688,12 +689,7 @@ Scene = (function () {
         normal = matrixInverse(matrix, normal);
         normal = matrixTranspose(normal, normal);
 
-        matrix = matrixMultiply(matrix, makeTranslation(x, y, 0));
-        matrix = matrixMultiply(matrix, makeZRotation(deg * angle));
-        matrix = matrixMultiply(matrix, makeXRotation(-1.2));
-        matrix = matrixMultiply(matrix, makeTranslation(0, 0, -30));
-        matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
-
+        gl.uniformMatrix4fv(cameraLocation, false, camera);
         gl.uniformMatrix4fv(matrixLocation, false, matrix);
         gl.uniformMatrix3fv(normalLocation, false, normal);
 
@@ -721,14 +717,21 @@ Scene = (function () {
          * @param {Motor} motor
          */
         render: function (match, motor) {
-            var x = motor ? -motor.x : 0,
+            var camera = makeScale(1, 1, 1),
+                x = motor ? -motor.x : 0,
                 y = motor ? motor.y : 0,
-                a = rotateFrom,
+                a = Math.PI / 180 * rotateFrom,
                 d = 5.5;
+
+            camera = matrixMultiply(camera, makeTranslation(x, y, 0));
+            camera = matrixMultiply(camera, makeZRotation(a));
+            camera = matrixMultiply(camera, makeXRotation(-1.2));
+            camera = matrixMultiply(camera, makeTranslation(0, 0, -30));
+            camera = matrixMultiply(camera, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
 
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-            renderObject(Board, x, y, a);
+            renderObject(Board, camera);
 
             //motors
             match.motors.forEach(function (item, i) {
@@ -740,12 +743,12 @@ Scene = (function () {
                     rotate[2] = 90 * (angle - item.vec);
                 });
                 if (line) {
-                    renderObject(createModel(line), x, y, a);
+                    renderObject(createModel(line), camera);
                 }
                 bike.scale = [.25, .25, .25];
                 bike.trans = [item.x, -item.y, 0];
                 bike.rotate = rotate;
-                renderObject(bike, x, y, a);
+                renderObject(bike, camera);
             });
         },
 
@@ -759,6 +762,7 @@ Scene = (function () {
             fragmentShader = createShader($("#frag").text, gl.FRAGMENT_SHADER);
             shaderProgram = createProgram([vertexShader, fragmentShader]);
             colorLocation = gl.getAttribLocation(shaderProgram, "a_color");
+            cameraLocation = gl.getUniformLocation(shaderProgram, "u_camera");
             matrixLocation = gl.getUniformLocation(shaderProgram, "u_matrix");
             positionLocation = gl.getAttribLocation(shaderProgram, "a_position");
             normalsLocation = gl.getAttribLocation(shaderProgram, "a_normals");
@@ -968,9 +972,9 @@ Menu = (function () {
             while (games.options.length > 0) {
                 games.remove(0);
             }
-            list.forEach(function (game, index) {
-                games.add(new Option(game));
-                if (game === selected) {
+            list.forEach(function (item, index) {
+                games.add(new Option(item));
+                if (item === selected) {
                     games.selectedIndex = index + 1;
                 }
             });

@@ -186,12 +186,13 @@ global.exports = (function () {
 	 * Game match class
 	 * @constructor
 	 */
-	function Match() {
+	function Match(mode) {
 		this.timer = 40; // Snapshot time
 		this.distance = 100; // Wall distance
 		this.start = new Date().getTime() + 3000; // Start time
 		this.motors = []; // Motors
 		this.bots = []; // Robots
+        this.mode = mode || 0; // Reverse mode
 		this.pos = [
             [0, 50, Motor.UP],
             [0, -50, Motor.DOWN],

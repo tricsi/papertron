@@ -3,18 +3,10 @@ onload = (function () {
 	var canvas, //canvas object
 		gl, //WebGL context
 		program, //shader program
-		vertexShader, //vertex shader
-		fragmentShader, //fragment shader
-		colorLocation, //color location param
-		matrixLocation, //matrix location param
-		positionLocation, //position location param
-		normalsLocation, //lighting normal vectors
-		normalLocation, //light normal
 		fieldOfViewRadians, //FOV param
 		rotate,
 		scale,
         models,
-        outShader,
         cellShader;
 
 	function createShader(gl, script, type) {
@@ -444,6 +436,7 @@ onload = (function () {
 
 	function render() {
 		var aspect = canvas.width / canvas.height,
+            camera,
 			matrix,
 			normal = [
 				0, 0, 0,
@@ -451,6 +444,12 @@ onload = (function () {
 				0, 0, 0
 			];
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        camera = makeScale(1, 1, 1);
+        camera = matrixMultiply(camera, makeZRotation(rotate.z));
+        camera = matrixMultiply(camera, makeXRotation(rotate.x));
+        camera = matrixMultiply(camera, makeYRotation(rotate.y));
+        camera = matrixMultiply(camera, makeTranslation(0, 0, scale - 30));
+        camera = matrixMultiply(camera, makePerspective(fieldOfViewRadians, aspect, 1, 2000));
         for (var name in models) {
             var model = models[name];
     		matrix = makeScale(model.scale[0], model.scale[1], model.scale[2]);
@@ -462,13 +461,8 @@ onload = (function () {
             normal = matrixInverse(matrix, normal);
             normal = matrixTranspose(normal, normal);
 
-    		matrix = matrixMultiply(matrix, makeZRotation(rotate.z));
-    		matrix = matrixMultiply(matrix, makeXRotation(rotate.x));
-    		matrix = matrixMultiply(matrix, makeYRotation(rotate.y));
-    		matrix = matrixMultiply(matrix, makeTranslation(0, 0, scale - 30));
-    		matrix = matrixMultiply(matrix, makePerspective(fieldOfViewRadians, aspect, 1, 2000));
-
             gl.useProgram(cellShader.program);
+    		gl.uniformMatrix4fv(cellShader.camera, false, camera);
     		gl.uniformMatrix4fv(cellShader.matrix, false, matrix);
     		gl.uniformMatrix3fv(cellShader.normal, false, normal);
 
@@ -548,6 +542,7 @@ onload = (function () {
             color: gl.getAttribLocation(program, "a_color"),
             position: gl.getAttribLocation(program, "a_position"),
             normals: gl.getAttribLocation(program, "a_normals"),
+            camera: gl.getUniformLocation(program, "u_camera"),
             matrix: gl.getUniformLocation(program, "u_matrix"),
             normal: gl.getUniformLocation(program, "u_normal")
         };
