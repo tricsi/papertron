@@ -53,19 +53,34 @@ function emit() {
 Game = (function () {
 
     var container, //game container
-        count, //counter
+        counter, //counter value
+        numbers, //counter numbers
         match, //actual match
         motor, //player's motor
+        motorSound, //Motor sound
         running; //match running
+
+    function count(value) {
+        console.log(value);
+        for (var i = 0; i < numbers.length; i++) {
+            numbers.item(i).className = value === 3 - i ? "on" : "";
+        }
+    }
 
     /**
      * Run animations and game logic
      */
     function run() {
         var time = match.getTime(),
-            text = time < 0 ? Math.ceil(Math.abs(time / (1000 / match.timer))) : "";
-        if (count.innerHTML !== text) {
-            count.innerHTML = text;
+            value = time < 0 ? Math.ceil(Math.abs(time / (1000 / match.timer))) : 0;
+        if (counter !== value) {
+            count(value);
+            if (value > 0) {
+                Sfx.play("count");
+            } else {
+                motorSound = Sfx.play("motor", true);
+            }
+            counter = value;
         }
         match.run();
         Scene.anim();
@@ -82,7 +97,8 @@ Game = (function () {
          */
         init: function () {
             container = $("#game");
-            count = $("#count");
+            counter = 0;
+            numbers = $("#count").childNodes;
             on(container, "click", function (e) {
                 var id = attr(e.target, "href");
                 switch (id) {
@@ -159,7 +175,6 @@ Game = (function () {
             }
             player.move(time);
             player.turn(to);
-            Sfx.play("turn");
             return true;
         },
 
@@ -177,10 +192,18 @@ Game = (function () {
          * Show game
          */
         show: function (winner) {
-            $("h1", container).innerHTML = winner !== undefined
-                ? match.motors[winner].nick + " wins!"
-                : "New Game";
+            var title = $("h1", container);
+            if (motorSound) {
+                motorSound.stop();
+            }
+            if (winner !== undefined) {
+                title.innerText = match.motors[winner].nick + " wins!";
+                Sfx.play(motor.id === winner ? "win" : "lose");
+            } else {
+                title.innerText = "New Game";
+            }
             container.style.display = null;
+            count(0);
         },
 
         /**
@@ -188,7 +211,6 @@ Game = (function () {
          */
         hide: function () {
             container.style.display = "none";
-            count.innerHTML = "";
         }
     };
 
@@ -869,6 +891,7 @@ Chat = (function () {
             var br = document.createElement("br");
             texts.insertBefore(br, texts.firstChild);
             texts.insertBefore(document.createTextNode(message), br);
+            Sfx.play("msg");
         },
 
         /**
@@ -1009,10 +1032,16 @@ Sfx = (function () {
 
         init: function () {
             context = new AudioContext();
-            createSource("exp", [3, , 0.1608, 0.5877, 0.4919, 0.1058, , , , , , , , , , 0.7842, -0.1553, -0.2125, 1, , , , , 0.5]);
-            createSource("btn", [0, , 0.0373, 0.3316, 0.1534, 0.785, , , , , , , , , , , , , 1, , , , , 0.5]);
-            createSource("over", [2, , 0.0551, , 0.131, 0.37, , 0.1096, , , , , , 0.1428, , 0.6144, , , 1, , , , , 0.5]);
-            createSource("turn", [1, , 0.18, , 0.1, 0.3465, , 0.2847, , , , , , 0.4183, , , , , 0.5053, , , , , 0.5]);
+            createSource("exp", [3, , 0.18, 0.05, 0.65, 0.97, , -0.36, 0.46, , , 0.66, 0.65, , , 0.63, 0.16, 0.5, 1, , 0.96, , , 0.45]);
+            createSource("btn", [2, , 0.04, 0.54, 0.36, 0.15, , , , , , 0.24, 0.52, , , , , , 0.31, , 1, , -1, 0.5]);
+            createSource("over", [2, , 0.01, 0.82, 0.17, 0.94, 0.1, 0.74, -0.82, 0.96, 0.99, -0.82, 0.02, 0.16, 0.35, 0.04, -0.7, -0.8, 0.29, -0.62, 0.69, 0.01, 0, 0.28]);
+            createSource("count", [1, , 0.12, , 0.72, 0.09, , -0.12, 0.08, , , , , 0.09, 0.02, 0.78, , -0.02, 0.09, -0.02, 0.49, , , 0.45]);
+            createSource("win", [2, 0.66, 0.01, 0.17, 0.34, 0.68, , 0.16, 0.02, 0.08, 0.71, -0.82, 0.4, 0.34, -0.34, , 0.68, 0.92, 0.15, -0.1, 0.53, 0, 0.05, 0.5]);
+            createSource("lose", [0, 0.16, 0.01, 0.3, 0.45, 0.28, , 0.26, -0.01, 0.15, 0.44, -0.82, 0.4, 0.33, -0.34, -0.06, 0.03, -0.19, 0.07, -0.01, 0.53, 0, 0.05, 0.5]);
+            createSource("msg", [0, , 0.057, 0.17, 0.12, 0.72, , , , , , 0.58, 0.69, , , , , , 0.42, -0.18, , , , 0.5]);
+            createSource("joined", [2, , 0.04, 0.54, 0.36, 0.72, , , , , , 0.24, 0.52, , , , , , 0.31, , 1, , -1, 0.5]);
+            createSource("left", [0, , 0.04, 0.54, 0.36, 0.15, , , , , , 0.24, 0.52, , , , , , 0.18, -0.54, 1, , -1, 0.5]);
+            createSource("motor", [1, , 1, , , 0.06, , -0.12, 0.08, 0.27, , -0.1, 1, 1, 0.9, 1, 0.2, 0.08, 0.78, -0.02, 0.49, , , 0.45]);
             on(document.body, "click", function (e) {
                 if (e.target.tagName === "A") {
                     Sfx.play("btn");
@@ -1025,13 +1054,16 @@ Sfx = (function () {
             });
         },
 
-        play: function (name) {
+        play: function (name, loop) {
+            var source = null;
             if (name in buffers) {
-                var source = context.createBufferSource();
+                source = context.createBufferSource();
+                source.loop = loop || false;
                 source.buffer = buffers[name];
                 source.connect(context.destination);
                 source.start(0);
             }
+            return source;
         }
 
     };
@@ -1069,11 +1101,13 @@ function bind() {
     socket.on("joined", function (nick, list) {
         Chat.add(nick + " joined");
         Chat.room(list);
+        Sfx.play("joined");
     });
 
     socket.on("left", function (nick, list) {
         Chat.add(nick + " left");
         Chat.room(list);
+        Sfx.play("left");
     });
 
     socket.on("message", function (nick, text) {

@@ -7,6 +7,7 @@ html, body, canvas {
 
 body {
 	font-family: Arial, Helvetica, sans-serif;
+    color: #000;
 	background: #963;
 	font-size: 24px;
 	line-height: 60px;
@@ -63,14 +64,25 @@ select[multiple] {
 }
 
 #count {
-	position: fixed;
-    color: rgba(0, 0, 0, .7);
-	top: 50%;
-	width: 100%;
-    font-size: 250px;
+	position: absolute;
+    display: flex;
+	top: 0;
+	right: 0;
+    bottom: 0;
+    left: 0;
+    font-size: 180px;
     font-weight: bold;
-    text-align: center;
-    vertical-align: middle;
+    justify-content: center;
+
+    span {
+        align-self: center;
+        opacity: 0;
+            transition: opacity .3s;
+
+        &.on {
+            opacity: .8;
+        }
+    }
 }
 
 #game {
@@ -79,7 +91,7 @@ select[multiple] {
     justify-content: center;
 
     div {
-        align-self:  center;
+        align-self: center;
     }
 }
 

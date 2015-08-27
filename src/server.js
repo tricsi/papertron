@@ -52,7 +52,9 @@ io.on("connect", function (socket) {
             socket.emit("win", winner);
             socket.to(game).emit("win", winner);
             clearInterval(thread);
-            store[game].match = null;
+            if (store[game]) {
+                store[game].match = null;
+            }
             console.log(match.motors[winner].nick + " wins");
         } else {
             match.ai(function (to, time, id) {
