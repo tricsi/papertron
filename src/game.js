@@ -221,14 +221,14 @@ global.exports = (function () {
 		var i,
 			data,
 			item,
-			param;
+ 			param;
 		for (i = 0; i < snapshot.data.length; i++) {
 			data = snapshot.data[i];
 			item = this.motors[i] || this.add(data.nick);
 			for (param in data) {
 				item[param] = data[param];
 			}
-		}
+ 		}
         this.mode = snapshot.mode ? 1 : 0;
 		this.start = new Date().getTime() - (snapshot.time * this.timer);
 	};

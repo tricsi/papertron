@@ -167,6 +167,9 @@ Game = (function () {
             }
             player = match.motors[id] || motor;
             time = time || match.getTime();
+            if (id !== undefined) {
+                player.stuck = false;
+            }
             if (!player || player.stuck || time < 1) {
                 return false;
             }
