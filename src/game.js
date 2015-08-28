@@ -206,23 +206,29 @@ global.exports = (function () {
 	 * @returns {object}
 	 */
 	Match.prototype.save = function () {
-		return this.motors;
+		return {
+			time: this.getTime(),
+			data: this.motors
+		};
 	};
 
 	/**
 	 * Load snapshot
-	 * @params {object} data
+	 * @params {object} snapshot
 	 */
-	Match.prototype.load = function (data) {
+	Match.prototype.load = function (snapshot) {
 		var i,
+			data,
 			item,
  			param;
-		for (i = 0; i < data.length; i++) {
+		for (i = 0; i < snapshot.data.length; i++) {
+			data = snapshot.data[i];
 			item = this.motors[i] || this.add(data.nick);
-			for (param in data[i]) {
-				item[param] = data[i][param];
+			for (param in data) {
+				item[param] = data[param];
 			}
  		}
+		this.start = new Date().getTime() - (snapshot.time * this.timer);
 	};
 
 	/**
