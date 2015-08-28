@@ -131,7 +131,7 @@ io.on("connect", function (socket) {
     /**
      * Create new game
      */
-    socket.on("create", function (game, opts) {
+    socket.on("create", function (game, params) {
         if (!game) {
             socket.emit("alert", "Invalid name!");
         } else if (games.indexOf(game) >= 0) {
@@ -140,8 +140,10 @@ io.on("connect", function (socket) {
             socket.leave(socket.game);
             leave();
             games.push(game);
-            opts.players = [socket];
-            store[game] = opts;
+            store[game] = {
+                params: params,
+                players: [socket]
+            };
             socket.join(game);
             socket.game = game;
             socket.emit("join", [socket.nick]);
@@ -193,10 +195,12 @@ io.on("connect", function (socket) {
             data,
             bots,
             player,
+            params,
             game = store[socket.game];
        if (game) {
-            bots = parseInt(game.bots);
-            match = new logic.Match(parseInt(game.mode));
+            params = game.params;
+            bots = params.bots;
+            match = new logic.Match(params.mode);
             for (i = 0; i < game.players.length; i++) {
                 player = game.players[i];
                 player.motor = match.add(player.nick);
@@ -207,10 +211,10 @@ io.on("connect", function (socket) {
             game.match = match;
             data = snapshot(socket.game);
             game.players.forEach(function(client, id) {
-                client.emit("start", data, id);
+                client.emit("start", data, id, params.mode, params.map);
             });
             thread = setInterval(run, 1000 / match.timer);
-            console.log(socket.nick + " started " + socket.game + " with bot number " + game.bots);
+            console.log(socket.nick + " started " + socket.game + " with bot number " + params.bots);
         }
     });
 

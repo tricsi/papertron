@@ -141,8 +141,8 @@ Game = (function () {
         /**
          * Start new match
          */
-        start: function (snapshot, id) {
-            match = new logic.Match();
+        start: function (snapshot, id, mode, map) {
+            match = new logic.Match(mode);
             match.load(snapshot);
             motor = match.motors[id] || null;
             Scene.rotate(motor ? motor.vec * -90 : 0);
@@ -1117,8 +1117,8 @@ function bind() {
         Chat.add(nick + ": " + text);
     });
 
-    socket.on("start", function (snapshot, id) {
-        Game.start(snapshot, id);
+    socket.on("start", function (snapshot, id, mode, map) {
+        Game.start(snapshot, id, mode, map);
         Game.hide();
     });
 
