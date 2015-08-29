@@ -135,6 +135,35 @@ select[multiple] {
 	}
 }
 
+
+#sfx {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px;
+    height: 40px;
+    line-height: 40px;
+    cursor: pointer;
+
+    &.off {
+        text-decoration: line-through;
+    }
+}
+
+#note {
+    position: absolute;
+    background: #a74;
+    top: 20px;
+    left: 50%;
+    width: 300px;
+    margin-left: -150px;
+    transition: transform .3s;
+
+    &.hide {
+        transform: translateY(-100px);
+    }
+};
+
 .btn {
     display: inline-block;
     color: #000;
@@ -230,7 +259,7 @@ select[multiple] {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    
+
     &:focus {
         outline: none;
     }

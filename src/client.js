@@ -6,6 +6,7 @@ var socket, //server connection
     Chat, //Chat module
     Game, //Game module
     Menu, //Menu module
+    Note, //Notification module
     logic; //Game logic
 
 /**
@@ -99,6 +100,7 @@ Game = (function () {
             counter = 0;
             numbers = $("#count").childNodes;
             on(container, "click", function (e) {
+                e.preventDefault();
                 var id = attr(e.target, "href");
                 switch (id) {
                     case "#start":
@@ -109,7 +111,6 @@ Game = (function () {
                         Menu.show("open");
                         break;
                 }
-                e.preventDefault();
             });
             on(document.body, "keydown", function (e) {
                 switch (e.keyCode) {
@@ -939,13 +940,15 @@ Menu = (function () {
                 emit("open", Menu.nick());
             });
             on(container, "click", function (e) {
-                switch (attr(e.target, "href")) {
+                 switch (attr(e.target, "href")) {
                     case "#join":
+                        e.preventDefault();
                         if (games.value) {
                             emit("join", games.value);
                         }
                         break;
                     case "#create":
+                        e.preventDefault();
                         emit("create", game.value.trim(), Menu.opts());
                         break;
                 }
@@ -1013,8 +1016,11 @@ Menu = (function () {
 
 Sfx = (function () {
 
-    var context,
-        buffers = {};
+    var container,
+        context,
+        volume,
+        buffers = {},
+        muted = true;
 
     function createSource(name, config) {
         var url = jsfxr(config),
@@ -1032,8 +1038,12 @@ Sfx = (function () {
     return {
 
         init: function () {
-            var targets = ["A", "BUTTON"];
+            var body = document.body,
+                targets = ["A", "BUTTON"];
+            container = $("#sfx");
             context = new AudioContext();
+            volume = context.createGain();
+            volume.connect(context.destination);
             createSource("exp", [3, , 0.18, 0.05, 0.65, 0.97, , -0.36, 0.46, , , 0.66, 0.65, , , 0.63, 0.16, 0.5, 1, , 0.96, , , 0.45]);
             createSource("btn", [2, , 0.04, 0.54, 0.36, 0.15, , , , , , 0.24, 0.52, , , , , , 0.31, , 1, , -1, 0.5]);
             createSource("over", [2, , 0.01, 0.82, 0.17, 0.94, 0.1, 0.74, -0.82, 0.96, 0.99, -0.82, 0.02, 0.16, 0.35, 0.04, -0.7, -0.8, 0.29, -0.62, 0.69, 0.01, 0, 0.28]);
@@ -1044,16 +1054,18 @@ Sfx = (function () {
             createSource("joined", [2, , 0.04, 0.54, 0.36, 0.72, , , , , , 0.24, 0.52, , , , , , 0.31, , 1, , -1, 0.5]);
             createSource("left", [0, , 0.04, 0.54, 0.36, 0.15, , , , , , 0.24, 0.52, , , , , , 0.18, -0.54, 1, , -1, 0.5]);
             createSource("motor", [1, , 1, , , 0.06, , -0.12, 0.08, 0.27, , -0.1, 1, 1, 0.9, 1, 0.2, 0.08, 0.78, -0.02, 0.49, , , 0.45]);
-            on(document.body, "click", function (e) {
+            on(body, "click", function (e) {
                 if (targets.indexOf(e.target.tagName) !== -1) {
                     Sfx.play("btn");
                 }
             });
-            on(document.body, "mouseover", function (e) {
+            on(body, "mouseover", function (e) {
                 if (targets.indexOf(e.target.tagName) !== -1) {
                     Sfx.play("over");
                 }
             });
+            on(container, "click", Sfx.mute);
+            Sfx.mute();
         },
 
         play: function (name, loop) {
@@ -1062,10 +1074,40 @@ Sfx = (function () {
                 source = context.createBufferSource();
                 source.loop = loop || false;
                 source.buffer = buffers[name];
-                source.connect(context.destination);
+                source.connect(volume);
                 source.start(0);
             }
             return source;
+        },
+
+        mute: function () {
+            muted = !muted;
+            volume.gain.value = muted ? 0 : 1;
+            attr(container, "class", muted ? "off" : "");
+        }
+    };
+
+})();
+
+Note = (function () {
+
+    var container;
+
+    function hide() {
+        attr(container, "class", "hide");
+    }
+
+    return {
+
+        init: function () {
+            container = $("#note");
+            on(container, "click", hide);
+        },
+
+        show: function (msg) {
+            container.innerText = msg;
+            attr(container, "class", "");
+            setTimeout(hide, 3000);
         }
 
     };
@@ -1080,12 +1122,13 @@ function bind() {
     socket.on("games", Menu.games);
 
     socket.on("alert", function (message) {
-        alert(message);
+        Note.show(message);
     });
 
     socket.on("disconnect", function () {
-        Menu.show("close");
         Game.stop();
+        Menu.show("close");
+        Note.show("Connection lost!");
     });
 
     socket.on("open", function () {
@@ -1142,5 +1185,6 @@ window.onload = function () {
     Scene.init();
     Chat.init();
     Menu.init();
+    Note.init();
     Game.init();
 };
