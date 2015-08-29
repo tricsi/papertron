@@ -141,6 +141,7 @@ Game = (function () {
          * Start new match
          */
         start: function (snapshot, id, mode, map) {
+            Game.hide();
             match = new logic.Match(mode);
             match.load(snapshot);
             motor = match.motors[id] || null;
@@ -150,24 +151,10 @@ Game = (function () {
         },
 
         /**
-         * Stops game
+         * Stop game
          */
-        stop: function () {
+        stop: function() {
             running = false;
-        },
-
-        /**
-         * Turn motor
-         */
-        turn: function (to) {
-            var time = match.getTime();
-            if (!match || !motor || motor.stuck || time < 1) {
-                return false;
-            }
-            motor.move(time);
-            motor.turn(to);
-            emit("turn", to, time);
-            return true;
         },
 
         /**
@@ -183,10 +170,24 @@ Game = (function () {
                     Sfx.play("exp");
                 }
                 if (winner !== false) {
-                    running = false;
                     Game.show(winner);
+                    Game.stop();
                 }
             }
+        },
+
+        /**
+         * Turn motor
+         */
+        turn: function (to) {
+            var time = match.getTime();
+            if (!match || !motor || motor.stuck || time < 1) {
+                return false;
+            }
+            motor.move(time);
+            motor.turn(to);
+            emit("turn", to, time);
+            return true;
         },
 
         /**
@@ -933,9 +934,12 @@ Menu = (function () {
             games = $("[name=games]");
             game = $("[name=game]");
             nick = $("[name=nick]");
+            on(container, "submit", function (e) {
+                e.preventDefault();
+                emit("open", Menu.nick());
+            });
             on(container, "click", function (e) {
-                var id = attr(e.target, "href");
-                switch (id) {
+                switch (attr(e.target, "href")) {
                     case "#join":
                         if (games.value) {
                             emit("join", games.value);
@@ -944,11 +948,7 @@ Menu = (function () {
                     case "#create":
                         emit("create", game.value.trim(), Menu.opts());
                         break;
-                    case "#open":
-                        emit("open", Menu.nick());
-                        break;
                 }
-                e.preventDefault();
             });
         },
 
@@ -1032,6 +1032,7 @@ Sfx = (function () {
     return {
 
         init: function () {
+            var targets = ["A", "BUTTON"];
             context = new AudioContext();
             createSource("exp", [3, , 0.18, 0.05, 0.65, 0.97, , -0.36, 0.46, , , 0.66, 0.65, , , 0.63, 0.16, 0.5, 1, , 0.96, , , 0.45]);
             createSource("btn", [2, , 0.04, 0.54, 0.36, 0.15, , , , , , 0.24, 0.52, , , , , , 0.31, , 1, , -1, 0.5]);
@@ -1044,12 +1045,12 @@ Sfx = (function () {
             createSource("left", [0, , 0.04, 0.54, 0.36, 0.15, , , , , , 0.24, 0.52, , , , , , 0.18, -0.54, 1, , -1, 0.5]);
             createSource("motor", [1, , 1, , , 0.06, , -0.12, 0.08, 0.27, , -0.1, 1, 1, 0.9, 1, 0.2, 0.08, 0.78, -0.02, 0.49, , , 0.45]);
             on(document.body, "click", function (e) {
-                if (e.target.tagName === "A") {
+                if (targets.indexOf(e.target.tagName) !== -1) {
                     Sfx.play("btn");
                 }
             });
             on(document.body, "mouseover", function (e) {
-                if (e.target.tagName === "A") {
+                if (targets.indexOf(e.target.tagName) !== -1) {
                     Sfx.play("over");
                 }
             });
@@ -1076,17 +1077,20 @@ Sfx = (function () {
  */
 function bind() {
 
+    socket.on("games", Menu.games);
+
     socket.on("alert", function (message) {
         alert(message);
+    });
+
+    socket.on("disconnect", function () {
+        Menu.show("close");
+        Game.stop();
     });
 
     socket.on("open", function () {
         Menu.show("open");
     });
-
-    socket.on("games", Menu.games);
-
-    socket.on("shot", Game.load);
 
     socket.on("join", function (list, snapshot) {
         Menu.show("start");
@@ -1115,10 +1119,9 @@ function bind() {
         Chat.add(nick + ": " + text);
     });
 
-    socket.on("start", function (snapshot, id, mode, map) {
-        Game.start(snapshot, id, mode, map);
-        Game.hide();
-    });
+    socket.on("start", Game.start);
+
+    socket.on("shot", Game.load);
 
 }
 

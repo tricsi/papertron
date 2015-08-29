@@ -46,6 +46,18 @@ input, select {
 
 input {
     padding: 0 2px;
+
+    &::-webkit-input-placeholder {
+        color: #642;
+    }
+
+    &::-moz-placeholder {
+        color: #642;
+    }
+
+    &:-ms-input-placeholder {
+        color: #642;
+    }
 }
 
 select[multiple] {
@@ -128,15 +140,16 @@ select[multiple] {
     color: #000;
     background: #963;
 	border: 2px solid #000;
+	font-size: 24px;
     line-height: 40px;
 	text-decoration: none;
 	cursor: pointer;
     width: 135px;
-}
 
-a.btn:hover {
-	background: #000;
-	color: #963;
+    &:hover {
+        background: #000;
+        color: #963;
+    }
 }
 
 .bt,
@@ -210,5 +223,15 @@ a.btn:hover {
     .br {
         transform: rotateY(90deg);
         -webkit-transform: rotateY(90deg);
+    }
+}
+
+* {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    
+    &:focus {
+        outline: none;
     }
 }
