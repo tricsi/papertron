@@ -30,6 +30,21 @@ function on(element, event, handler) {
 }
 
 /**
+ * Text setter / getter
+ * @param {Object} element
+ * @param {string} text
+ */
+function txt(element, text) {
+    if (!element) {
+        return "";
+    }
+    if (text !== undefined) {
+        element.textContent = text;
+    }
+    return element.textContent;
+}
+
+/**
  * Attribute helper
  * @param {Object} element
  * @param {string} name
@@ -200,12 +215,12 @@ Game = (function () {
                 motorSound.stop();
             }
             if (winner !== undefined) {
-                title.innerText = match.motors[winner].nick + " wins!";
+                txt(title, match.motors[winner].nick + " wins!");
                 Sfx.play(motor.id === winner ? "win" : "lose");
             } else {
-                title.innerText = "New Game";
+                txt(title, "New Game");
             }
-            container.style.display = null;
+            attr(container, "class", "");
             count(0);
         },
 
@@ -213,7 +228,7 @@ Game = (function () {
          * Hide game
          */
         hide: function () {
-            container.style.display = "none";
+            attr(container, "class", "hide");
         }
     };
 
@@ -920,6 +935,7 @@ Chat = (function () {
 Menu = (function () {
 
     var container, //menu container
+        selected, //selected game
         games, //game list
         game, //game name
         nick, //nickname
@@ -932,9 +948,23 @@ Menu = (function () {
          */
         init: function () {
             container = $("body");
-            games = $("[name=games]");
+            games = $("ul");
             game = $("[name=game]");
             nick = $("[name=nick]");
+            on(games, "click", function(e) {
+                var item = e.target;
+                if (item.tagName === "LI") {
+                    if (selected) {
+                        attr(selected, "class", "");
+                    }
+                    if (selected === item) {
+                        selected = null;
+                    } else {
+                        attr(item, "class", "sel");
+                        selected = item;
+                    }
+                }
+            });
             on(container, "submit", function (e) {
                 e.preventDefault();
                 emit("open", Menu.nick());
@@ -943,8 +973,8 @@ Menu = (function () {
                  switch (attr(e.target, "href")) {
                     case "#join":
                         e.preventDefault();
-                        if (games.value) {
-                            emit("join", games.value);
+                        if (selected) {
+                            emit("join", txt(selected));
                         }
                         break;
                     case "#create":
@@ -998,16 +1028,20 @@ Menu = (function () {
          * @param {string[]} list
          */
         games: function (list) {
-            var selected = games.value;
-            games.selectedIndex = 0;
-            while (games.options.length > 0) {
-                games.remove(0);
+            var name = txt(selected),
+                element;
+            selected = null;
+            while (games.firstChild) {
+                games.removeChild(games.firstChild);
             }
             list.forEach(function (item, index) {
-                games.add(new Option(item));
-                if (item === selected) {
-                    games.selectedIndex = index + 1;
+                element = document.createElement("LI");
+                element.appendChild(document.createTextNode(item));
+                if (item === name) {
+                    element.className = "sel";
+                    selected = element;
                 }
+                games.appendChild(element);
             });
         }
     };
@@ -1105,7 +1139,7 @@ Note = (function () {
         },
 
         show: function (msg) {
-            container.innerText = msg;
+            txt(container, msg);
             attr(container, "class", "");
             setTimeout(hide, 3000);
         }

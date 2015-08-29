@@ -16,9 +16,12 @@ body {
     -webkit-perspective: 500px;
 }
 
-h1, h2 {
+h1, h2, ul, li {
     margin: 0;
 	padding: 0;
+}
+
+h1, h2 {
     letter-spacing: -2px;
 	font-weight: bold;
 }
@@ -60,9 +63,23 @@ input {
     }
 }
 
-select[multiple] {
-	height: 168px;
+ul {
     width: 140px;
+	height: 170px;
+	background: #a74;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+li {
+    list-style: none;
+    line-height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+
+    &.sel {
+        background: #642;
+    }
 }
 
 #game,
@@ -73,6 +90,10 @@ select[multiple] {
 	right: 0;
 	bottom: 0;
 	overflow: auto;
+
+    &.hide {
+        display: none;
+    }
 }
 
 #count {

@@ -64,7 +64,7 @@ void main() {
 <div class="bl">
 <div>
 <h2>Game List</h2>
-<select name="games" multiple></select>
+<ul></ul>
 <a href="#join" class="btn">Join</a>
 </div>
 </div>
@@ -73,19 +73,9 @@ void main() {
 <div>
 <h2>New Game</h2>
 <input name="game" placeholder="Game name" maxlength="15">
-<select name="map">
-<option selected>Crossroad</option>
-</select>
-<select name="bots">
-<option selected>No bots</option>
-<option>1 bot</option>
-<option>2 bots</option>
-<option>3 bots</option>
-</select>
-<select name="mode">
-<option selected>Normal</option>
-<option>Reverse</option>
-</select>
+<select name="map"><option selected>Crossroad</option></select>
+<select name="bots"><option selected>No bots</option><option>1 bot</option><option>2 bots</option><option>3 bots</option></select>
+<select name="mode"><option selected>Normal</option><option>Reverse</option></select>
 <a href="#create" class="btn">Create</a>
 </div>
 </div>
@@ -104,7 +94,6 @@ void main() {
 </form>
 
 <div id="sfx" class="off">♫</div>
-
 <div id="note" class="hide"></div>
 
 </body>
