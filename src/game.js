@@ -187,17 +187,17 @@ global.exports = (function () {
 	 * @constructor
 	 */
 	function Match(mode) {
-		this.timer = 40; // Snapshot time
-		this.distance = 100; // Wall distance
+		this.timer = 50; // Snapshot time
+		this.distance = 70; // Wall distance
 		this.start = new Date().getTime() + 3000; // Start time
 		this.motors = []; // Motors
 		this.bots = []; // Robots
         this.mode = mode || 0; // Reverse mode
 		this.pos = [
-            [0, 50, Motor.UP],
-            [0, -50, Motor.DOWN],
-            [-50, 0, Motor.RIGHT],
-            [50, 0, Motor.LEFT]
+            [0, 30, Motor.UP],
+            [0, -30, Motor.DOWN],
+            [-30, 0, Motor.RIGHT],
+            [30, 0, Motor.LEFT]
         ];
 	}
 
@@ -228,7 +228,7 @@ global.exports = (function () {
 				item[param] = data[param];
 			}
  		}
-		this.start = new Date().getTime() - (snapshot.time * this.timer);
+		//this.start = new Date().getTime() - (snapshot.time * this.timer);
 	};
 
 	/**

@@ -40,28 +40,27 @@ io.on("connect", function (socket) {
      */
     function run() {
         var winner,
+            stuck = [],
             data,
             game = socket.game;
         winner = match.run(function (id, time) {
-            data = snapshot(game);
-            socket.emit("stuck", data);
-            socket.to(game).emit("stuck", data);
+            stuck.push(id);
             console.log(match.motors[id].nick + " stuck at " + time);
         });
+        if (winner === false) {
+            match.ai(function (to, time, id) {
+                console.log("Robot turn " + to + " at " + time);
+            });
+        }
+        data = snapshot(game);
+        socket.emit("shot", data, stuck, winner);
+        socket.to(game).emit("shot", data, stuck, winner);
         if (winner !== false) {
-            socket.emit("win", winner);
-            socket.to(game).emit("win", winner);
             clearInterval(thread);
             if (store[game]) {
                 store[game].match = null;
             }
             console.log(match.motors[winner].nick + " wins");
-        } else {
-            match.ai(function (to, time, id) {
-                socket.emit("turn", to, time, id);
-                socket.to(game).emit("turn", to, time, id);
-                console.log("Robot turn " + to + " at " + time);
-            });
         }
     }
 

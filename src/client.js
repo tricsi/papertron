@@ -61,7 +61,6 @@ Game = (function () {
         running; //match running
 
     function count(value) {
-        console.log(value);
         for (var i = 0; i < numbers.length; i++) {
             numbers.item(i).className = value === 3 - i ? "on" : "";
         }
@@ -160,34 +159,33 @@ Game = (function () {
         /**
          * Turn motor
          */
-        turn: function (to, time, id) {
-            var player;
-            if (!match) {
+        turn: function (to) {
+            var time = match.getTime();
+            if (!match || !motor || motor.stuck || time < 1) {
                 return false;
             }
-            player = match.motors[id] || motor;
-            time = time || match.getTime();
-            if (id !== undefined) {
-                player.stuck = false;
-            }
-            if (!player || player.stuck || time < 1) {
-                return false;
-            }
-            if (id === undefined) {
-                emit("turn", to, time, id);
-            }
-            player.move(time);
-            player.turn(to);
+            motor.move(time);
+            motor.turn(to);
+            emit("turn", to, time);
             return true;
         },
 
         /**
          * Load snapshot data
-         * @params {array} snapshot
+         * @params {array} data
+         * @params {array} stuck
+         * @params {number} winner
          */
-        load: function (snapshot) {
+        load: function (data, stuck, winner) {
             if (match) {
-                match.load(snapshot);
+                match.load(data);
+                if (stuck.length) {
+                    Sfx.play("exp");
+                }
+                if (winner !== false) {
+                    running = false;
+                    Game.show(winner);
+                }
             }
         },
 
@@ -768,7 +766,7 @@ Scene = (function () {
                     rotate = [90, 0, -90 * item.vec],
                     line;
                 line = createLine(item, colors[i], d, function (angle) {
-                    rotate[1] = 30 * (angle > 0 ? angle - .5 : angle + .5);
+                    rotate[1] = -30 * (angle > 0 ? angle - .5 : angle + .5);
                     rotate[2] = 90 * (angle - item.vec);
                 });
                 if (line) {
@@ -802,7 +800,7 @@ Scene = (function () {
             rotateFrom = 0;
 
             //Board model
-            Board = createModel(createBoard([192, 128, 64], 100, 200));
+            Board = createModel(createBoard([192, 128, 64], 70, 140));
 
             //Bike models
             colors.forEach(function (color) {
@@ -1086,9 +1084,9 @@ function bind() {
         Menu.show("open");
     });
 
-    socket.on("games", function (list) {
-        Menu.games(list);
-    });
+    socket.on("games", Menu.games);
+
+    socket.on("shot", Game.load);
 
     socket.on("join", function (list, snapshot) {
         Menu.show("start");
@@ -1122,19 +1120,6 @@ function bind() {
         Game.hide();
     });
 
-    socket.on("turn", function (to, time, id) {
-        Game.turn(to, time, id);
-    });
-
-    socket.on("stuck", function (snapshot) {
-        Game.load(snapshot);
-        Sfx.play("exp");
-    });
-
-    socket.on("win", function (winner) {
-        Game.stop();
-        Game.show(winner);
-    });
 }
 
 /**
