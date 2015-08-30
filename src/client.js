@@ -186,8 +186,9 @@ Game = (function () {
                     Sfx.play("exp");
                 }
                 if (winner !== false) {
-                    Game.show(winner);
                     Game.stop();
+                    Game.show(match.motors[winner].nick + " wins!");
+                    Sfx.play(motor && motor.id === winner ? "win" : "lose");
                 }
             }
         },
@@ -209,17 +210,11 @@ Game = (function () {
         /**
          * Show game
          */
-        show: function (winner) {
-            var title = $("h1", container);
+        show: function (text) {
             if (motorSound) {
                 motorSound.stop();
             }
-            if (winner !== undefined) {
-                txt(title, match.motors[winner].nick + " wins!");
-                Sfx.play(motor && motor.id === winner ? "win" : "lose");
-            } else {
-                txt(title, "New Game");
-            }
+            txt($("h1", container), text);
             attr(container, "class", "");
             count(0);
         },
@@ -707,6 +702,7 @@ Scene = (function () {
         canvas.height = canvas.clientHeight;
         aspectRatio = canvas.width / canvas.height;
         gl.viewport(0, 0, canvas.width, canvas.height);
+        scrollTo(0, 1);
     }
 
     function renderObject(model, camera) {
@@ -949,6 +945,7 @@ Menu = (function () {
             games = $("ul");
             game = $("[name=game]");
             nick = $("[name=nick]");
+            nick.value = localStorage.getItem("nick") || "";
             on(games, "click", function(e) {
                 var item = e.target;
                 if (item.tagName === "LI") {
@@ -964,8 +961,10 @@ Menu = (function () {
                 }
             });
             on(container, "submit", function (e) {
+                var name = Menu.nick();
+                localStorage.setItem("nick", name);
                 e.preventDefault();
-                emit("open", Menu.nick());
+                emit("open", name);
                 nick.blur();
             });
             on(container, "click", function (e) {
@@ -978,7 +977,7 @@ Menu = (function () {
                         break;
                     case "#create":
                         e.preventDefault();
-                        emit("create", game.value.trim(), Menu.opts());
+                        emit("create", Menu.opts());
                         break;
                 }
             });
@@ -1016,9 +1015,10 @@ Menu = (function () {
          */
         opts: function () {
             return {
-                map: $("select[name=map]").selectedIndex,
+                name: game.value.trim(),
                 bots: $("select[name=bots]").selectedIndex,
-                mode: $("select[name=mode]").selectedIndex
+                mode: $("select[name=mode]").selectedIndex,
+                map: $("select[name=map]").selectedIndex
             };
         },
 
@@ -1175,7 +1175,7 @@ function bind() {
             Game.start(snapshot, false, params);
             Game.hide();
         } else {
-            Game.show();
+            Game.show(params.name);
         }
     });
 

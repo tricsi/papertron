@@ -1,6 +1,7 @@
 html, body, canvas {
 	width: 100%;
 	height: 100%;
+    min-height: 320px;
 	margin: 0;
 	overflow: hidden;
 }
@@ -242,6 +243,10 @@ li {
     top: 50%;
     transform-origin: center bottom;
     justify-content: center;
+
+    input {
+        width: 200px;
+    }
 }
 
 .bl {

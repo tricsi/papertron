@@ -137,7 +137,8 @@ io.on("connect", function (socket) {
     /**
      * Create new game
      */
-    socket.on("create", function (game, params) {
+    socket.on("create", function (params) {
+        var game = params.name;
         if (!game) {
             socket.emit("alert", "Invalid name!");
         } else if (games.indexOf(game) >= 0) {
@@ -153,7 +154,7 @@ io.on("connect", function (socket) {
             };
             socket.join(game);
             socket.game = game;
-            socket.emit("join", [socket.nick]);
+            socket.emit("join", [socket.nick], null, params);
             console.log(socket.nick + " created " + game);
         }
     });
