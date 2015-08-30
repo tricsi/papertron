@@ -228,8 +228,14 @@ global.exports = (function () {
 				item[param] = data[param];
 			}
 		}
-		this.start = new Date().getTime() - (snapshot.time * this.timer);
 	};
+
+    /**
+     * Set start time from snapshot time
+     */
+    Match.prototype.setTime = function (time) {
+		this.start = new Date().getTime() - (time * this.timer);
+    };
 
 	/**
 	 * Get current snapshot time

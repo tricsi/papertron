@@ -158,6 +158,7 @@ Game = (function () {
             Game.hide();
             match = new logic.Match(params.mode);
             match.load(snapshot);
+            match.setTime(snapshot.time);
             motor = match.motors[id] || null;
             Scene.rotate(motor ? motor.vec * -90 : 0);
             motorSound = Sfx.play("motor", true);
@@ -965,6 +966,7 @@ Menu = (function () {
             on(container, "submit", function (e) {
                 e.preventDefault();
                 emit("open", Menu.nick());
+                nick.blur();
             });
             on(container, "click", function (e) {
                  switch (attr(e.target, "href")) {

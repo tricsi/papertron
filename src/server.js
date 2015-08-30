@@ -16,8 +16,9 @@ io.on("connect", function (socket) {
     /**
      * Game players nick
      */
-    function nicks(game) {
-        var list = [];
+    function nicks() {
+        var list = [],
+            game = socket.game;
         if (store[game]) {
             store[game].players.forEach(function(client) {
                 list.push(client.nick);
@@ -29,7 +30,8 @@ io.on("connect", function (socket) {
     /**
      * Get match snapshot
      */
-    function snapshot(game) {
+    function snapshot() {
+        var game = socket.game;
         return store[game] && store[game].match
             ? store[game].match.save()
             : null;
@@ -42,28 +44,36 @@ io.on("connect", function (socket) {
         var winner,
             stuck = [],
             data,
-            game = socket.game;
-        winner = match.run(function (id, time) {
+            game = store[socket.game];
+        if (!game || !game.match) {
+            clearInterval(thread);
+            return;
+        }
+        winner = match.run(function (id) {
             stuck.push(id);
-            console.log(match.motors[id].nick + " stuck at " + time);
+            game.changed = true;
         });
         if (winner === false) {
-            match.ai();
+            match.ai(function () {
+                game.changed = true;
+            });
         }
-        data = snapshot(game);
-        socket.emit("shot", data, stuck, winner);
-        socket.to(game).emit("shot", data, stuck, winner);
+        if (game.changed) {
+            data = snapshot();
+            socket.emit("shot", data, stuck, winner);
+            socket.to(socket.game).emit("shot", data, stuck, winner);
+            game.changed = false;
+        }
         if (winner !== false) {
-            clearInterval(thread);
-            if (store[game]) {
-                store[game].match = null;
-            }
+            game.match = null;
             console.log(match.motors[winner].nick + " wins");
         }
     }
 
-    function removeNick()
-    {
+    /**
+     * Remove nickname
+     */
+    function removeNick() {
         var index = names.indexOf(socket.nick);
         if (index >= 0) {
             names.splice(index, 1);
@@ -87,7 +97,7 @@ io.on("connect", function (socket) {
                 delete store[game];
                 console.log("room deleted: " + game);
             } else {
-                socket.to(game).emit("left", nick, nicks(game));
+                socket.to(game).emit("left", nick, nicks());
             }
         }
     }
@@ -139,7 +149,8 @@ io.on("connect", function (socket) {
             games.push(game);
             store[game] = {
                 params: params,
-                players: [socket]
+                players: [socket],
+                changed: false
             };
             socket.join(game);
             socket.game = game;
@@ -159,8 +170,8 @@ io.on("connect", function (socket) {
             socket.join(game);
             socket.game = game;
             store[game].players.push(socket);
-            list = nicks(game);
-            socket.emit("join", list, snapshot(game), store[game].params);
+            list = nicks();
+            socket.emit("join", list, snapshot(), store[game].params);
             socket.to(game).emit("joined", nick, list);
             console.log(nick + " join to " + game);
         }
@@ -206,7 +217,7 @@ io.on("connect", function (socket) {
                 player = match.add();
             }
             game.match = match;
-            data = snapshot(socket.game);
+            data = snapshot();
             game.players.forEach(function(client) {
                 var id = client.motor ? client.motor.id : false;
                 client.emit("start", data, id, params);
@@ -221,11 +232,11 @@ io.on("connect", function (socket) {
      */
     socket.on("turn", function (to, time) {
         var motor;
-        if (socket.game) {
+        if (store[socket.game]) {
             motor = socket.motor;
             motor.move(time);
             motor.turn(to);
-            socket.to(socket.game).emit("turn", to, time, motor.id);
+            store[socket.game].changed = true;
             console.log(socket.nick + " turn " + to + " at " + time);
         }
     });
