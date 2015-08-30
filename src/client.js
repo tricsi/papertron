@@ -156,11 +156,11 @@ Game = (function () {
          */
         start: function (snapshot, id, params) {
             Game.hide();
-            match = new logic.Match(params.mode);
+            match = new logic.Match(params.mode, params.map);
             match.load(snapshot);
             match.setTime(snapshot.time);
             motor = match.motors[id] || null;
-            Scene.rotate(motor ? motor.vec * -90 : 0);
+            Scene.rotate(motor ? motor.vec * 90 : 0);
             motorSound = Sfx.play("motor", true);
             running = true;
             run();

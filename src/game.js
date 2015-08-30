@@ -182,23 +182,38 @@ global.exports = (function () {
         return result;
     };
 
+    /**
+     * Game maps
+     */
+    var Maps = [[
+        [0, 10, Motor.DOWN],
+        [0, -10, Motor.UP],
+        [-10, 0, Motor.LEFT],
+        [10, 0, Motor.RIGHT]
+    ], [
+        [0, 30, Motor.UP],
+        [0, -30, Motor.DOWN],
+        [-30, 0, Motor.RIGHT],
+        [30, 0, Motor.LEFT]
+    ], [
+        [50, 50, Motor.UP],
+        [-50, -50, Motor.DOWN],
+        [-50, 50, Motor.RIGHT],
+        [50, -50, Motor.LEFT]
+    ]];
+
 	/**
 	 * Game match class
 	 * @constructor
 	 */
-    function Match(mode) {
+    function Match(mode, map) {
         this.timer = 50; // Snapshot time
         this.distance = 70; // Wall distance
         this.start = new Date().getTime() + 3000; // Start time
         this.motors = []; // Motors
         this.bots = []; // Robots
         this.mode = mode || 0; // Reverse mode
-        this.pos = [
-            [0, 30, Motor.UP],
-            [0, -30, Motor.DOWN],
-            [-30, 0, Motor.RIGHT],
-            [30, 0, Motor.LEFT]
-        ];
+        this.pos = Maps[map || 0];
     }
 
 	/**

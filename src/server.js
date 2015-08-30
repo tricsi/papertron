@@ -208,7 +208,7 @@ io.on("connect", function (socket) {
        if (game) {
             params = game.params;
             bots = params.bots;
-            match = new logic.Match(params.mode);
+            match = new logic.Match(params.mode, params.map);
             for (i = 0; i < game.players.length; i++) {
                 player = game.players[i];
                 player.motor = i < 4 ? match.add(player.nick) : false;
