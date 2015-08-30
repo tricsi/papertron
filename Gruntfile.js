@@ -49,13 +49,25 @@ module.exports = function (grunt) {
 				}]
 			}
 		},
-
+        replace: {
+            dist: {
+                options: {
+                    patterns: [{
+                        match: /socket\.io"\)\(/g,
+                        replacement: "sandbox-io\""
+                    }]
+                },
+                files: {
+                    "dist/server.js": "dist/server.js"
+                }
+            }
+        },
 		sync: {
 			dist: {
 				files: [{
 					cwd: "src",
 					expand: true,
-					src: ["index.html", "style.css"],
+					src: ["index.html", "style.css", "package.json"],
 					dest: "dist"
 				}],
 				verbose: true
@@ -78,7 +90,8 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks("grunt-contrib-compress");
 	grunt.loadNpmTasks("grunt-contrib-uglify");
 	grunt.loadNpmTasks("grunt-contrib-watch");
+    grunt.loadNpmTasks("grunt-replace");
 	grunt.loadNpmTasks("grunt-sass");
 	grunt.loadNpmTasks("grunt-sync");
-	grunt.registerTask("default", ["clean", "sass", "sync", "uglify", "compress"]);
+	grunt.registerTask("default", ["clean", "sass", "sync", "uglify", "replace", "compress"]);
 };

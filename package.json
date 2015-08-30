@@ -11,6 +11,7 @@
     "grunt-contrib-compress": "*",
     "grunt-contrib-uglify": "*",
     "grunt-contrib-watch": "*",
+    "grunt-replace": "*",
     "grunt-sass": "*",
     "grunt-sync": "*",
     "mocha": "*"

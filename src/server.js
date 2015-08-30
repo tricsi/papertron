@@ -7,8 +7,7 @@ var io = require("socket.io")(), //server
 
 io.on("connect", function (socket) {
 
-    var match, //actual match
-        thread; //game thread
+    var match; //actual match
 
     socket.nick = "Player";
     socket.game = null;
@@ -46,9 +45,9 @@ io.on("connect", function (socket) {
             data,
             game = store[socket.game];
         if (!game || !game.match) {
-            clearInterval(thread);
             return;
         }
+        setTimeout(run, 1000 / game.match.timer);
         winner = match.run(function (id) {
             stuck.push(id);
             game.changed = true;
@@ -222,7 +221,7 @@ io.on("connect", function (socket) {
                 var id = client.motor ? client.motor.id : false;
                 client.emit("start", data, id, params);
             });
-            thread = setInterval(run, 1000 / match.timer);
+            run();
             console.log(socket.nick + " started " + socket.game + " with bot number " + params.bots);
         }
     });
