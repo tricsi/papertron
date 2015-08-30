@@ -205,27 +205,31 @@ global.exports = (function () {
 	 * Save snapshot
 	 * @returns {object}
 	 */
-    Match.prototype.save = function () {
-        return this.motors;
-    };
+	Match.prototype.save = function () {
+		return {
+			time: this.getTime(),
+			data: this.motors
+		};
+	};
 
 	/**
 	 * Load snapshot
 	 * @params {object} snapshot
 	 */
-    Match.prototype.load = function (snapshot) {
-        var i,
-            data,
-            item,
-            param;
-        for (i = 0; i < snapshot.length; i++) {
-            data = snapshot[i];
-            item = this.motors[i] || this.add(data.nick);
-            for (param in data) {
-                item[param] = data[param];
-            }
-        }
-    };
+	Match.prototype.load = function (snapshot) {
+		var i,
+			data,
+			item,
+			param;
+		for (i = 0; i < snapshot.data.length; i++) {
+			data = snapshot.data[i];
+			item = this.motors[i] || this.add(data.nick);
+			for (param in data) {
+				item[param] = data[param];
+			}
+		}
+		this.start = new Date().getTime() - (snapshot.time * this.timer);
+	};
 
 	/**
 	 * Get current snapshot time
@@ -305,7 +309,7 @@ global.exports = (function () {
             motor = this.motors[i];
             if (motor.bot) {
                 to = motor.ai(this);
-                if (to) {
+                if (to && onTurn) {
                     onTurn.call(this, to, time, i);
                 }
             }

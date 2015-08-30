@@ -92,8 +92,6 @@ Game = (function () {
             count(value);
             if (value > 0) {
                 Sfx.play("count");
-            } else {
-                motorSound = Sfx.play("motor", true);
             }
             counter = value;
         }
@@ -156,12 +154,13 @@ Game = (function () {
         /**
          * Start new match
          */
-        start: function (snapshot, id, mode, map) {
+        start: function (snapshot, id, params) {
             Game.hide();
-            match = new logic.Match(mode);
+            match = new logic.Match(params.mode);
             match.load(snapshot);
             motor = match.motors[id] || null;
             Scene.rotate(motor ? motor.vec * -90 : 0);
+            motorSound = Sfx.play("motor", true);
             running = true;
             run();
         },
@@ -216,7 +215,7 @@ Game = (function () {
             }
             if (winner !== undefined) {
                 txt(title, match.motors[winner].nick + " wins!");
-                Sfx.play(motor.id === winner ? "win" : "lose");
+                Sfx.play(motor && motor.id === winner ? "win" : "lose");
             } else {
                 txt(title, "New Game");
             }
@@ -529,7 +528,6 @@ Scene = (function () {
 
     function createLine(motor, color, dec, onturn) {
         var i,
-            j,
             end,
             part,
             dots = motor.data,
@@ -582,7 +580,6 @@ Scene = (function () {
         }
 
         for (i = s; i < dots.length; i++) {
-            j = data.vert.length / 3;
             end = 0;
             if (i === s) {
                 end = 1;
@@ -770,7 +767,7 @@ Scene = (function () {
             camera = matrixMultiply(camera, makeTranslation(x, y, 0));
             camera = matrixMultiply(camera, makeZRotation(a));
             camera = matrixMultiply(camera, makeXRotation(-1.2));
-            camera = matrixMultiply(camera, makeTranslation(0, 0, -30));
+            camera = matrixMultiply(camera, makeTranslation(0, 0, motor ? -30 : -100));
             camera = matrixMultiply(camera, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
 
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -1034,7 +1031,7 @@ Menu = (function () {
             while (games.firstChild) {
                 games.removeChild(games.firstChild);
             }
-            list.forEach(function (item, index) {
+            list.forEach(function (item) {
                 element = document.createElement("LI");
                 element.appendChild(document.createTextNode(item));
                 if (item === name) {
@@ -1169,11 +1166,11 @@ function bind() {
         Menu.show("open");
     });
 
-    socket.on("join", function (list, snapshot) {
+    socket.on("join", function (list, snapshot, params) {
         Menu.show("start");
         Chat.room(list);
         if (snapshot) {
-            Game.start(snapshot, false);
+            Game.start(snapshot, false, params);
             Game.hide();
         } else {
             Game.show();

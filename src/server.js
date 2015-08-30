@@ -48,9 +48,7 @@ io.on("connect", function (socket) {
             console.log(match.motors[id].nick + " stuck at " + time);
         });
         if (winner === false) {
-            match.ai(function (to, time, id) {
-                console.log("Robot turn " + to + " at " + time);
-            });
+            match.ai();
         }
         data = snapshot(game);
         socket.emit("shot", data, stuck, winner);
@@ -162,7 +160,7 @@ io.on("connect", function (socket) {
             socket.game = game;
             store[game].players.push(socket);
             list = nicks(game);
-            socket.emit("join", list, snapshot(game));
+            socket.emit("join", list, snapshot(game), store[game].params);
             socket.to(game).emit("joined", nick, list);
             console.log(nick + " join to " + game);
         }
@@ -202,15 +200,16 @@ io.on("connect", function (socket) {
             match = new logic.Match(params.mode);
             for (i = 0; i < game.players.length; i++) {
                 player = game.players[i];
-                player.motor = match.add(player.nick);
+                player.motor = i < 4 ? match.add(player.nick) : false;
             }
             while (i++ < 4 && bots-- > 0) {
                 player = match.add();
             }
             game.match = match;
             data = snapshot(socket.game);
-            game.players.forEach(function(client, id) {
-                client.emit("start", data, id, params.mode, params.map);
+            game.players.forEach(function(client) {
+                var id = client.motor ? client.motor.id : false;
+                client.emit("start", data, id, params);
             });
             thread = setInterval(run, 1000 / match.timer);
             console.log(socket.nick + " started " + socket.game + " with bot number " + params.bots);
