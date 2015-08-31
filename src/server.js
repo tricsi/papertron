@@ -80,6 +80,24 @@ io.on("connect", function (socket) {
     }
 
     /**
+     * Update game list
+     */
+    function updateGames() {
+        var name,
+            game;
+        games = [];
+        for (name in store) {
+            game = store[name];
+            games.push({
+                name: name,
+                map: game.params.map,
+                mode: game.params.mode,
+                count: game.players.length
+            });
+        };
+    }
+
+    /**
      * Leave game
      */
     function leave() {
@@ -92,12 +110,12 @@ io.on("connect", function (socket) {
             players.splice(players.indexOf(socket), 1);
             console.log(nick + " leave " + game);
             if (players.length === 0) {
-                games.splice(games.indexOf(game), 1);
                 delete store[game];
                 console.log("room deleted: " + game);
             } else {
                 socket.to(game).emit("left", nick, nicks());
             }
+            updateGames();
         }
     }
 
@@ -141,12 +159,11 @@ io.on("connect", function (socket) {
         var game = params.name;
         if (!game) {
             socket.emit("alert", "Invalid name!");
-        } else if (games.indexOf(game) >= 0) {
+        } else if (game in store) {
             socket.emit("alert", "Game exists!");
         } else {
             socket.leave(socket.game);
             leave();
-            games.push(game);
             store[game] = {
                 params: params,
                 players: [socket],
@@ -155,6 +172,7 @@ io.on("connect", function (socket) {
             socket.join(game);
             socket.game = game;
             socket.emit("join", [socket.nick], null, params);
+            updateGames();
             console.log(socket.nick + " created " + game);
         }
     });
@@ -173,6 +191,7 @@ io.on("connect", function (socket) {
             list = nicks();
             socket.emit("join", list, snapshot(), store[game].params);
             socket.to(game).emit("joined", nick, list);
+            updateGames();
             console.log(nick + " join to " + game);
         }
     });

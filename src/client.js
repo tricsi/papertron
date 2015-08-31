@@ -1035,8 +1035,8 @@ Menu = (function () {
             }
             list.forEach(function (item) {
                 element = document.createElement("LI");
-                element.appendChild(document.createTextNode(item));
-                if (item === name) {
+                element.appendChild(document.createTextNode(item.name));
+                if (item.name === name) {
                     element.className = "sel";
                     selected = element;
                 }
