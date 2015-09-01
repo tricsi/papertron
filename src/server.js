@@ -9,9 +9,6 @@ io.on("connect", function (socket) {
 
     var match; //actual match
 
-    socket.nick = "Player";
-    socket.game = null;
-
     /**
      * Game players nick
      */
@@ -88,13 +85,9 @@ io.on("connect", function (socket) {
         games = [];
         for (name in store) {
             game = store[name];
-            games.push({
-                name: name,
-                map: game.params.map,
-                mode: game.params.mode,
-                count: game.players.length
-            });
-        };
+            game.params.count = game.players.length;
+            games.push(game.params);
+        }
     }
 
     /**
@@ -111,7 +104,7 @@ io.on("connect", function (socket) {
             console.log(nick + " leave " + game);
             if (players.length === 0) {
                 delete store[game];
-                console.log("room deleted: " + game);
+                console.log("Game deleted: " + game);
             } else {
                 socket.to(game).emit("left", nick, nicks());
             }
@@ -140,7 +133,9 @@ io.on("connect", function (socket) {
             removeNick();
             names.push(nick);
             socket.nick = nick;
+            socket.game = null;
             socket.emit("open");
+            console.log(nick + " connected");
         }
     });
 
@@ -260,7 +255,6 @@ io.on("connect", function (socket) {
         }
     });
 
-    console.log(socket.nick + " connected");
 });
 
 module.exports = io;

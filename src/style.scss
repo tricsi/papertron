@@ -17,7 +17,7 @@ body {
     -webkit-perspective: 500px;
 }
 
-h1, h2, ul, li {
+h1, h2, ul, li, pre {
     margin: 0;
 	padding: 0;
 }
@@ -68,18 +68,30 @@ ul {
     width: 140px;
 	height: 170px;
 	background: #a74;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: auto;
 }
 
 li {
     list-style: none;
-    line-height: 40px;
-    font-size: 20px;
+    line-height: 20px;
+    font-size: 16px;
+    padding: 5px;
     cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    pre {
+        display: none;
+        font-size: 12px;
+        line-height: 14px;
+    }
 
     &.sel {
         background: #642;
+
+        pre {
+            display: block;
+        }
     }
 }
 

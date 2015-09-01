@@ -20,6 +20,18 @@ function $(query, element) {
 }
 
 /**
+ * Create element helper
+ * @param {string} name
+ * @param {boolean} isText
+ * @returns {DOMElement}
+ */
+function em(value, isText) {
+    return isText
+        ? document.createTextNode(value)
+        : document.createElement(value);
+}
+
+/**
  * Event handler helper
  * @param {Object} element
  * @param {string} event
@@ -51,6 +63,9 @@ function txt(element, text) {
  * @param {string} value
  */
 function attr(element, name, value) {
+    if (!element) {
+        return null;
+    }
     if (value !== undefined) {
         element.setAttribute(name, value);
     }
@@ -128,25 +143,25 @@ Game = (function () {
             on(document.body, "keydown", function (e) {
                 switch (e.keyCode) {
                     case 37:
-                        if (Game.turn(logic.Motor.LEFT)) {
-                            Scene.turn(logic.Motor.LEFT);
+                        if (Game.turn(3)) {
+                            Scene.turn(3);
                         }
                         break;
                     case 39:
-                        if (Game.turn(logic.Motor.RIGHT)) {
-                            Scene.turn(logic.Motor.RIGHT);
+                        if (Game.turn(1)) {
+                            Scene.turn(1);
                         }
                         break;
                 }
             });
             on($(".texts"), "touchstart", function () {
-                if (Game.turn(logic.Motor.LEFT)) {
-                    Scene.turn(logic.Motor.LEFT);
+                if (Game.turn(3)) {
+                    Scene.turn(3);
                 }
             });
             on($(".room"), "touchstart", function () {
-                if (Game.turn(logic.Motor.RIGHT)) {
-                    Scene.turn(logic.Motor.RIGHT);
+                if (Game.turn(1)) {
+                    Scene.turn(1);
                 }
             });
         },
@@ -889,8 +904,8 @@ Chat = (function () {
         room: function (list) {
             room.innerHTML = "";
             list.forEach(function (nick) {
-                room.appendChild(document.createTextNode(nick));
-                room.appendChild(document.createElement("br"));
+                room.appendChild(em(nick, true));
+                room.appendChild(em("br"));
             });
             Game.players = list;
         },
@@ -900,9 +915,9 @@ Chat = (function () {
          * @param {string} message
          */
         add: function (message) {
-            var br = document.createElement("br");
+            var br = em("br");
             texts.insertBefore(br, texts.firstChild);
-            texts.insertBefore(document.createTextNode(message), br);
+            texts.insertBefore(em(message, true), br);
             Sfx.play("msg");
         },
 
@@ -932,6 +947,9 @@ Menu = (function () {
         selected, //selected game
         games, //game list
         game, //game name
+        map, //game map select
+        bots, //game bots select
+        mode, //game mode select
         nick, //nickname
         ping; //ping timer
 
@@ -944,20 +962,17 @@ Menu = (function () {
             container = $("body");
             games = $("ul");
             game = $("[name=game]");
+            map = $("[name=map]");
+            bots = $("[name=bots]");
+            mode = $("[name=mode]");
             nick = $("[name=nick]");
             nick.value = localStorage.getItem("nick") || "";
             on(games, "click", function(e) {
                 var item = e.target;
                 if (item.tagName === "LI") {
-                    if (selected) {
-                        attr(selected, "class", "");
-                    }
-                    if (selected === item) {
-                        selected = null;
-                    } else {
-                        attr(item, "class", "sel");
-                        selected = item;
-                    }
+                    attr($("li.sel", games), "class", "");
+                    attr(item, "class", "sel");
+                    selected = attr(item, "data-val");
                 }
             });
             on(container, "submit", function (e) {
@@ -972,7 +987,7 @@ Menu = (function () {
                     case "#join":
                         e.preventDefault();
                         if (selected) {
-                            emit("join", txt(selected));
+                            emit("join", selected);
                         }
                         break;
                     case "#create":
@@ -1016,9 +1031,9 @@ Menu = (function () {
         opts: function () {
             return {
                 name: game.value.trim(),
-                bots: $("select[name=bots]").selectedIndex,
-                mode: $("select[name=mode]").selectedIndex,
-                map: $("select[name=map]").selectedIndex
+                bots: bots.selectedIndex,
+                mode: mode.selectedIndex,
+                map: map.selectedIndex
             };
         },
 
@@ -1027,20 +1042,30 @@ Menu = (function () {
          * @param {string[]} list
          */
         games: function (list) {
-            var name = txt(selected),
-                element;
+            var name = selected,
+                pre,
+                li;
             selected = null;
             while (games.firstChild) {
                 games.removeChild(games.firstChild);
             }
             list.forEach(function (item) {
-                element = document.createElement("LI");
-                element.appendChild(document.createTextNode(item.name));
+                pre = em("pre");
+                txt(pre, [
+                    mode.options[item.mode].text + " " +
+                    map.options[item.map].text,
+                    "Players: " + item.count,
+                    "Bots: " + item.bots
+                ].join("\n"));
+                li = em("li");
+                txt(li, item.name);
+                attr(li, "data-val", item.name);
+                li.appendChild(pre);
                 if (item.name === name) {
-                    element.className = "sel";
-                    selected = element;
+                    li.className = "sel";
+                    selected = name;
                 }
-                games.appendChild(element);
+                games.appendChild(li);
             });
         }
     };

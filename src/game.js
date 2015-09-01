@@ -27,10 +27,10 @@ global.exports = (function () {
 	 * Direction values
 	 * @type {number}
 	 */
-    Motor.UP = 0;
-    Motor.RIGHT = 1;
-    Motor.DOWN = 2;
-    Motor.LEFT = 3;
+    Motor.U = 0; //UP
+    Motor.R = 1; //RIGHT
+    Motor.D = 2; //DOWN
+    Motor.L = 3; //LEFT
 
 	/**
 	 * Add current coordinates to data array
@@ -50,16 +50,16 @@ global.exports = (function () {
         this.y = this.data[0][1];
         this.vec = this.data[0][2];
         switch (this.vec) {
-            case Motor.LEFT:
+            case Motor.L:
                 this.x -= addTime;
                 break;
-            case Motor.RIGHT:
+            case Motor.R:
                 this.x += addTime;
                 break;
-            case Motor.UP:
+            case Motor.U:
                 this.y -= addTime;
                 break;
-            case Motor.DOWN:
+            case Motor.D:
                 this.y += addTime;
                 break;
         }
@@ -72,15 +72,15 @@ global.exports = (function () {
 	 */
     Motor.prototype.turn = function (to) {
         switch (to) {
-            case Motor.LEFT:
-                if (--this.vec < Motor.UP) {
-                    this.vec = Motor.LEFT;
+            case Motor.L:
+                if (--this.vec < Motor.U) {
+                    this.vec = Motor.L;
                 }
                 this.add();
                 break;
-            case Motor.RIGHT:
-                if (++this.vec > Motor.LEFT) {
-                    this.vec = Motor.UP;
+            case Motor.R:
+                if (++this.vec > Motor.L) {
+                    this.vec = Motor.U;
                 }
                 this.add();
                 break;
@@ -122,14 +122,14 @@ global.exports = (function () {
                 return (r >= 0 && r <= 1) && (s >= 0 && s <= 1);
             } else if (n1 === 0 && n2 === 0) { //overlap
                 switch (this.vec) {
-                    case Motor.LEFT:
-                    case Motor.RIGHT:
+                    case Motor.L:
+                    case Motor.R:
                         return (x1 >= x4 && x2 <= x4) ||
                             (x2 >= x4 && x1 <= x4) ||
                             (x1 >= x3 && x2 <= x3) ||
                             (x2 >= x3 && x1 <= x3);
-                    case Motor.UP:
-                    case Motor.DOWN:
+                    case Motor.U:
+                    case Motor.D:
                         return (y1 >= y4 && y2 <= y4) ||
                             (y2 >= y4 && y1 <= y4) ||
                             (y1 >= y3 && y2 <= y3) ||
@@ -162,12 +162,12 @@ global.exports = (function () {
         if (!motor.stuck) {
             motor.move(toTime);
             if (match.check(motor)) {
-                result = dir ? Motor.RIGHT : Motor.LEFT;
+                result = dir ? Motor.R : Motor.L;
                 motor.move(time);
                 motor.turn(result);
                 motor.move(toTime);
                 if (match.check(motor)) {
-                    result = dir ? Motor.LEFT : Motor.RIGHT;
+                    result = dir ? Motor.L : Motor.R;
                     motor.back();
                     motor.turn(result);
                     motor.move(toTime);
@@ -182,26 +182,6 @@ global.exports = (function () {
         return result;
     };
 
-    /**
-     * Game maps
-     */
-    var Maps = [[
-        [0, 10, Motor.DOWN],
-        [0, -10, Motor.UP],
-        [-10, 0, Motor.LEFT],
-        [10, 0, Motor.RIGHT]
-    ], [
-        [0, 30, Motor.UP],
-        [0, -30, Motor.DOWN],
-        [-30, 0, Motor.RIGHT],
-        [30, 0, Motor.LEFT]
-    ], [
-        [50, 50, Motor.UP],
-        [-50, -50, Motor.DOWN],
-        [-50, 50, Motor.RIGHT],
-        [50, -50, Motor.LEFT]
-    ]];
-
 	/**
 	 * Game match class
 	 * @constructor
@@ -212,9 +192,29 @@ global.exports = (function () {
         this.start = new Date().getTime() + 3000; // Start time
         this.motors = []; // Motors
         this.bots = []; // Robots
-        this.mode = mode || 0; // Reverse mode
-        this.pos = Maps[map || 0];
+        this.mode = parseInt(mode) || 0; // Reverse mode
+        this.pos = Match.maps[parseInt(map) || 0]; // Game map
     }
+
+    /**
+     * Game maps
+     */
+    Match.maps = [[
+        [0, 10, 2],
+        [0, -10, 0],
+        [-10, 0, 3],
+        [10, 0, 1]
+    ], [
+        [0, 30, 0],
+        [0, -30, 2],
+        [-30, 0, 1],
+        [30, 0, 3]
+    ], [
+        [50, 50, 0],
+        [-50, -50, 2],
+        [-50, 50, 1],
+        [50, -50, 3]
+    ]];
 
 	/**
 	 * Save snapshot
@@ -292,16 +292,16 @@ global.exports = (function () {
                 while (!result && i < other.data.length) {
                     item = other.data[i];
                     switch (item[2]) {
-                        case Motor.LEFT:
+                        case Motor.L:
                             x++;
                             break;
-                        case Motor.RIGHT:
+                        case Motor.R:
                             x--;
                             break;
-                        case Motor.UP:
+                        case Motor.U:
                             y++;
                             break;
-                        case Motor.DOWN:
+                        case Motor.D:
                             y--;
                             break;
                     }
