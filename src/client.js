@@ -717,7 +717,6 @@ Scene = (function () {
         canvas.height = canvas.clientHeight;
         aspectRatio = canvas.width / canvas.height;
         gl.viewport(0, 0, canvas.width, canvas.height);
-        scrollTo(0, 1);
     }
 
     function renderObject(model, camera) {
