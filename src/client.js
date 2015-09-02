@@ -104,11 +104,15 @@ Game = (function () {
         var time = match.getTime(),
             value = time < 0 ? Math.ceil(Math.abs(time / (1000 / match.timer))) : 0;
         if (counter !== value) {
+            motorSound = null;
             count(value);
             if (value > 0) {
                 Sfx.play("count");
             }
             counter = value;
+        }
+        if (!counter && !motorSound) {
+            motorSound = Sfx.play("motor", .5, true);
         }
         match.run();
         Scene.anim();
@@ -176,7 +180,6 @@ Game = (function () {
             match.setTime(snapshot.time);
             motor = match.motors[id] || null;
             Scene.rotate(motor ? motor.vec * 90 : 0);
-            motorSound = Sfx.play("motor", true);
             running = true;
             run();
         },
@@ -219,6 +222,7 @@ Game = (function () {
             motor.move(time);
             motor.turn(to);
             emit("turn", to, time);
+            Sfx.play("turn");
             return true;
         },
 
@@ -1075,7 +1079,7 @@ Sfx = (function () {
 
     var container,
         context,
-        volume,
+        master,
         buffers = {},
         muted = true;
 
@@ -1099,8 +1103,8 @@ Sfx = (function () {
                 targets = ["A", "BUTTON"];
             container = $("#sfx");
             context = new AudioContext();
-            volume = context.createGain();
-            volume.connect(context.destination);
+            master = context.createGain();
+            master.connect(context.destination);
             createSource("exp", [3, , 0.18, 0.05, 0.65, 0.97, , -0.36, 0.46, , , 0.66, 0.65, , , 0.63, 0.16, 0.5, 1, , 0.96, , , 0.45]);
             createSource("btn", [2, , 0.04, 0.54, 0.36, 0.15, , , , , , 0.24, 0.52, , , , , , 0.31, , 1, , -1, 0.5]);
             createSource("over", [2, , 0.01, 0.82, 0.17, 0.94, 0.1, 0.74, -0.82, 0.96, 0.99, -0.82, 0.02, 0.16, 0.35, 0.04, -0.7, -0.8, 0.29, -0.62, 0.69, 0.01, 0, 0.28]);
@@ -1110,7 +1114,9 @@ Sfx = (function () {
             createSource("msg", [0, , 0.057, 0.17, 0.12, 0.72, , , , , , 0.58, 0.69, , , , , , 0.42, -0.18, , , , 0.5]);
             createSource("joined", [2, , 0.04, 0.54, 0.36, 0.72, , , , , , 0.24, 0.52, , , , , , 0.31, , 1, , -1, 0.5]);
             createSource("left", [0, , 0.04, 0.54, 0.36, 0.15, , , , , , 0.24, 0.52, , , , , , 0.18, -0.54, 1, , -1, 0.5]);
-            createSource("motor", [1, , 1, , , 0.06, , -0.12, 0.08, 0.27, , -0.1, 1, 1, 0.9, 1, 0.2, 0.08, 0.78, -0.02, 0.49, , , 0.45]);
+            //createSource("turn", [2, , 0.04, , 0.14, 0.59, , -0.53, , , , , , 0.22, , , , , 1, , , 0.27, , 0.5]);
+            createSource("turn", [1, , 0.06, , 0.21, 0.12, , 0.19, , , , , , , , 0.8, , , 1, , , , , 0.5]);
+            createSource("motor", [1, , 0.54, , , 0.07, , -0.12, 0.08, , , -0.1, 1, 1, 0.9, 1, 0.2, 0.08, 0.78, -0.02, 0.49, , , 0.45]);
             on(body, "click", function (e) {
                 if (targets.indexOf(e.target.tagName) !== -1) {
                     Sfx.play("btn");
@@ -1125,13 +1131,17 @@ Sfx = (function () {
             Sfx.mute();
         },
 
-        play: function (name, loop) {
-            var source = null;
+        play: function (name, volume, loop) {
+            var source = null,
+                gain;
             if (name in buffers) {
+                gain = context.createGain();
+                gain.gain.value = volume || 1;
+                gain.connect(master);
                 source = context.createBufferSource();
                 source.loop = loop || false;
                 source.buffer = buffers[name];
-                source.connect(volume);
+                source.connect(gain);
                 source.start(0);
             }
             return source;
@@ -1139,7 +1149,7 @@ Sfx = (function () {
 
         mute: function () {
             muted = !muted;
-            volume.gain.value = muted ? 0 : 1;
+            master.gain.value = muted ? 0 : 2;
             attr(container, "class", muted ? "off" : "");
         }
     };

@@ -156,12 +156,14 @@ global.exports = (function () {
     Motor.prototype.ai = function (match) {
         var motor = this,
             time = motor.time,
-            dir = Math.random() >= .5,
-            toTime = time + 10 + Math.round(Math.random() * 10),
+            seed = Math.random() * motor.id,
+            rand = seed - Math.floor(seed),
+            dir = rand >= .5,
+            toTime = time + 10 + Math.round(rand * 10),
             result = false;
         if (!motor.stuck) {
             motor.move(toTime);
-            if (match.check(motor)) {
+            if (match.check(motor) || rand > 0.99) {
                 result = dir ? Motor.R : Motor.L;
                 motor.move(time);
                 motor.turn(result);
