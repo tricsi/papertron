@@ -331,20 +331,17 @@ onload = (function () {
 	}
 
     function createBoard(color, s, z) {
-        var n = z > 0 ? 3 : -3;
-        return {
+        var x,
+            y,
+            n = z > 0 ? 3 : -3,
+            data;
+        data = {
             color: color,
             vert: [
                 -s, -s, 0,
-    			s, -s, 0,
-    			-s, s, 0,
-    			-s, s, 0,
-     			s, -s, 0,
-                s, s, 0,
-                -s, -s, 0,
     			-s, -s, z,
     			s, -s, 0,
-               s, -s, 0,
+                s, -s, 0,
     			-s, -s, z,
     			s, -s, z,
     			s, s, 0,
@@ -365,14 +362,8 @@ onload = (function () {
     			-s, -s, z,
     			-s, -s, 0,
     			-s, s, z
-             ],
+            ],
             norm: [
-                -1, -1, 1,
-                1, -1, 1,
-                -1, 1, 1,
-                -1, 1, 1,
-                1, -1, 1,
-                1, 1, 1,
                 0, n, 0,
                 0, n, 0,
                 0, n, 0,
@@ -399,6 +390,23 @@ onload = (function () {
                 n, 0, 0
             ]
         };
+        data.vert.push(
+            -s, -s, 0,
+            s, -s, 0,
+            -s, s, 0,
+            -s, s, 0,
+            s, -s, 0,
+            s, s, 0
+        );
+        data.norm.push(
+            -1, -1, 1,
+            1, -1, 1,
+            -1, 1, 1,
+            -1, 1, 1,
+            1, -1, 1,
+            1, 1, 1
+        );
+        return data;
     }
 
     function createModel(data) {

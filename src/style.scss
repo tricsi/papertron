@@ -14,7 +14,6 @@ body {
 	line-height: 60px;
 	text-align: center;
     perspective: 500px;
-    -webkit-perspective: 500px;
 }
 
 h1, h2, ul, li, pre {
@@ -25,6 +24,7 @@ h1, h2, ul, li, pre {
 h1, h2 {
     letter-spacing: -2px;
 	font-weight: bold;
+    text-shadow: 0 1px 1px #a74;
 }
 
 h1 {
@@ -33,6 +33,13 @@ h1 {
 
 h2 {
 	font-size: 30px;
+}
+
+a,
+input,
+select,
+button {
+    outline: none;
 }
 
 input, select {
@@ -46,7 +53,6 @@ input, select {
     box-sizing: border-box;
     width: 140px;
     height: 40px;
-    outline: none;
 }
 
 input {
@@ -128,7 +134,7 @@ li {
             transition: opacity .3s;
 
         &.on {
-            opacity: .8;
+            opacity: .7;
         }
     }
 }
@@ -163,22 +169,27 @@ li {
 
 	div.texts {
 		text-align: left;
+        color: rgba(0, 0, 0, .5);
 	}
 
 	div.room {
 		float: right;
 		text-align: right;
+        color: rgba(0, 0, 0, .5);
 	}
 }
 
 
 #sfx {
     position: absolute;
-    top: 0;
-    right: 0;
+    border-radius: 50%;
+    background: #a74;
+    top: 5px;
+    right: 5px;
     width: 30px;
-    height: 40px;
-    line-height: 40px;
+    height: 30px;
+    line-height: 30px;
+    font-size: 24px;
     cursor: pointer;
 
     &.off {
@@ -204,16 +215,19 @@ li {
     display: inline-block;
     color: #000;
     background: #963;
-	border: 2px solid #000;
+	border: 3px solid #000;
 	font-size: 24px;
+    font-weight: bold;
     line-height: 40px;
 	text-decoration: none;
+    text-shadow: 0 1px 1px #a74;
 	cursor: pointer;
     width: 135px;
 
     &:hover {
         background: #000;
         color: #963;
+        text-shadow: none;
     }
 }
 
@@ -221,7 +235,7 @@ li {
 .br,
 .bb,
 .bl {
-    border: 2px solid #642;
+    border: 3px solid #642;
     background: #963;
     position: absolute;
     display: flex;
@@ -276,21 +290,17 @@ li {
 .open, .start {
     .bt {
         transform: rotateX(90deg);
-        -webkit-transform: rotateX(90deg);
     }
     .bb {
         transform: rotateX(-90deg);
-        -webkit-transform: rotateX(-90deg);
     }
 }
 
 .start {
     .bl {
         transform: rotateY(-90deg);
-        -webkit-transform: rotateY(-90deg);
     }
     .br {
         transform: rotateY(90deg);
-        -webkit-transform: rotateY(90deg);
     }
 }

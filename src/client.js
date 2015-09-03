@@ -132,15 +132,16 @@ Game = (function () {
             counter = 0;
             numbers = $("#count").childNodes;
             on(container, "click", function (e) {
-                e.preventDefault();
                 var id = attr(e.target, "href");
                 switch (id) {
                     case "#start":
                         emit("start");
+                        e.preventDefault();
                         break;
                     case "#leave":
                         emit("leave");
                         Menu.show("open");
+                        e.preventDefault();
                         break;
                 }
             });
@@ -179,7 +180,12 @@ Game = (function () {
             match.load(snapshot);
             match.setTime(snapshot.time);
             motor = match.motors[id] || null;
-            Scene.rotate(motor ? motor.vec * 90 : 0);
+            if (motor) {
+                Scene.rotate(motor.vec * 90);
+            } else {
+                Scene.rotate(0);
+                Note.show("Wait for the next round!");
+            }
             running = true;
             run();
         },
@@ -781,8 +787,8 @@ Scene = (function () {
 
             camera = matrixMultiply(camera, makeTranslation(x, y, 0));
             camera = matrixMultiply(camera, makeZRotation(a));
-            camera = matrixMultiply(camera, makeXRotation(-1.2));
-            camera = matrixMultiply(camera, makeTranslation(0, 0, motor ? -30 : -100));
+            camera = matrixMultiply(camera, makeXRotation(motor ? -1.2 : -.3));
+            camera = matrixMultiply(camera, makeTranslation(0, 0, motor ? -30 : -150));
             camera = matrixMultiply(camera, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
 
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -1106,15 +1112,14 @@ Sfx = (function () {
             master = context.createGain();
             master.connect(context.destination);
             createSource("exp", [3, , 0.18, 0.05, 0.65, 0.97, , -0.36, 0.46, , , 0.66, 0.65, , , 0.63, 0.16, 0.5, 1, , 0.96, , , 0.45]);
-            createSource("btn", [2, , 0.04, 0.54, 0.36, 0.15, , , , , , 0.24, 0.52, , , , , , 0.31, , 1, , -1, 0.5]);
+            createSource("btn", [2, , 0.33, 0.54, 0.36, 0.15, , , , , , 0.24, 0.52, , , , , , 0.31, , 1, , -1, 0.5]);
             createSource("over", [2, , 0.01, 0.82, 0.17, 0.94, 0.1, 0.74, -0.82, 0.96, 0.99, -0.82, 0.02, 0.16, 0.35, 0.04, -0.7, -0.8, 0.29, -0.62, 0.69, 0.01, 0, 0.28]);
-            createSource("count", [1, , 0.12, , 0.72, 0.09, , -0.12, 0.08, , , , , 0.09, 0.02, 0.78, , -0.02, 0.09, -0.02, 0.49, , , 0.45]);
+            createSource("count", [1, , 0.12, , 0.72, 0.1, , -0.12, 0.08, , , , , 0.09, 0.02, 0.78, , -0.02, 0.09, -0.02, 0.49, , , 0.45]);
             createSource("win", [2, 0.66, 0.01, 0.17, 0.34, 0.68, , 0.16, 0.02, 0.08, 0.71, -0.82, 0.4, 0.34, -0.34, , 0.68, 0.92, 0.15, -0.1, 0.53, 0, 0.05, 0.5]);
             createSource("lose", [0, 0.16, 0.01, 0.3, 0.45, 0.28, , 0.26, -0.01, 0.15, 0.44, -0.82, 0.4, 0.33, -0.34, -0.06, 0.03, -0.19, 0.07, -0.01, 0.53, 0, 0.05, 0.5]);
             createSource("msg", [0, , 0.057, 0.17, 0.12, 0.72, , , , , , 0.58, 0.69, , , , , , 0.42, -0.18, , , , 0.5]);
             createSource("joined", [2, , 0.04, 0.54, 0.36, 0.72, , , , , , 0.24, 0.52, , , , , , 0.31, , 1, , -1, 0.5]);
             createSource("left", [0, , 0.04, 0.54, 0.36, 0.15, , , , , , 0.24, 0.52, , , , , , 0.18, -0.54, 1, , -1, 0.5]);
-            //createSource("turn", [2, , 0.04, , 0.14, 0.59, , -0.53, , , , , , 0.22, , , , , 1, , , 0.27, , 0.5]);
             createSource("turn", [1, , 0.06, , 0.21, 0.12, , 0.19, , , , , , , , 0.8, , , 1, , , , , 0.5]);
             createSource("motor", [1, , 0.54, , , 0.07, , -0.12, 0.08, , , -0.1, 1, 1, 0.9, 1, 0.2, 0.08, 0.78, -0.02, 0.49, , , 0.45]);
             on(body, "click", function (e) {
