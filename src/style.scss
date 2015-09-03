@@ -46,10 +46,12 @@ input, select {
     box-sizing: border-box;
     width: 140px;
     height: 40px;
+    outline: none;
 }
 
 input {
     padding: 0 2px;
+    -webkit-appearance: none;
 
     &::-webkit-input-placeholder {
         color: #642;
@@ -290,15 +292,5 @@ li {
     .br {
         transform: rotateY(90deg);
         -webkit-transform: rotateY(90deg);
-    }
-}
-
-* {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-
-    &:focus {
-        outline: none;
     }
 }
