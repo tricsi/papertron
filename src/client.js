@@ -618,48 +618,41 @@ Scene = (function () {
     }
 
     function createBoard(color, s, z) {
-        var n = z > 0 ? 3 : -3;
-        return {
+        var x,
+            y,
+            l = .2,
+            d = s / 5,
+            n = z > 0 ? 3 : -3,
+            data;
+        data = {
             color: color,
             vert: [
                 -s, -s, 0,
+    			-s, -s, z,
+    			s, -s, 0,
                 s, -s, 0,
-                -s, s, 0,
-                -s, s, 0,
-                s, -s, 0,
-                s, s, 0,
-                -s, -s, 0,
-                -s, -s, z,
-                s, -s, 0,
-                s, -s, 0,
-                -s, -s, z,
-                s, -s, z,
-                s, s, 0,
-                s, -s, 0,
-                s, -s, z,
-                s, s, 0,
-                s, -s, z,
-                s, s, z,
-                -s, s, 0,
-                s, s, 0,
-                s, s, z,
-                -s, s, 0,
-                s, s, z,
-                -s, s, z,
-                -s, -s, 0,
-                -s, s, 0,
-                -s, s, z,
-                -s, -s, z,
-                -s, -s, 0,
-                -s, s, z
+    			-s, -s, z,
+    			s, -s, z,
+    			s, s, 0,
+    			s, -s, 0,
+    			s, -s, z,
+    			s, s, 0,
+    			s, -s, z,
+    			s, s, z,
+    			-s, s, 0,
+    			s, s, 0,
+    			s, s, z,
+    			-s, s, 0,
+    			s, s, z,
+    			-s, s, z,
+    			-s, -s, 0,
+    			-s, s, 0,
+    			-s, s, z,
+    			-s, -s, z,
+    			-s, -s, 0,
+    			-s, s, z
             ],
             norm: [
-                -1, -1, 1,
-                1, -1, 1,
-                -1, 1, 1,
-                -1, 1, 1,
-                1, -1, 1,
-                1, 1, 1,
                 0, n, 0,
                 0, n, 0,
                 0, n, 0,
@@ -686,6 +679,27 @@ Scene = (function () {
                 n, 0, 0
             ]
         };
+        for (x = -s; x < s; x += d) {
+            for (y = -s; y < s; y += d) {
+                data.vert.push(
+                    x + l, y + l, 0,
+                    x + d - l, y + l, 0,
+                    x + l, y + d - l, 0,
+                    x + l, y + d - l, 0,
+                    x + d - l, y + l, 0,
+                    x + d - l, y + d - l, 0
+                );
+                data.norm.push(
+                    -1, -1, 1,
+                    1, -1, 1,
+                    -1, 1, 1,
+                    -1, 1, 1,
+                    1, -1, 1,
+                    1, 1, 1
+                );
+            }
+        }
+        return data;
     }
 
     function createModel(data) {

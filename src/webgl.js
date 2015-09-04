@@ -333,6 +333,8 @@ onload = (function () {
     function createBoard(color, s, z) {
         var x,
             y,
+            l = .2,
+            d = s / 5,
             n = z > 0 ? 3 : -3,
             data;
         data = {
@@ -390,22 +392,26 @@ onload = (function () {
                 n, 0, 0
             ]
         };
-        data.vert.push(
-            -s, -s, 0,
-            s, -s, 0,
-            -s, s, 0,
-            -s, s, 0,
-            s, -s, 0,
-            s, s, 0
-        );
-        data.norm.push(
-            -1, -1, 1,
-            1, -1, 1,
-            -1, 1, 1,
-            -1, 1, 1,
-            1, -1, 1,
-            1, 1, 1
-        );
+        for (x = -s; x < s; x += d) {
+            for (y = -s; y < s; y += d) {
+                data.vert.push(
+                    x + l, y + l, 0,
+                    x + d - l, y + l, 0,
+                    x + l, y + d - l, 0,
+                    x + l, y + d - l, 0,
+                    x + d - l, y + l, 0,
+                    x + d - l, y + d - l, 0
+                );
+                data.norm.push(
+                    -1, -1, 1,
+                    1, -1, 1,
+                    -1, 1, 1,
+                    -1, 1, 1,
+                    1, -1, 1,
+                    1, 1, 1
+                );
+            }
+        }
         return data;
     }
 

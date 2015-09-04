@@ -235,7 +235,6 @@ li {
 .br,
 .bb,
 .bl {
-    border: 3px solid #642;
     background: #963;
     position: absolute;
     display: flex;
@@ -250,6 +249,7 @@ li {
 
 .bt {
     bottom: 50%;
+    border-bottom: 3px solid #642;
     transform-origin: center top;
     justify-content: center;
 
@@ -260,6 +260,7 @@ li {
 
 .br {
     left: 50%;
+    border-left: 3px solid #642;
     transform-origin: right center;
 
     div {
@@ -269,6 +270,7 @@ li {
 
 .bb {
     top: 50%;
+    border-top: 3px solid #642;
     transform-origin: center bottom;
     justify-content: center;
 
@@ -279,6 +281,7 @@ li {
 
 .bl {
     right: 50%;
+    border-right: 3px solid #642;
     transform-origin: left center;
     justify-content: flex-end;
 
