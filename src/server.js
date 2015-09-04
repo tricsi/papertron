@@ -59,6 +59,8 @@ io.on("connect", function (socket) {
             socket.emit("shot", data, stuck, winner);
             socket.to(socket.game).emit("shot", data, stuck, winner);
             game.changed = false;
+        } else {
+            socket.emit("ping", game.match.getTime());
         }
         if (winner !== false) {
             game.match = null;
