@@ -184,7 +184,7 @@ Game = (function () {
                 Scene.rotate(motor.vec * 90);
             } else {
                 Scene.rotate(0);
-                Note.show("Wait for the next round!");
+                Note.show("Wait until next round starts!");
             }
             running = true;
             run();
@@ -837,12 +837,12 @@ Scene = (function () {
             vertexShader = createShader($("#vert").text, gl.VERTEX_SHADER);
             fragmentShader = createShader($("#frag").text, gl.FRAGMENT_SHADER);
             shaderProgram = createProgram([vertexShader, fragmentShader]);
-            colorLocation = gl.getAttribLocation(shaderProgram, "a_color");
-            cameraLocation = gl.getUniformLocation(shaderProgram, "u_camera");
-            matrixLocation = gl.getUniformLocation(shaderProgram, "u_matrix");
-            positionLocation = gl.getAttribLocation(shaderProgram, "a_position");
-            normalsLocation = gl.getAttribLocation(shaderProgram, "a_normals");
-            normalLocation = gl.getUniformLocation(shaderProgram, "u_normal");
+            colorLocation = gl.getAttribLocation(shaderProgram, "aColor");
+            cameraLocation = gl.getUniformLocation(shaderProgram, "uCam");
+            matrixLocation = gl.getUniformLocation(shaderProgram, "uModel");
+            positionLocation = gl.getAttribLocation(shaderProgram, "aPos");
+            normalsLocation = gl.getAttribLocation(shaderProgram, "aNorm");
+            normalLocation = gl.getUniformLocation(shaderProgram, "uNorm");
             gl.enable(gl.CULL_FACE);
             gl.enable(gl.DEPTH_TEST);
             fieldOfViewRadians = Math.PI / 180 * 60;

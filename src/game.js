@@ -163,7 +163,7 @@ global.exports = (function () {
             result = false;
         if (!motor.stuck) {
             motor.move(toTime);
-            if (match.check(motor) || rand > 0.99) {
+            if (match.check(motor) || rand > 0.998) {
                 result = dir ? Motor.R : Motor.L;
                 motor.move(time);
                 motor.turn(result);
