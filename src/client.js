@@ -154,7 +154,7 @@ Game = (function () {
                 if (e.target.tagName !== 'INPUT') {
                     switch (e.keyCode) {
                         case 32:
-                            if (match) {
+                            if (match && !motor) {
                                 if (++spectate >= match.motors.length) {
                                     spectate = 0;
                                 }

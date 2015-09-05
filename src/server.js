@@ -236,7 +236,7 @@ io.on("connect", function (socket) {
                 var id = client.motor ? client.motor.id : false;
                 client.emit("start", data, id, params);
             });
-            setTimeout(run, match.timer);
+            setTimeout(run, 100);
             console.log(socket.nick + " started " + socket.game + " with bot number " + params.bots);
         }
     });
