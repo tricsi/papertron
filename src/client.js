@@ -89,6 +89,7 @@ Game = (function () {
         match, //actual match
         motor, //player's motor
         motorSound, //Motor sound
+        spectate, //Spectated motor id
         running; //match running
 
     function count(value) {
@@ -116,10 +117,14 @@ Game = (function () {
         }
         match.run();
         Scene.anim();
-        Scene.render(match, motor);
+        Scene.render(match, motor || match.motors[spectate], motor === null);
         if (running) {
             requestAnimationFrame(run);
         }
+    }
+
+    function noteSpectator() {
+        Note.show("Spectating: " + match.motors[spectate].nick);
     }
 
     return {
@@ -146,17 +151,27 @@ Game = (function () {
                 }
             });
             on(document.body, "keydown", function (e) {
-                switch (e.keyCode) {
-                    case 37:
-                        if (Game.turn(3)) {
-                            Scene.turn(3);
-                        }
-                        break;
-                    case 39:
-                        if (Game.turn(1)) {
-                            Scene.turn(1);
-                        }
-                        break;
+                if (e.target.tagName !== 'INPUT') {
+                    switch (e.keyCode) {
+                        case 32:
+                            if (match) {
+                                if (++spectate >= match.motors.length) {
+                                    spectate = 0;
+                                }
+                                noteSpectator();
+                            }
+                            break;
+                        case 37:
+                            if (Game.turn(3)) {
+                                Scene.turn(3);
+                            }
+                            break;
+                        case 39:
+                            if (Game.turn(1)) {
+                                Scene.turn(1);
+                            }
+                            break;
+                    }
                 }
             });
             on($(".texts"), "touchstart", function () {
@@ -180,11 +195,12 @@ Game = (function () {
             match.load(snapshot);
             match.setTime(snapshot.time);
             motor = match.motors[id] || null;
+            spectate = 0;
             if (motor) {
                 Scene.rotate(motor.vec * 90);
             } else {
                 Scene.rotate(0);
-                Note.show("Wait until next round starts!");
+                noteSpectator();
             }
             running = true;
             run();
@@ -788,10 +804,8 @@ Scene = (function () {
          * @param {Match} match
          * @param {Motor} motor
          */
-        render: function (match, motor) {
+        render: function (match, motor, spectate) {
             var camera = makeScale(1, 1, 1),
-                x = motor ? -motor.x : 0,
-                y = motor ? motor.y : 0,
                 a = Math.PI / 180 * rotateFrom,
                 d = 5.5;
 
@@ -799,10 +813,10 @@ Scene = (function () {
                 a += Math.PI;
             }
 
-            camera = matrixMultiply(camera, makeTranslation(x, y, 0));
+            camera = matrixMultiply(camera, makeTranslation(-motor.x, motor.y, 0));
             camera = matrixMultiply(camera, makeZRotation(a));
-            camera = matrixMultiply(camera, makeXRotation(motor ? -1.2 : -.3));
-            camera = matrixMultiply(camera, makeTranslation(0, 0, motor ? -30 : -150));
+            camera = matrixMultiply(camera, makeXRotation(spectate ? -.3 : -1.2));
+            camera = matrixMultiply(camera, makeTranslation(0, 0, spectate ? -60 : -30));
             camera = matrixMultiply(camera, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
 
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -1177,7 +1191,8 @@ Sfx = (function () {
 
 Note = (function () {
 
-    var container;
+    var container,
+        timer;
 
     function hide() {
         attr(container, "class", "hide");
@@ -1193,7 +1208,10 @@ Note = (function () {
         show: function (msg) {
             txt(container, msg);
             attr(container, "class", "");
-            setTimeout(hide, 3000);
+            if (timer) {
+                clearTimeout(timer);
+            }
+            timer = setTimeout(hide, 3000);
         }
 
     };
