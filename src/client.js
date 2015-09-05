@@ -1145,8 +1145,8 @@ Sfx = (function () {
                 var tag = e.target.tagName;
                 if (tag === "A" || tag === "BUTTON") {
                     Sfx.play("btn");
+                    e.target.blur();
                 }
-                e.target.blur();
             });
             on(container, "click", Sfx.mute);
             Sfx.mute();
