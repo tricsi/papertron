@@ -1015,9 +1015,9 @@ Menu = (function () {
             on(container, "submit", function (e) {
                 var name = Menu.nick();
                 localStorage.setItem("nick", name);
-                e.preventDefault();
                 emit("open", name);
-                document.body.focus();
+                nick.blur();
+                e.preventDefault();
             });
             on($("#join"), "click", function () {
                 if (selected) {
