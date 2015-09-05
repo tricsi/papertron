@@ -81,6 +81,9 @@ function emit() {
     }
 }
 
+/**
+ * Game module
+ */
 Game = (function () {
 
     var container, //game container
@@ -92,6 +95,10 @@ Game = (function () {
         spectate, //Spectated motor id
         running; //match running
 
+    /**
+     * Set counter classes
+     * @param {number} value
+     */
     function count(value) {
         for (var i = 0; i < numbers.length; i++) {
             numbers.item(i).className = value === 3 - i ? "on" : "";
@@ -123,12 +130,12 @@ Game = (function () {
         }
     }
 
-    function setSpectate(add) {
-        spectate += add;
-        if (spectate >= match.motors.length) {
+    /**
+     * Spectate next player
+     */
+    function spectateNext() {
+        if (++spectate >= match.motors.length) {
             spectate = 0;
-        } else if (spectate < 0) {
-            spectate = match.motors.length - 1;
         }
         Note.show("Spectating: " + match.motors[spectate].nick);
     }
@@ -154,7 +161,7 @@ Game = (function () {
                     switch (e.keyCode) {
                         case 32:
                             if (running && !motor) {
-                                setSpectate(1);
+                                spectateNext();
                             }
                             break;
                         case 37:
@@ -174,20 +181,23 @@ Game = (function () {
                 if (Game.turn(3)) {
                     Scene.turn(3);
                 } else if (running && !motor) {
-                    setSpectate(1);
+                    spectateNext();
                 }
             });
             on($(".room"), "touchstart", function () {
                 if (Game.turn(1)) {
                     Scene.turn(1);
                 } else if (running && !motor) {
-                    setSpectate(1);
+                    spectateNext();
                 }
             });
         },
 
         /**
          * Start new match
+         * @param {Object} snapshot
+         * @param {number} id
+         * @param {Object} params
          */
         start: function (snapshot, id, params) {
             Game.hide();
@@ -200,7 +210,7 @@ Game = (function () {
                 Scene.rotate(motor.vec * 90);
             } else {
                 Scene.rotate(0);
-                setSpectate(0);
+                Note.show("Wait until next round starts!");
             }
             running = true;
             run();
@@ -215,9 +225,9 @@ Game = (function () {
 
         /**
          * Load snapshot data
-         * @params {array} data
-         * @params {array} stuck
-         * @params {number} winner
+         * @param {array} data
+         * @param {array} stuck
+         * @param {number} winner
          */
         load: function (data, stuck, winner) {
             if (match) {
@@ -235,6 +245,7 @@ Game = (function () {
 
         /**
          * Turn motor
+         * @param {number} to
          */
         turn: function (to) {
             var time = match.getTime();
@@ -249,7 +260,8 @@ Game = (function () {
         },
 
         /**
-         * Show game
+         * Show start screen
+         * @param {string} text
          */
         show: function (text) {
             if (motorSound) {
@@ -261,7 +273,7 @@ Game = (function () {
         },
 
         /**
-         * Hide game
+         * Hide start screen
          */
         hide: function () {
             attr(container, "class", "hide");
@@ -287,20 +299,25 @@ Scene = (function () {
         normalsLocation, //lighting normal vectors
         normalLocation, //light normal
         fieldOfViewRadians, //FOV param
-        aspectRatio,
-        rotateFrom,
-        rotateTo,
-        colors = [
+        aspectRatio, //screen aspect ratio
+        rotateFrom, //camera rotate value
+        rotateTo, //camera rotate goal
+        colors = [ //bike colors
             [160, 16, 0],
             [0, 160, 16],
             [0, 16, 160],
             [160, 16, 160]
         ],
-        Bikes = [],
-        Board;
+        Bikes = [], //bike models
+        Board; //boar model
 
-    function createShader(script, type) {
-        var shader = gl.createShader(type);
+    /**
+     * Load shader
+     * @param {string} program
+     * @param {number} programType
+     */
+    function createShader(script, programType) {
+        var shader = gl.createShader(programType);
         gl.shaderSource(shader, script);
 
         gl.compileShader(shader);
@@ -310,6 +327,10 @@ Scene = (function () {
         return shader;
     }
 
+    /**
+     * Create shader program
+     * @param {array} shaders
+     */
     function createProgram(shaders) {
         var program = gl.createProgram();
         for (var i = 0; i < shaders.length; i++) {
@@ -324,6 +345,14 @@ Scene = (function () {
         return program;
     }
 
+    /**
+     * Create projection matrix
+     * @param {number} fieldOfViewInRadians
+     * @param {number} aspect
+     * @param {number} near
+     * @param {number} far
+     * @return {array}
+     */
     function makePerspective(fieldOfViewInRadians, aspect, near, far) {
         var f = Math.tan(Math.PI * 0.5 - 0.5 * fieldOfViewInRadians),
             rangeInv = 1.0 / (near - far);
@@ -335,6 +364,13 @@ Scene = (function () {
         ];
     }
 
+    /**
+     * Translation
+     * @param {number} tx
+     * @param {number} ty
+     * @param {number} tz
+     * @return {array}
+     */
     function makeTranslation(tx, ty, tz) {
         return [
             1, 0, 0, 0,
@@ -344,6 +380,11 @@ Scene = (function () {
         ];
     }
 
+    /**
+     * X rotation
+     * @param {number} angleInRadians
+     * @return {array}
+     */
     function makeXRotation(angleInRadians) {
         var c = Math.cos(angleInRadians);
         var s = Math.sin(angleInRadians);
@@ -355,6 +396,11 @@ Scene = (function () {
         ];
     }
 
+    /**
+     * Y rotation
+     * @param {number} angleInRadians
+     * @return {array}
+     */
     function makeYRotation(angleInRadians) {
         var c = Math.cos(angleInRadians);
         var s = Math.sin(angleInRadians);
@@ -366,6 +412,11 @@ Scene = (function () {
         ];
     }
 
+    /**
+     * Z rotation
+     * @param {number} angleInRadians
+     * @return {array}
+     */
     function makeZRotation(angleInRadians) {
         var c = Math.cos(angleInRadians);
         var s = Math.sin(angleInRadians);
@@ -377,6 +428,13 @@ Scene = (function () {
         ];
     }
 
+    /**
+     * Scale
+     * @param {number} tx
+     * @param {number} ty
+     * @param {number} tz
+     * @return {array}
+     */
     function makeScale(sx, sy, sz) {
         return [
             sx, 0, 0, 0,
@@ -386,6 +444,12 @@ Scene = (function () {
         ];
     }
 
+    /**
+     * Multiply
+     * @param {array} a
+     * @param {array} b
+     * @return {array}
+     */
     function matrixMultiply(a, b) {
         var a00 = a[0 * 4 + 0],
             a01 = a[0 * 4 + 1],
@@ -439,6 +503,12 @@ Scene = (function () {
         ];
     }
 
+    /**
+     * Inverse
+     * @param {array} mat
+     * @param {array} dest
+     * @return {array}
+     */
     function matrixInverse(mat, dest) {
         var a00 = mat[0], a01 = mat[1], a02 = mat[2],
             a10 = mat[4], a11 = mat[5], a12 = mat[6],
@@ -467,6 +537,11 @@ Scene = (function () {
         return dest;
     }
 
+    /**
+     * Transpose
+     * @param {array} a
+     * @return {array}
+     */
     function matrixTranspose(a) {
         var a01 = a[1], a02 = a[2], a12 = a[5];
         a[1] = a[3];
@@ -478,6 +553,18 @@ Scene = (function () {
         return a;
     }
 
+    /**
+     * Create line part
+     * @param {number} x1
+     * @param {number} y1
+     * @param {number} x2
+     * @param {number} y2
+     * @param {number} v
+     * @param {number} s
+     * @param {number} z
+     * @param {number} end
+     * @return {Object}
+     */
     function createPart(x1, y1, x2, y2, v, s, z, end) {
         var xa = 0,
             ya = 0,
@@ -563,6 +650,14 @@ Scene = (function () {
         return data;
     }
 
+    /**
+     * Generate line model data
+     * @param {Motor} motor
+     * @param {array} color
+     * @param {number} doc
+     * @callback onturn
+     * @return {Object}
+     */
     function createLine(motor, color, dec, onturn) {
         var i,
             end,
@@ -633,6 +728,13 @@ Scene = (function () {
         return data;
     }
 
+    /**
+     * Generate board model data
+     * @param {array} color
+     * @param {number} s
+     * @param {number} z
+     * @return {Object}
+     */
     function createBoard(color, s, z) {
         var x,
             y,
@@ -718,12 +820,17 @@ Scene = (function () {
         return data;
     }
 
+    /**
+     * Create model
+     * @param {Object} data
+     * @return {Object}
+     */
     function createModel(data) {
         var model = {
-            scale: [1, 1, 1],
-            trans: [0, 0, 0],
-            rotate: [0, 0, 0]
-        },
+                scale: [1, 1, 1],
+                trans: [0, 0, 0],
+                rotate: [0, 0, 0]
+            },
             color = [],
             i;
 
@@ -752,6 +859,9 @@ Scene = (function () {
         return model;
     }
 
+    /**
+     * Resize canvas
+     */
     function resize() {
         canvas.width = canvas.clientWidth;
         canvas.height = canvas.clientHeight;
@@ -759,6 +869,11 @@ Scene = (function () {
         gl.viewport(0, 0, canvas.width, canvas.height);
     }
 
+    /**
+     * Render model
+     * @param {Object} model
+     * @param {Object} camera
+     */
     function renderObject(model, camera) {
         var matrix,
             deg = Math.PI / 180,
@@ -803,6 +918,7 @@ Scene = (function () {
          * Render scene
          * @param {Match} match
          * @param {Motor} motor
+         * @param {boolean} spectate
          */
         render: function (match, motor, spectate) {
             var camera = makeScale(1, 1, 1),
@@ -878,6 +994,10 @@ Scene = (function () {
             resize();
         },
 
+        /**
+         * Turn motor
+         * @param {number} to
+         */
         turn: function (to) {
             switch (to) {
                 case 1:
@@ -889,6 +1009,9 @@ Scene = (function () {
             }
         },
 
+        /**
+         * Camera animation
+         */
         anim: function () {
             var diff = rotateTo - rotateFrom;
             rotateFrom = Math.abs(diff) > 1
@@ -896,6 +1019,10 @@ Scene = (function () {
                 : rotateTo;
         },
 
+        /**
+         * Set camera rotation
+         * @param {number} value
+         */
         rotate: function (value) {
             rotateTo = value;
             rotateFrom = value;
@@ -1103,14 +1230,22 @@ Menu = (function () {
 
 })();
 
+/**
+ * Sound module
+ */
 Sfx = (function () {
 
-    var container,
-        context,
-        master,
-        buffers = {},
-        muted = true;
+    var container, //Mute switch
+        context, //AudioContext
+        master, //Master volme
+        buffers = {}, //BufferSources
+        muted = true; //mute switch
 
+    /**
+     * Create BufferSource
+     * @param {string} name
+     * @param {array} config
+     */
     function createSource(name, config) {
         var url = jsfxr(config),
             request = new XMLHttpRequest();
@@ -1126,6 +1261,9 @@ Sfx = (function () {
 
     return {
 
+        /**
+         * Init module
+         */
         init: function () {
             container = $("#sfx");
             context = new AudioContext();
@@ -1152,6 +1290,13 @@ Sfx = (function () {
             Sfx.mute();
         },
 
+        /**
+         * Play sound
+         * @param {string} name
+         * @param {number} volume
+         * @param {boolean} loop
+         * @return {AudioSource}
+         */
         play: function (name, volume, loop) {
             var source = null,
                 gain;
@@ -1168,6 +1313,9 @@ Sfx = (function () {
             return source;
         },
 
+        /**
+         * Switch mute
+         */
         mute: function () {
             muted = !muted;
             master.gain.value = muted ? 0 : 2;
@@ -1177,22 +1325,35 @@ Sfx = (function () {
 
 })();
 
+/**
+ * Notification module
+ */
 Note = (function () {
 
-    var container,
-        timer;
+    var container, //container element
+        timer; //timer process
 
+    /**
+     * Hide the message
+     */
     function hide() {
         attr(container, "class", "hide");
     }
 
     return {
 
+        /**
+         * Init module
+         */
         init: function () {
             container = $("#note");
             on(container, "click", hide);
         },
 
+        /**
+         * Show message
+         * @param {string} msg
+         */
         show: function (msg) {
             txt(container, msg);
             attr(container, "class", "");
@@ -1207,26 +1368,31 @@ Note = (function () {
 })();
 
 /**
- * Bind events
+ * Bind network events
  */
 function bind() {
 
+    //List games
     socket.on("games", Menu.games);
 
+    //Server alerts
     socket.on("alert", function (message) {
         Note.show(message);
     });
 
+    //Disconnect
     socket.on("disconnect", function () {
         Game.stop();
         Menu.show("close");
         Note.show("Connection lost!");
     });
 
+    //Open box
     socket.on("open", function () {
         Menu.show("open");
     });
 
+    //Join existing game
     socket.on("join", function (list, snapshot, params) {
         Menu.show("start");
         Chat.room(list);
@@ -1238,24 +1404,29 @@ function bind() {
         }
     });
 
+    //Player joined the game
     socket.on("joined", function (nick, list) {
         Chat.add(nick + " joined");
         Chat.room(list);
         Sfx.play("joined");
     });
 
+    //Player left the game
     socket.on("left", function (nick, list) {
         Chat.add(nick + " left");
         Chat.room(list);
         Sfx.play("left");
     });
 
+    //Chat message
     socket.on("message", function (nick, text) {
         Chat.add(nick + ": " + text);
     });
 
+    //Game starts
     socket.on("start", Game.start);
 
+    //Game snapshot
     socket.on("shot", Game.load);
 
 }
