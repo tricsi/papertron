@@ -863,7 +863,7 @@ Scene = (function () {
             rotateFrom = 0;
 
             //Board model
-            Board = createModel(createBoard([192, 128, 64], 100, 140));
+            Board = createModel(createBoard([192, 128, 64], 80, 140));
 
             //Bike models
             colors.forEach(function (color) {
