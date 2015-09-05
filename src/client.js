@@ -123,7 +123,13 @@ Game = (function () {
         }
     }
 
-    function noteSpectator() {
+    function setSpectate(add) {
+        spectate += add;
+        if (spectate >= match.motors.length) {
+            spectate = 0;
+        } else if (spectate < 0) {
+            spectate = match.motors.length - 1;
+        }
         Note.show("Spectating: " + match.motors[spectate].nick);
     }
 
@@ -136,22 +142,19 @@ Game = (function () {
             container = $("#game");
             counter = 0;
             numbers = $("#count").childNodes;
-            on($("#start"), "click", function (e) {
+            on($("#start"), "click", function () {
                 emit("start");
             });
-            on($("#leave"), "click", function (e) {
+            on($("#leave"), "click", function () {
                 emit("leave");
                 Menu.show("open");
             });
             on(document.body, "keydown", function (e) {
-                if (e.target.tagName !== 'INPUT') {
+                if (e.target.tagName !== "INPUT") {
                     switch (e.keyCode) {
                         case 32:
-                            if (match && !motor) {
-                                if (++spectate >= match.motors.length) {
-                                    spectate = 0;
-                                }
-                                noteSpectator();
+                            if (running && !motor) {
+                                setSpectate(1);
                             }
                             break;
                         case 37:
@@ -170,11 +173,15 @@ Game = (function () {
             on($(".texts"), "touchstart", function () {
                 if (Game.turn(3)) {
                     Scene.turn(3);
+                } else if (running && !motor) {
+                    setSpectate(1);
                 }
             });
             on($(".room"), "touchstart", function () {
                 if (Game.turn(1)) {
                     Scene.turn(1);
+                } else if (running && !motor) {
+                    setSpectate(1);
                 }
             });
         },
@@ -193,7 +200,7 @@ Game = (function () {
                 Scene.rotate(motor.vec * 90);
             } else {
                 Scene.rotate(0);
-                noteSpectator();
+                setSpectate(0);
             }
             running = true;
             run();
@@ -637,29 +644,29 @@ Scene = (function () {
             color: color,
             vert: [
                 -s, -s, 0,
-    			-s, -s, z,
-    			s, -s, 0,
+                -s, -s, z,
                 s, -s, 0,
-    			-s, -s, z,
-    			s, -s, z,
-    			s, s, 0,
-    			s, -s, 0,
-    			s, -s, z,
-    			s, s, 0,
-    			s, -s, z,
-    			s, s, z,
-    			-s, s, 0,
-    			s, s, 0,
-    			s, s, z,
-    			-s, s, 0,
-    			s, s, z,
-    			-s, s, z,
-    			-s, -s, 0,
-    			-s, s, 0,
-    			-s, s, z,
-    			-s, -s, z,
-    			-s, -s, 0,
-    			-s, s, z
+                s, -s, 0,
+                -s, -s, z,
+                s, -s, z,
+                s, s, 0,
+                s, -s, 0,
+                s, -s, z,
+                s, s, 0,
+                s, -s, z,
+                s, s, z,
+                -s, s, 0,
+                s, s, 0,
+                s, s, z,
+                -s, s, 0,
+                s, s, z,
+                -s, s, z,
+                -s, -s, 0,
+                -s, s, 0,
+                -s, s, z,
+                -s, -s, z,
+                -s, -s, 0,
+                -s, s, z
             ],
             norm: [
                 0, n, 0,
@@ -808,7 +815,7 @@ Scene = (function () {
 
             camera = matrixMultiply(camera, makeTranslation(-motor.x, motor.y, 0));
             camera = matrixMultiply(camera, makeZRotation(a));
-            camera = matrixMultiply(camera, makeXRotation(spectate ? -.3 : -1.2));
+            camera = matrixMultiply(camera, makeXRotation(spectate ? -.4 : -1.2));
             camera = matrixMultiply(camera, makeTranslation(0, 0, spectate ? -60 : -30));
             camera = matrixMultiply(camera, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
 
@@ -1012,12 +1019,12 @@ Menu = (function () {
                 emit("open", name);
                 document.body.focus();
             });
-            on($("#join"), "click", function (e) {
+            on($("#join"), "click", function () {
                 if (selected) {
                     emit("join", selected);
                 }
             });
-            on($("#create"), "click", function (e) {
+            on($("#create"), "click", function () {
                 emit("create", Menu.opts());
             });
         },
@@ -1158,7 +1165,6 @@ Sfx = (function () {
                 source.connect(gain);
                 source.start(0);
             }
-            console.log(name);
             return source;
         },
 
