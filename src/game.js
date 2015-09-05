@@ -189,8 +189,8 @@ global.exports = (function () {
 	 * @constructor
 	 */
     function Match(mode, map) {
-        this.timer = 50; // Snapshot time
-        this.distance = 70; // Wall distance
+        this.timer = 30; // Snapshot time
+        this.distance = 100; // Wall distance
         this.start = new Date().getTime() + 3000; // Start time
         this.motors = []; // Motors
         this.bots = []; // Robots

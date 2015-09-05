@@ -44,7 +44,7 @@ io.on("connect", function (socket) {
         if (!game || !game.match) {
             return;
         }
-        setTimeout(run, 1000 / game.match.timer);
+        setTimeout(run, game.match.timer);
         winner = match.run(function (id) {
             stuck.push(id);
             game.changed = true;
@@ -236,7 +236,7 @@ io.on("connect", function (socket) {
                 var id = client.motor ? client.motor.id : false;
                 client.emit("start", data, id, params);
             });
-            setTimeout(run, 1000 / match.timer);
+            setTimeout(run, match.timer);
             console.log(socket.nick + " started " + socket.game + " with bot number " + params.bots);
         }
     });
