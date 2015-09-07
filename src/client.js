@@ -1442,6 +1442,7 @@ window.onload = function () {
         });
         bind();
     }
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
     if (window.AudioContext) {
         Sfx.init();
     }
