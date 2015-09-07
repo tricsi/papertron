@@ -670,9 +670,10 @@ Scene = (function () {
             },
             x = motor.x,
             y = motor.y,
-            t = motor.time - dots[0][3],
+            t = motor.stuck || motor.time,
             s = 0;
 
+        t -= dots[0][3];
         if (t < dec) {
             if (dots.length < 2) {
                 return null;

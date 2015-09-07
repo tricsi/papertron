@@ -47,7 +47,7 @@ global.exports = (function () {
     Motor.prototype.move = function (toTime) {
         var lastTime = this.data[0][3],
             addTime = this.stuck
-                ? this.stuck - lastTime - 1
+                ? this.stuck - lastTime
                 : toTime - lastTime;
         this.x = this.data[0][0];
         this.y = this.data[0][1];
@@ -195,9 +195,9 @@ global.exports = (function () {
 	 * Game match class
 	 * @constructor
 	 */
-    function Match(mode, map, rubber) {
-        this.rubber = rubber || 5;
+    function Match(mode, map) {
         this.timer = 30; //Snapshot time
+        this.rubber = 7; //Rubber time
         this.distance = 80; //Wall distance
         this.start = new Date().getTime() + 3000; //Start time
         this.motors = []; //Motors
@@ -366,7 +366,8 @@ global.exports = (function () {
             for (i = 0; i < this.motors.length; i++) {
                 motor = this.motors[i];
                 if (!motor.stuck && this.check(motor)) {
-                    motor.stuck = time;
+                    motor.stuck = time - 1;
+                    motor.move();
                 }
                 if (motor.stuck && !motor.crash) {
                     motor.crash = time - motor.stuck > this.rubber;
