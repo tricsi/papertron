@@ -20,6 +20,7 @@ global.exports = (function () {
         this.time = 0; // Time
         this.data = []; // Line data
         this.stuck = false;
+        this.crash = false;
         this.add();
     }
 
@@ -45,7 +46,9 @@ global.exports = (function () {
 	 */
     Motor.prototype.move = function (toTime) {
         var lastTime = this.data[0][3],
-            addTime = toTime - lastTime;
+            addTime = this.stuck
+                ? this.stuck - lastTime - 1
+                : toTime - lastTime;
         this.x = this.data[0][0];
         this.y = this.data[0][1];
         this.vec = this.data[0][2];
@@ -71,19 +74,23 @@ global.exports = (function () {
 	 * @param to
 	 */
     Motor.prototype.turn = function (to) {
-        switch (to) {
-            case Motor.L:
-                if (--this.vec < Motor.U) {
-                    this.vec = Motor.L;
-                }
-                this.add();
-                break;
-            case Motor.R:
-                if (++this.vec > Motor.L) {
-                    this.vec = Motor.U;
-                }
-                this.add();
-                break;
+        if (!this.crash) {
+            switch (to) {
+                case Motor.L:
+                    if (--this.vec < Motor.U) {
+                        this.vec = Motor.L;
+                    }
+                    this.add();
+                    this.stuck = false;
+                    break;
+                case Motor.R:
+                    if (++this.vec > Motor.L) {
+                        this.vec = Motor.U;
+                    }
+                    this.add();
+                    this.stuck = false;
+                    break;
+            }
         }
     };
 
@@ -188,14 +195,15 @@ global.exports = (function () {
 	 * Game match class
 	 * @constructor
 	 */
-    function Match(mode, map) {
-        this.timer = 30; // Snapshot time
-        this.distance = 80; // Wall distance
-        this.start = new Date().getTime() + 3000; // Start time
-        this.motors = []; // Motors
-        this.bots = []; // Robots
-        this.mode = parseInt(mode) || 0; // Reverse mode
-        this.pos = Match.maps[parseInt(map) || 0]; // Game map
+    function Match(mode, map, rubber) {
+        this.rubber = rubber || 5;
+        this.timer = 30; //Snapshot time
+        this.distance = 80; //Wall distance
+        this.start = new Date().getTime() + 3000; //Start time
+        this.motors = []; //Motors
+        this.bots = []; //Robots
+        this.mode = parseInt(mode) || 0; //Reverse mode
+        this.pos = Match.maps[parseInt(map) || 0]; //Game map
     }
 
     /**
@@ -341,10 +349,10 @@ global.exports = (function () {
 
 	/**
 	 * Runs all motor checks
-	 * @callback onStuck
+	 * @callback onCrash
 	 */
-    Match.prototype.run = function (onStuck) {
-        var time = this.getTime(!onStuck),
+    Match.prototype.run = function (onCrash) {
+        var time = this.getTime(!onCrash),
             count = 0,
             human = 0,
             winner,
@@ -353,19 +361,20 @@ global.exports = (function () {
         if (time > 0) {
             for (i = 0; i < this.motors.length; i++) {
                 motor = this.motors[i];
-                if (!motor.stuck) {
-                    motor.move(time);
-                }
+                motor.move(time);
             }
             for (i = 0; i < this.motors.length; i++) {
                 motor = this.motors[i];
-                if (motor.stuck) {
-                    count++;
-                } else if (this.check(motor)) {
+                if (!motor.stuck && this.check(motor)) {
                     motor.stuck = time;
-                    if (onStuck) {
-                        onStuck.call(this, i, time);
+                }
+                if (motor.stuck && !motor.crash) {
+                    motor.crash = time - motor.stuck > this.rubber;
+                    if (motor.crash && onCrash) {
+                        onCrash.call(this, i, time);
                     }
+                }
+                if (motor.crash) {
                     count++;
                 } else {
                     if (!motor.bot) {

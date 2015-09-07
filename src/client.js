@@ -226,13 +226,13 @@ Game = (function () {
         /**
          * Load snapshot data
          * @param {array} data
-         * @param {array} stuck
+         * @param {array} crash
          * @param {number} winner
          */
-        load: function (data, stuck, winner) {
+        load: function (data, crash, winner) {
             if (match) {
                 match.load(data);
-                if (stuck.length) {
+                if (crash.length) {
                     Sfx.play("exp");
                 }
                 if (winner !== false) {
@@ -249,7 +249,7 @@ Game = (function () {
          */
         turn: function (to) {
             var time = match.getTime();
-            if (!match || !motor || motor.stuck || time < 1) {
+            if (!match || !motor || motor.crash || time < 1) {
                 return false;
             }
             motor.move(time);

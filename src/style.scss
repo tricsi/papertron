@@ -47,11 +47,12 @@ input, select {
     width: 140px;
     height: 40px;
     outline: none;
+    border-radius: 0;
+    -webkit-appearance: none;
 }
 
 input {
     padding: 0 2px;
-    -webkit-appearance: none;
 
     &::-webkit-input-placeholder {
         color: #642;

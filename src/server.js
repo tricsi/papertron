@@ -39,7 +39,7 @@ io.on("connect", function (socket) {
      */
     function run() {
         var winner,
-            stuck = [],
+            crash = [],
             data,
             game = store[socket.game];
         if (!game || !game.match) {
@@ -47,7 +47,7 @@ io.on("connect", function (socket) {
         }
         setTimeout(run, game.match.timer);
         winner = match.run(function (id) {
-            stuck.push(id);
+            crash.push(id);
             game.changed = true;
         });
         if (winner === false) {
@@ -57,8 +57,8 @@ io.on("connect", function (socket) {
         }
         if (game.changed) {
             data = snapshot();
-            socket.emit("shot", data, stuck, winner);
-            socket.to(socket.game).emit("shot", data, stuck, winner);
+            socket.emit("shot", data, crash, winner);
+            socket.to(socket.game).emit("shot", data, crash, winner);
             game.changed = false;
         }
         if (winner !== false) {
