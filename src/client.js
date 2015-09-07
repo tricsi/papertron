@@ -1139,10 +1139,11 @@ Menu = (function () {
                     selected = attr(item, "data-val");
                 }
             });
-            on($("#open"), "click", function () {
+            on(container, "submit", function (e) {
                 var name = Menu.nick();
                 localStorage.setItem("nick", name);
                 emit("open", name);
+                e.preventDefault();
             });
             on($("#join"), "click", function () {
                 if (selected) {
