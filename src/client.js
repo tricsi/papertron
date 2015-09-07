@@ -1437,7 +1437,7 @@ function bind() {
 window.onload = function () {
     logic = exports;
     if (typeof io !== "undefined") {
-        socket = io();
+        socket = io(location.href);
         bind();
     }
     //window.AudioContext = window.AudioContext || window.webkitAudioContext;
