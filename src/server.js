@@ -1,6 +1,7 @@
 var logic = require("./game.js"); //game.logic
 
 var io = require("socket.io")(), //server
+    lag = 50, //lag compensation
     games = [], //game list
     names = [], //nicknames
     store = {}; //game data
@@ -236,7 +237,7 @@ io.on("connect", function (socket) {
                 var id = client.motor ? client.motor.id : false;
                 client.emit("start", data, id, params);
             });
-            setTimeout(run, match.timer);
+            setTimeout(run, lag);
             console.log(socket.nick + " started " + socket.game + " with bot number " + params.bots);
         }
     });
