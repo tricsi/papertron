@@ -468,15 +468,5 @@ window['jsfxr'] = function(settings) {
   dv[9] = 0x61746164; // "data"
   dv[10] = used;      // put number of samples here
 
-  // Base64 encoding written by me, @maettig
-  used += 44;
-  var i = 0,
-      base64Characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
-      output = 'data:audio/wav;base64,';
-  for (; i < used; i += 3)
-  {
-    var a = data[i] << 16 | data[i + 1] << 8 | data[i + 2];
-    output += base64Characters[a >> 18] + base64Characters[a >> 12 & 63] + base64Characters[a >> 6 & 63] + base64Characters[a & 63];
-  }
-  return output;
+  return data.buffer;
 }

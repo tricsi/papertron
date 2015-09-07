@@ -1247,16 +1247,10 @@ Sfx = (function () {
      * @param {array} config
      */
     function createSource(name, config) {
-        var url = jsfxr(config),
-            request = new XMLHttpRequest();
-        request.open("GET", url, true);
-        request.responseType = "arraybuffer";
-        request.onload = function () {
-            context.decodeAudioData(request.response, function (buffer) {
-                buffers[name] = buffer;
-            });
-        };
-        request.send();
+        var data = jsfxr(config);
+        context.decodeAudioData(data, function (buffer) {
+            buffers[name] = buffer;
+        });
     }
 
     return {
@@ -1283,7 +1277,6 @@ Sfx = (function () {
                 var tag = e.target.tagName;
                 if (tag === "A" || tag === "BUTTON") {
                     Sfx.play("btn");
-                    e.target.blur();
                 }
             });
             on(container, "click", Sfx.mute);
@@ -1440,7 +1433,7 @@ window.onload = function () {
         socket = io(location.href);
         bind();
     }
-    //window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
     if (window.AudioContext) {
         Sfx.init();
     }
