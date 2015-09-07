@@ -1437,12 +1437,10 @@ function bind() {
 window.onload = function () {
     logic = exports;
     if (typeof io !== "undefined") {
-        socket = io({
-            transports: ["websocket"]
-        });
+        socket = io();
         bind();
     }
-    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    //window.AudioContext = window.AudioContext || window.webkitAudioContext;
     if (window.AudioContext) {
         Sfx.init();
     }
