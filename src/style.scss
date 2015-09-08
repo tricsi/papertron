@@ -40,7 +40,6 @@ input, select {
     border: none;
 	margin: 2px 0;
 	font-size: 24px;
-	text-align: center;
     box-sizing: border-box;
     width: 140px;
     height: 40px;
@@ -50,7 +49,7 @@ input, select {
 }
 
 input {
-    padding: 0 2px;
+    padding: 0 5px;
 
     &::-webkit-input-placeholder {
         color: #642;
@@ -218,6 +217,7 @@ li {
 #note {
     position: absolute;
     background: #a74;
+	border: 3px solid #000;
     top: 20px;
     left: 50%;
     width: 300px;
@@ -286,6 +286,7 @@ li {
 
     input {
         width: 200px;
+	    text-align: center;
     }
 }
 

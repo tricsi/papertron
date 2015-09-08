@@ -915,6 +915,10 @@ Scene = (function () {
 
     return {
 
+        clear: function () {
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        },
+
         /**
          * Render scene
          * @param {Match} match
@@ -936,7 +940,7 @@ Scene = (function () {
             camera = matrixMultiply(camera, makeTranslation(0, 0, spectate ? -60 : -30));
             camera = matrixMultiply(camera, makePerspective(fieldOfViewRadians, aspectRatio, 1, 2000));
 
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            Scene.clear();
 
             renderObject(Board, camera);
 
@@ -1154,6 +1158,7 @@ Menu = (function () {
             });
             on($("#create"), "click", function () {
                 emit("create", Menu.opts());
+                Scene.clear();
             });
         },
 
