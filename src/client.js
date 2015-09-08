@@ -1145,6 +1145,7 @@ Menu = (function () {
                 localStorage.setItem("nick", name);
                 emit("open", name);
                 e.preventDefault();
+                nick.blur();
             });
             on($("#join"), "click", function () {
                 if (selected) {
@@ -1387,7 +1388,7 @@ function bind() {
 
     //Join existing game
     socket.on("join", function (list, snapshot, params) {
-        Menu.show("start");
+        Menu.show("open start");
         Chat.room(list);
         if (snapshot) {
             Game.start(snapshot, false, params);

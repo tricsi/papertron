@@ -12,8 +12,6 @@ body {
 	font-size: 24px;
 	line-height: 60px;
 	text-align: center;
-    perspective: 500px;
-    -webkit-perspective: 500px;
 }
 
 h1, h2, ul, li, pre {
@@ -248,8 +246,8 @@ li {
 	bottom: 0;
     padding: 10px;
     box-sizing: border-box;
-    transition: -webkit-transform 1s;
-    transition: transform 1s;
+    transition: -webkit-transform .5s;
+    transition: transform .5s;
 }
 
 .bt {
@@ -305,24 +303,24 @@ li {
     }
 }
 
-.open, .start {
+.open {
     .bt {
-        -webkit-transform: rotateX(90deg);
-        transform: rotateX(90deg);
+        -webkit-transform: translateY(-100%);
+        transform: translateY(-100%);
     }
     .bb {
-        -webkit-transform: rotateX(-90deg);
-        transform: rotateX(-90deg);
+        -webkit-transform: translateY(100%);
+        transform: translateY(100%);
     }
 }
 
 .start {
     .bl {
-        -webkit-transform: rotateY(-90deg);
-        transform: rotateY(-90deg);
+        -webkit-transform: translateX(-100%);
+        transform: translateX(-100%);
     }
     .br {
-        -webkit-transform: rotateY(90deg);
-        transform: rotateY(90deg);
+        -webkit-transform: translateX(100%);
+        transform: translateX(100%);
     }
 }
