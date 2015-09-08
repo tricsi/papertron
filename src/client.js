@@ -265,7 +265,7 @@ Game = (function () {
          */
         show: function (text) {
             if (motorSound) {
-                motorSound.stop();
+                motorSound.loop = false;
             }
             txt($("h1", container), text);
             attr(container, "class", "");
