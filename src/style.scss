@@ -52,15 +52,15 @@ input {
     padding: 0 5px;
 
     &::-webkit-input-placeholder {
-        color: #864;
+        color: #642;
     }
 
     &::-moz-placeholder {
-        color: #864;
+        color: #642;
     }
 
     &:-ms-input-placeholder {
-        color: #864;
+        color: #642;
     }
 }
 
@@ -217,7 +217,7 @@ li {
 #note {
     position: absolute;
     background: #a86;
-	border: 3px solid #000;
+	border: 3px solid #864;
     top: 20px;
     left: 50%;
     width: 300px;
