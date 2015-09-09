@@ -303,10 +303,10 @@ Scene = (function () {
         rotateFrom, //camera rotate value
         rotateTo, //camera rotate goal
         colors = [ //bike colors
-            [160, 16, 0],
-            [0, 160, 16],
-            [0, 16, 160],
-            [160, 16, 160]
+            [223, 37, 42],
+            [52, 123, 65],
+            [74, 150, 184],
+            [125, 90, 140]
         ],
         Bikes = [], //bike models
         Board; //boar model
@@ -577,22 +577,22 @@ Scene = (function () {
             case 0:
                 xa = s;
                 yb = s;
-                xn = 3;
+                xn = 1;
                 break;
             case 1:
                 ya = -s;
                 xb = s;
-                yn = -3;
+                yn = -1;
                 break;
             case 2:
                 xa = -s;
                 yb = -s;
-                xn = -3;
+                xn = -1;
                 break;
             case 3:
                 ya = s;
                 xb = -s;
-                yn = 3;
+                yn = 1;
                 break;
         }
         data.vert = [
@@ -741,7 +741,8 @@ Scene = (function () {
             y,
             l = .2,
             d = s / 5,
-            n = z > 0 ? 3 : -3,
+            n = z > 0 ? 1 : -1,
+            zn = .8,
             data;
         data = {
             color: color,
@@ -798,6 +799,7 @@ Scene = (function () {
                 n, 0, 0
             ]
         };
+        n = .1;
         for (x = -s; x < s; x += d) {
             for (y = -s; y < s; y += d) {
                 data.vert.push(
@@ -809,12 +811,12 @@ Scene = (function () {
                     x + d - l, y + d - l, 0
                 );
                 data.norm.push(
-                    -1, -1, 1,
-                    1, -1, 1,
-                    -1, 1, 1,
-                    -1, 1, 1,
-                    1, -1, 1,
-                    1, 1, 1
+                    -n, -n, zn,
+                    n, -n, zn,
+                    -n, n, zn,
+                    -n, n, zn,
+                    n, -n, zn,
+                    n, n, zn
                 );
             }
         }
@@ -884,14 +886,15 @@ Scene = (function () {
                 0, 0, 0
             ];
 
-        matrix = makeScale(model.scale[0], model.scale[1], model.scale[2]);
-        matrix = matrixMultiply(matrix, makeXRotation(deg * model.rotate[0]));
+        matrix = makeXRotation(deg * model.rotate[0]);
         matrix = matrixMultiply(matrix, makeYRotation(deg * model.rotate[1]));
         matrix = matrixMultiply(matrix, makeZRotation(deg * model.rotate[2]));
-        matrix = matrixMultiply(matrix, makeTranslation(model.trans[0], model.trans[1], model.trans[2]));
 
         normal = matrixInverse(matrix, normal);
         normal = matrixTranspose(normal, normal);
+
+        matrix = matrixMultiply(matrix, makeScale(model.scale[0], model.scale[1], model.scale[2]));
+        matrix = matrixMultiply(matrix, makeTranslation(model.trans[0], model.trans[1], model.trans[2]));
 
         gl.uniformMatrix4fv(cameraLocation, false, camera);
         gl.uniformMatrix4fv(matrixLocation, false, matrix);
@@ -927,14 +930,16 @@ Scene = (function () {
          */
         render: function (match, motor, spectate) {
             var camera = makeScale(1, 1, 1),
+                x = motor ? -motor.x : 0,
+                y = motor ? motor.y : 40,
                 a = Math.PI / 180 * rotateFrom,
                 d = 5.5;
 
-            if (match.mode) {
+            if (match && match.mode) {
                 a += Math.PI;
             }
 
-            camera = matrixMultiply(camera, makeTranslation(-motor.x, motor.y, 0));
+            camera = matrixMultiply(camera, makeTranslation(x, y, 0));
             camera = matrixMultiply(camera, makeZRotation(a));
             camera = matrixMultiply(camera, makeXRotation(spectate ? -.4 : -1.2));
             camera = matrixMultiply(camera, makeTranslation(0, 0, spectate ? -60 : -30));
@@ -945,22 +950,24 @@ Scene = (function () {
             renderObject(Board, camera);
 
             //motors
-            match.motors.forEach(function (item, i) {
-                var bike = Bikes[i],
-                    rotate = [90, 0, -90 * item.vec],
-                    line;
-                line = createLine(item, colors[i], d, function (angle) {
-                    rotate[1] = -30 * (angle > 0 ? angle - .5 : angle + .5);
-                    rotate[2] = 90 * (angle - item.vec);
+            if (match) {
+                match.motors.forEach(function (item, i) {
+                    var bike = Bikes[i],
+                        rotate = [90, 0, -90 * item.vec],
+                        line;
+                    line = createLine(item, colors[i], d, function (angle) {
+                        rotate[1] = -30 * (angle > 0 ? angle - .5 : angle + .5);
+                        rotate[2] = 90 * (angle - item.vec);
+                    });
+                    if (line) {
+                        renderObject(createModel(line), camera);
+                    }
+                    bike.scale = [.25, .25, .25];
+                    bike.trans = [item.x, -item.y, 0];
+                    bike.rotate = rotate;
+                    renderObject(bike, camera);
                 });
-                if (line) {
-                    renderObject(createModel(line), camera);
-                }
-                bike.scale = [.25, .25, .25];
-                bike.trans = [item.x, -item.y, 0];
-                bike.rotate = rotate;
-                renderObject(bike, camera);
-            });
+            }
         },
 
         /**
@@ -984,7 +991,7 @@ Scene = (function () {
             rotateFrom = 0;
 
             //Board model
-            Board = createModel(createBoard([192, 128, 64], 80, 140));
+            Board = createModel(createBoard([153, 119, 85], 80, 140));
 
             //Bike models
             colors.forEach(function (color) {
@@ -1399,6 +1406,8 @@ function bind() {
             Game.start(snapshot, false, params);
             Game.hide();
         } else {
+            Scene.rotate(0);
+            Scene.render();
             Game.show(params.name);
         }
     });
