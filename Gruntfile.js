@@ -49,6 +49,7 @@ module.exports = function (grunt) {
 				}]
 			}
 		},
+
         replace: {
             dist: {
                 options: {
@@ -60,8 +61,20 @@ module.exports = function (grunt) {
                 files: {
                     "dist/server.js": "dist/server.js"
                 }
+            },
+            html: {
+                options: {
+                    patterns: [{
+                        match: /[\r\n]+[\s]*/g,
+                        replacement: "\n"
+                    }]
+                },
+                files: {
+                    "dist/index.html": "dist/index.html"
+                }
             }
         },
+
 		sync: {
 			dist: {
 				files: [{
