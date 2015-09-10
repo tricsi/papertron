@@ -2,11 +2,13 @@ onload = (function () {
 
 	var canvas, //canvas object
 		gl, //WebGL context
-		program, //shader program
 		fieldOfViewRadians, //FOV param
 		rotate,
 		scale,
         models,
+        outProgram,
+        outShader,
+		cellProgram,
         cellShader;
 
 	function createShader(gl, script, type) {
@@ -453,12 +455,8 @@ onload = (function () {
 	function render() {
 		var aspect = canvas.width / canvas.height,
             camera,
-			matrix,
-			normal = [
-				0, 0, 0,
-				0, 0, 0,
-				0, 0, 0
-			];
+            model,
+            name;
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         camera = makeScale(1, 1, 1);
         camera = matrixMultiply(camera, makeZRotation(rotate.z));
@@ -466,22 +464,44 @@ onload = (function () {
         camera = matrixMultiply(camera, makeYRotation(rotate.y));
         camera = matrixMultiply(camera, makeTranslation(0, 0, scale - 30));
         camera = matrixMultiply(camera, makePerspective(fieldOfViewRadians, aspect, 1, 2000));
-        for (var name in models) {
-            var model = models[name];
-    		matrix = makeZRotation(model.rotate[2]);
-    		matrix = matrixMultiply(matrix, makeXRotation(model.rotate[0]));
-    		matrix = matrixMultiply(matrix, makeYRotation(model.rotate[1]));
 
-            normal = matrixInverse(matrix, normal);
-            normal = matrixTranspose(normal, normal);
+		gl.enable(gl.CULL_FACE);
 
-    		matrix = matrixMultiply(matrix, makeScale(model.scale[0], model.scale[1], model.scale[2]));
-    		matrix = matrixMultiply(matrix, makeTranslation(model.trans[0], model.trans[1], model.trans[2]));
+        for (name in models) {
+            model = models[name];
+    		model.matrix = makeZRotation(model.rotate[2]);
+    		model.matrix = matrixMultiply(model.matrix, makeXRotation(model.rotate[0]));
+    		model.matrix = matrixMultiply(model.matrix, makeYRotation(model.rotate[1]));
 
+            model.normal = matrixInverse(model.matrix, [0, 0, 0, 0, 0, 0, 0, 0, 0]);
+            model.normal = matrixTranspose(model.normal);
+
+    		model.matrix = matrixMultiply(model.matrix, makeScale(model.scale[0], model.scale[1], model.scale[2]));
+    		model.matrix = matrixMultiply(model.matrix, makeTranslation(model.trans[0], model.trans[1], model.trans[2]));
+/*
+            gl.disable(gl.DEPTH_TEST);
+            gl.useProgram(outShader.program);
+    		gl.uniformMatrix4fv(outShader.camera, false, camera);
+    		gl.uniformMatrix4fv(outShader.matrix, false, model.matrix);
+
+    		//normals
+    		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
+            gl.enableVertexAttribArray(outShader.normals);
+    	  	gl.vertexAttribPointer(outShader.normals, 3, gl.FLOAT, false, 0, 0);
+
+    		//coordinates
+    		gl.bindBuffer(gl.ARRAY_BUFFER, model.vert);
+            gl.enableVertexAttribArray(outShader.position);
+    		gl.vertexAttribPointer(outShader.position, 3, gl.FLOAT, false, 0, 0);
+
+    		//render
+    		gl.drawArrays(gl.TRIANGLES, 0, model.size);
+*/
+            gl.enable(gl.DEPTH_TEST);
             gl.useProgram(cellShader.program);
     		gl.uniformMatrix4fv(cellShader.camera, false, camera);
-    		gl.uniformMatrix4fv(cellShader.matrix, false, matrix);
-    		gl.uniformMatrix3fv(cellShader.normal, false, normal);
+    		gl.uniformMatrix4fv(cellShader.matrix, false, model.matrix);
+    		gl.uniformMatrix3fv(cellShader.normal, false, model.normal);
 
     		//normals
     		gl.bindBuffer(gl.ARRAY_BUFFER, model.norm);
@@ -550,43 +570,48 @@ onload = (function () {
 	return function () {
 		canvas = document.getElementById("canvas");
 		gl = canvas.getContext("experimental-webgl");
-        program = createProgram(gl, [
+        outProgram = createProgram(gl, [
+            createShader(gl, document.getElementById("outVert").text, gl.VERTEX_SHADER),
+            createShader(gl, document.getElementById("outFrag").text, gl.FRAGMENT_SHADER)
+        ]);
+        outShader = {
+            program: outProgram,
+            position: gl.getAttribLocation(outProgram, "aPos"),
+            normals: gl.getAttribLocation(outProgram, "aNorm"),
+            camera: gl.getUniformLocation(outProgram, "uCam"),
+            matrix: gl.getUniformLocation(outProgram, "uModel")
+        };
+        cellProgram = createProgram(gl, [
             createShader(gl, document.getElementById("cellVert").text, gl.VERTEX_SHADER),
             createShader(gl, document.getElementById("cellFrag").text, gl.FRAGMENT_SHADER)
         ]);
         cellShader = {
-            program: program,
-            color: gl.getAttribLocation(program, "a_color"),
-            position: gl.getAttribLocation(program, "a_position"),
-            normals: gl.getAttribLocation(program, "a_normals"),
-            camera: gl.getUniformLocation(program, "u_camera"),
-            matrix: gl.getUniformLocation(program, "u_matrix"),
-            normal: gl.getUniformLocation(program, "u_normal")
+            program: cellProgram,
+            color: gl.getAttribLocation(cellProgram, "aColor"),
+            position: gl.getAttribLocation(cellProgram, "aPos"),
+            normals: gl.getAttribLocation(cellProgram, "aNorm"),
+            camera: gl.getUniformLocation(cellProgram, "uCam"),
+            matrix: gl.getUniformLocation(cellProgram, "uModel"),
+            normal: gl.getUniformLocation(cellProgram, "uNorm")
         };
-		gl.enable(gl.CULL_FACE);
-		gl.enable(gl.DEPTH_TEST);
 		fieldOfViewRadians = Math.PI / 180 * 60,
 		rotate = {x:-1.2, y:1, z:0};
 		scale = 1;
         models = {};
-		models.Line = createModel(createLine([
-			[0, 0, 1, 150],
-			[0, -50, 0, 100],
-			[50, -50, 3, 50],
-			[50, 0, 2, 0]
-		], [223, 37, 42], 5.5));
-        //223, 37, 42
-        //52, 123, 65
-        //74, 150, 184
-        //125, 90, 140
-        models.Board = createModel(createBoard([153, 119, 85], 100, 200));
+        models.Board = createModel(createBoard([191, 153, 91], 100, 200));
         models.Bike = createModel({
-            color: [223, 37, 42],
+            color: [249, 0, 65],
             vert: [2,8,4,-2,8,4,-1,8,8,2,8,4,1,8,8,2,4,8,-1,0,8,1,0,8,1,1,8,-2,8,4,-1,8,0,-2,4,0,1,0,0,-1,0,0,-2,4,0,-1,1,8,-1,1,12,-1,7,12,-1,7,8,-2,4,8,-1,1,8,1,1,8,2,4,8,1,7,8,1,7,8,1,7,12,1,1,12,2,8,16,1,8,20,2,4,20,1,1,12,1,7,12,2,4,12,-1,7,12,-1,1,12,-2,4,12,1,1,12,1,0,12,-1,0,12,1,8,20,-1,8,20,-2,4,20,-2,0,16,-1,0,20,-2,4,20,2,8,16,-2,8,16,-1,8,20,1,8,12,-1,8,12,-2,8,16,-2,8,16,-0.8,4,16,-2,4,20,-2,4,12,-0.8,4,16,-2,8,16,-2,4,12,-1,0,12,-2,0,16,2,4,20,-2,4,20,-1,0,20,2,0,16,0.8,4,16,2,4,20,2,4,12,0.8,4,16,2,0,16,2,4,12,1,8,12,2,8,16,2,4,0,-2,4,0,-1,8,0,-2,0,4,-0.8,4,4,-2,4,0,-2,4,8,-0.8,4,4,-2,0,4,-2,4,8,-1,8,8,-2,8,4,2,0,4,0.8,4,4,2,4,8,2,4,0,0.8,4,4,2,0,4,2,4,0,1,8,0,2,8,4,1,8,0,-1,8,0,-2,8,4,-1,7,4,-1,7,16,-1,8.6,16,1,11,4,-1,11,4,-1,8.6,16,-1,7,4,-1,11,4,1,11,4,1,7,4,1,11,4,1,8.6,16,1,7,16,1,8.6,16,-1,8.6,16,1,7,12,1,7,8,1,7,4,-1,7,8,-1,7,12,-1,7,16,1,8,8,2,8,4,-1,8,8,0.8,4,4,2,8,4,2,4,8,-1,1,8,-1,0,8,1,1,8,-0.8,4,4,-2,8,4,-2,4,0,2,4,0,1,0,0,-2,4,0,-1,7,8,-1,1,8,-1,7,12,-2,4,8,-1,7,8,-1,8,8,-2,4,8,-1,0,8,-1,1,8,2,4,8,1,1,8,1,0,8,2,4,8,1,8,8,1,7,8,1,1,8,1,7,8,1,1,12,0.8,4,16,2,8,16,2,4,20,2,4,12,1,0,12,1,1,12,1,7,12,1,8,12,2,4,12,-2,4,12,-1,8,12,-1,7,12,-1,1,12,-1,0,12,-2,4,12,-1,1,12,1,1,12,-1,0,12,2,4,20,1,8,20,-2,4,20,-0.8,4,16,-2,0,16,-2,4,20,1,8,20,2,8,16,-1,8,20,2,8,16,1,8,12,-2,8,16,-1,8,20,-2,8,16,-2,4,20,-1,8,12,-2,4,12,-2,8,16,-0.8,4,16,-2,4,12,-2,0,16,1,0,20,2,4,20,-1,0,20,1,0,20,2,0,16,2,4,20,1,0,12,2,4,12,2,0,16,0.8,4,16,2,4,12,2,8,16,1,8,0,2,4,0,-1,8,0,-1,0,0,-2,0,4,-2,4,0,-1,0,8,-2,4,8,-2,0,4,-0.8,4,4,-2,4,8,-2,8,4,1,0,8,2,0,4,2,4,8,1,0,0,2,4,0,2,0,4,0.8,4,4,2,4,0,2,8,4,2,8,4,1,8,0,-2,8,4,-1,11,4,-1,7,4,-1,8.6,16,1,8.6,16,1,11,4,-1,8.6,16,1,7,4,-1,7,4,1,11,4,1,7,16,1,7,4,1,8.6,16,-1,7,16,1,7,16,-1,8.6,16,1,7,16,1,7,12,1,7,4,-1,7,4,-1,7,8,-1,7,16],
             norm: [0,1,0,0,1,0,0,1,0,1,0,0,0.9,0.2,0.2,1,0,0,0,0,1,0,0,1,0,0,1,-1,0,0,-0.9,0.2,-0.2,-1,0,0,0,0,-1,0,0,-1,0,0,-1,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,0.9,0.2,0.2,1,0,0,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,1,0,0,1,0,0,1,-1,0,0,-0.9,-0.2,0.2,-1,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-0.9,-0.2,-0.2,-1,0,0,0,0,1,0,0,1,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0.9,0.2,-0.2,1,0,0,0,0,-1,0,0,-1,0,0,-1,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-0.9,0.2,0.2,-1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0.9,0.2,-0.2,1,0,0,0,1,0,0,1,0,0,1,0,-1,0,0,-1,0,0,-1,0,0,0,1,0.2,0,1,0.2,0,1,0.2,0,0,-1,0,0,-1,0,0,-1,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0.9,-0.4,0,0,-1,0,0.1,0.9,0.5,-0.7,0.7,0,-1,0,0,-0.1,0.4,0.9,0,1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,-1,0,0,-1,0,0,-1,0,0,0,0,-1,0,0,-1,0,0,-1,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,1,0,0,1,0,0,1,-1,0,0,-1,0,0,-1,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,-0.9,0.2,0.2,-1,0,0,-1,0,0,-0.9,0.2,-0.2,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,0,0,1,0,0,1,0,0,1,0.9,-0.2,0.2,1,0,0,1,0,0,0.9,-0.2,-0.2,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,-1,0,0,-1,0,0,-1,-0.9,-0.2,-0.2,-1,0,0,-1,0,0,-0.9,-0.2,0.2,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,0.9,-0.2,0.2,1,0,0,1,0,0,0.9,-0.2,-0.2,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,1,0,-1,0,0,-1,0,0,-1,0,0,0,1,0.2,0,1,0.2,0,1,0.2,0,0,-1,0,0,-1,0,0,-1,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0.1,0.4,0.9,0.9,-0.4,0,0.1,0.9,0.5,-0.1,0.9,0.5,-0.7,0.7,0,-0.1,0.4,0.9]
     	});
         models.Bike.rotate = [Math.PI / 2, 0, 0];
         models.Bike.scale = [.25, .25, .25];
+		models.Line = createModel(createLine([
+			[0, 0, 1, 150],
+			[0, -50, 0, 100],
+			[50, -50, 3, 50],
+			[50, 0, 2, 0]
+		], [249, 0, 65], 5.5));
 		resize();
 		bind();
 		render();
