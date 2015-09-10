@@ -197,7 +197,7 @@ global.exports = (function () {
 	 */
     function Match(mode, map) {
         this.timer = 30; //Snapshot time
-        this.rubber = 7; //Rubber time
+        this.rubber = 5; //Rubber time
         this.distance = 80; //Wall distance
         this.start = new Date().getTime() + 3000; //Start time
         this.motors = []; //Motors

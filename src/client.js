@@ -956,7 +956,6 @@ Scene = (function () {
                         rotate = [90, 0, -90 * item.vec],
                         line;
                     line = createLine(item, colors[i], d, function (angle) {
-                        rotate[1] = 30 * (angle > 0 ? angle - .5 : angle + .5);
                         rotate[2] = 90 * (angle - item.vec);
                     });
                     if (line) {
