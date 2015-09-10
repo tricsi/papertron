@@ -304,8 +304,8 @@ Scene = (function () {
         rotateTo, //camera rotate goal
         colors = [ //bike colors
             [249, 0, 65],
-            [158, 249, 0],
-            [0, 110, 249],
+            [93, 249, 0],
+            [0, 93, 249],
             [249, 93, 0]
         ],
         Bikes = [], //bike models
