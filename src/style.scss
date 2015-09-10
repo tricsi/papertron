@@ -7,8 +7,8 @@ html, body, canvas {
 
 body {
 	font-family: Arial, Helvetica, sans-serif;
-    color: #000;
-	background: #975;
+    color: #1d1d1d;
+	background: #bf995b;
 	font-size: 24px;
 	line-height: 60px;
 	text-align: center;
@@ -22,7 +22,7 @@ h1, h2, ul, li, pre {
 h1, h2 {
     letter-spacing: -2px;
 	font-weight: bold;
-    text-shadow: 0 1px 1px #a86;
+    text-shadow: 0 1px 1px #d8b98a;
 }
 
 h1 {
@@ -35,8 +35,8 @@ h2 {
 
 input, select {
     display: block;
-	color: #000;
-	background: #a86;
+	color: #1d1d1d;
+	background: #d8b98a;
     border: none;
 	margin: 2px 0;
 	font-size: 24px;
@@ -66,20 +66,20 @@ input {
 
 button {
     display: inline-block;
-    color: #000;
-    background: #975;
-	border: 3px solid #000;
+    color: #1d1d1d;
+    background: #bf995b;
+	border: 3px solid #1d1d1d;
 	font-size: 24px;
     font-weight: bold;
     line-height: 40px;
-    text-shadow: 0 1px 1px #a86;
+    text-shadow: 0 1px 1px #d8b98a;
 	cursor: pointer;
     outline: none;
     width: 135px;
 
     &:hover {
-        background: #000;
-        color: #975;
+        background: #1d1d1d;
+        color: #bf995b;
         text-shadow: none;
     }
 }
@@ -87,7 +87,7 @@ button {
 ul {
     width: 140px;
 	height: 170px;
-	background: #a86;
+	background: #d8b98a;
     overflow: auto;
 }
 
@@ -107,7 +107,7 @@ li {
     }
 
     &.sel {
-        background: #864;
+        background: #997c49;
 
         pre {
             display: block;
@@ -200,7 +200,7 @@ li {
 #sfx {
     position: absolute;
     border-radius: 50%;
-    background: #a86;
+    background: #d8b98a;
     top: 5px;
     right: 5px;
     width: 30px;
@@ -216,8 +216,8 @@ li {
 
 #note {
     position: absolute;
-    background: #a86;
-	border: 3px solid #864;
+    background: #d8b98a;
+	border: 3px solid #997c49;
     top: 20px;
     left: 50%;
     width: 300px;
@@ -236,7 +236,7 @@ li {
 .br,
 .bb,
 .bl {
-    background: #975;
+    background: #bf995b;
     position: fixed;
     display: -webkit-flex;
     display: flex;
@@ -252,7 +252,7 @@ li {
 
 .bt {
     bottom: 50%;
-    border-bottom: 3px solid #864;
+    border-bottom: 3px solid #997c49;
     -webkit-transform-origin: center top;
     -webkit-justify-content: center;
     transform-origin: center top;
@@ -266,7 +266,7 @@ li {
 
 .br {
     left: 50%;
-    border-left: 3px solid #864;
+    border-left: 3px solid #997c49;
     -webkit-transform-origin: right center;
     transform-origin: right center;
 
@@ -278,7 +278,7 @@ li {
 
 .bb {
     top: 50%;
-    border-top: 3px solid #864;
+    border-top: 3px solid #997c49;
     -webkit-transform-origin: center bottom;
     -webkit-justify-content: center;
     transform-origin: center bottom;
@@ -293,7 +293,7 @@ li {
 
 .bl {
     right: 50%;
-    border-right: 3px solid #864;
+    border-right: 3px solid #997c49;
     -webkit-transform-origin: left center;
     -webkit-justify-content: flex-end;
     transform-origin: left center;

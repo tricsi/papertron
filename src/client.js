@@ -303,10 +303,10 @@ Scene = (function () {
         rotateFrom, //camera rotate value
         rotateTo, //camera rotate goal
         colors = [ //bike colors
-            [223, 37, 42],
-            [52, 123, 65],
-            [74, 150, 184],
-            [125, 90, 140]
+            [249, 0, 65],
+            [158, 249, 0],
+            [0, 110, 249],
+            [249, 93, 0]
         ],
         Bikes = [], //bike models
         Board; //boar model
@@ -991,7 +991,7 @@ Scene = (function () {
             rotateFrom = 0;
 
             //Board model
-            Board = createModel(createBoard([153, 119, 85], 80, 140));
+            Board = createModel(createBoard([191, 153, 91], 80, 140));
 
             //Bike models
             colors.forEach(function (color) {
