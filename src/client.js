@@ -123,8 +123,8 @@ Game = (function () {
             }
             counter = value;
         }
-        if (!counter && !motorSound) {
-            motorSound = Sfx.play("motor", .3, true);
+        if (!counter && !motorSound && motor) {
+            motorSound = Sfx.play("motor", .1, true);
         }
         match.run();
         Scene.anim();
@@ -142,6 +142,15 @@ Game = (function () {
             spectate = 0;
         }
         Note.show("Spectating: " + match.motors[spectate].nick);
+    }
+
+    /**
+     * Stop engine sound
+     */
+    function stopSound() {
+        if (motorSound) {
+            motorSound.loop = false;
+        }
     }
 
     return {
@@ -244,9 +253,11 @@ Game = (function () {
                     Game.stop();
                     Game.show(match.motors[winner].nick + " wins!");
                     Sfx.play(motor && motor.id === winner ? "win" : "lose");
+                    stopSound();
                 } else if (motor && crash.indexOf(motor.id) >= 0) {
                     spectate = motor.id;
                     motor = null;
+                    stopSound();
                 }
             }
         },
@@ -272,9 +283,6 @@ Game = (function () {
          * @param {string} text
          */
         show: function (text) {
-            if (motorSound) {
-                motorSound.loop = false;
-            }
             txt($("h1", container), text);
             attr(container, "class", "");
             $("#start").focus();
