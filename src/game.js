@@ -199,7 +199,7 @@ global.exports = (function () {
         this.timer = 30; //Snapshot time
         this.rubber = 5; //Rubber time
         this.distance = 80; //Wall distance
-        this.start = new Date().getTime() + 3000; //Start time
+        this.start = new Date().getTime() + 5000; //Start time
         this.motors = []; //Motors
         this.bots = []; //Robots
         this.mode = parseInt(mode) || 0; //Reverse mode
@@ -277,12 +277,27 @@ global.exports = (function () {
 	 * @returns {Motor}
 	 */
     Match.prototype.add = function (nick) {
-        var i = this.motors.length,
-            x = this.pos[i][0],
-            y = this.pos[i][1],
-            v = this.pos[i][2];
-        var motor = new Motor(x, y, v, i, nick);
-        this.motors.push(motor);
+        var motor = null,
+            i = this.motors.length;
+        if (i < this.pos.length) {
+            motor = new Motor(
+                this.pos[i][0],
+                this.pos[i][1],
+                this.pos[i][2],
+                i,
+                nick
+            );
+            this.motors.push(motor);
+        } else {
+            for (i = 0; i < this.motors.length; i++) {
+                if (this.motors[i].bot) {
+                    motor = this.motors[i];
+                    motor.bot = false;
+                    motor.nick = nick;
+                    break;
+                }
+            }
+        }
         return motor;
     };
 

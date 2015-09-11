@@ -41,11 +41,10 @@ input, select {
 	margin: 2px 0;
 	font-size: 24px;
     box-sizing: border-box;
-    width: 140px;
+    width: 100%;
     height: 40px;
     outline: none;
     border-radius: 0;
-    -webkit-appearance: none;
 }
 
 input {
@@ -85,16 +84,17 @@ button {
 }
 
 ul {
-    width: 140px;
+    width: 100%;
 	height: 170px;
 	background: #d8b98a;
     overflow: auto;
 }
 
 li {
+    border-bottom: 1px solid #997c49;
     list-style: none;
     line-height: 20px;
-    font-size: 16px;
+    font-size: 18px;
     padding: 5px;
     cursor: pointer;
     overflow: hidden;
@@ -136,6 +136,10 @@ li {
     -webkit-justify-content: center;
     justify-content: center;
 
+    h1 {
+        margin-bottom: 140px;
+    }
+
     div {
         -webkit-align-self: center;
         align-self: center;
@@ -143,16 +147,19 @@ li {
 }
 
 #chat {
-	line-height: 20px;
+	line-height: 24px;
 	overflow: hidden;
 
 	input {
-		width: 100%;
 		height: 30px;
 		text-align: left;
         background: rgba(0, 0, 0, 0);
         border: 0;
 	}
+
+    span {
+        display: block;
+    }
 
 	div {
 		width: 50%;
@@ -176,7 +183,7 @@ li {
 	position: absolute;
     display: -webkit-flex;
     display: flex;
-	top: 0;
+	top: 30px;
 	right: 0;
     bottom: 0;
     left: 0;
@@ -185,14 +192,14 @@ li {
     -webkit-justify-content: center;
     justify-content: center;
 
-    span {
+    div {
         -webkit-align-self: center;
         align-self: center;
-        transition: opacity .3s;
-        opacity: 0;
+        opacity: .7;
 
-        &.on {
-            opacity: .7;
+        &.off {
+            opacity: .0;
+            transition: opacity .3s;
         }
     }
 }
@@ -264,18 +271,6 @@ li {
     }
 }
 
-.br {
-    left: 50%;
-    border-left: 3px solid #997c49;
-    -webkit-transform-origin: right center;
-    transform-origin: right center;
-
-    div {
-        -webkit-align-self:  center;
-        align-self:  center;
-    }
-}
-
 .bb {
     top: 50%;
     border-top: 3px solid #997c49;
@@ -285,7 +280,6 @@ li {
     justify-content: center;
 
     input {
-        width: 200px;
         margin: 10px 0;
 	    text-align: center;
     }
@@ -300,6 +294,24 @@ li {
     justify-content: flex-end;
 
     div {
+        width: 100%;
+        min-width: 140px;
+        max-width: 240px;
+        -webkit-align-self:  center;
+        align-self:  center;
+    }
+}
+
+.br {
+    left: 50%;
+    border-left: 3px solid #997c49;
+    -webkit-transform-origin: right center;
+    transform-origin: right center;
+
+    div {
+        width: 100%;
+        min-width: 140px;
+        max-width: 240px;
         -webkit-align-self:  center;
         align-self:  center;
     }

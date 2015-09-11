@@ -100,9 +100,11 @@ Game = (function () {
      * @param {number} value
      */
     function count(value) {
-        for (var i = 0; i < numbers.length; i++) {
-            numbers.item(i).className = value === 3 - i ? "on" : "";
-        }
+        txt(numbers, value || "");
+        attr(numbers, "class", "");
+        setTimeout(function () {
+            attr(numbers, "class", "off");
+        }, 700);
     }
 
     /**
@@ -116,11 +118,13 @@ Game = (function () {
             count(value);
             if (value > 0) {
                 Sfx.play("count");
+            } else {
+                Game.hide();
             }
             counter = value;
         }
         if (!counter && !motorSound) {
-            motorSound = Sfx.play("motor", .5, true);
+            motorSound = Sfx.play("motor", .3, true);
         }
         match.run();
         Scene.anim();
@@ -148,9 +152,10 @@ Game = (function () {
         init: function () {
             container = $("#game");
             counter = 0;
-            numbers = $("#count").childNodes;
+            numbers = $("#count").firstChild;
             on($("#start"), "click", function () {
                 emit("start");
+                Game.hide();
             });
             on($("#leave"), "click", function () {
                 emit("leave");
@@ -200,20 +205,20 @@ Game = (function () {
          * @param {Object} params
          */
         start: function (snapshot, id, params) {
-            Game.hide();
             match = new logic.Match(params.mode, params.map);
             match.load(snapshot);
             match.setTime(snapshot.time);
             motor = match.motors[id] || null;
-            spectate = 0;
             if (motor) {
                 Scene.rotate(motor.vec * 90);
             } else {
                 Scene.rotate(0);
-                Note.show("Wait until next round starts!");
             }
-            running = true;
-            run();
+            if (!running) {
+                spectate = 0;
+                running = true;
+                run();
+            }
         },
 
         /**
@@ -239,6 +244,9 @@ Game = (function () {
                     Game.stop();
                     Game.show(match.motors[winner].nick + " wins!");
                     Sfx.play(motor && motor.id === winner ? "win" : "lose");
+                } else if (motor && crash.indexOf(motor.id) >= 0) {
+                    spectate = motor.id;
+                    motor = null;
                 }
             }
         },
@@ -255,7 +263,7 @@ Game = (function () {
             motor.move(time);
             motor.turn(to);
             emit("turn", to, time);
-            Sfx.play("turn");
+            Sfx.play("turn", .5);
             return true;
         },
 
@@ -269,6 +277,7 @@ Game = (function () {
             }
             txt($("h1", container), text);
             attr(container, "class", "");
+            $("#start").focus();
             count(0);
         },
 
@@ -1077,12 +1086,16 @@ Chat = (function () {
          * @param {string[]} list
          */
         room: function (list) {
-            room.innerHTML = "";
-            list.forEach(function (nick) {
-                room.appendChild(em(nick, true));
-                room.appendChild(em("br"));
+            var row;
+            txt(room, "");
+            list.sort(function(a, b) {
+                return a.nick > b.nick;
             });
-            Game.players = list;
+            list.forEach(function (player) {
+                row = em("span");
+                txt(row, player.nick + " ★" + player.wins);
+                room.appendChild(row);
+            });
         },
 
         /**
@@ -1090,24 +1103,18 @@ Chat = (function () {
          * @param {string} message
          */
         add: function (message) {
-            var br = em("br");
-            texts.insertBefore(br, texts.firstChild);
-            texts.insertBefore(em(message, true), br);
+            var row = em("span");
+            txt(row, message);
+            texts.insertBefore(row, texts.firstChild);
             Sfx.play("msg");
         },
 
         /**
-         * Show chat
+         * Clear messages
          */
-        show: function () {
-            attr(container, "class", "");
-        },
-
-        /**
-         * Hide chat
-         */
-        hide: function () {
-            attr(container, "class", "hide");
+        clear: function () {
+            txt(texts, "");
+            text.value = "";
         }
     };
 
@@ -1401,9 +1408,15 @@ function bind() {
     socket.on("join", function (list, snapshot, params) {
         Menu.show("open start");
         Chat.room(list);
+        Chat.clear();
         if (snapshot) {
             Game.start(snapshot, false, params);
-            Game.hide();
+            if (snapshot.time < 0) {
+                Game.show(params.name);
+            } else {
+                Note.show("Wait until next round starts!");
+                Game.hide();
+            }
         } else {
             Scene.rotate(0);
             Scene.render();
@@ -1412,17 +1425,12 @@ function bind() {
     });
 
     //Player joined the game
-    socket.on("joined", function (nick, list) {
-        Chat.add(nick + " joined");
+    socket.on("room", function (nick, list, action) {
         Chat.room(list);
-        Sfx.play("joined");
-    });
-
-    //Player left the game
-    socket.on("left", function (nick, list) {
-        Chat.add(nick + " left");
-        Chat.room(list);
-        Sfx.play("left");
+        if (action) {
+            Chat.add(nick + " " + action);
+            Sfx.play(action);
+        }
     });
 
     //Chat message
@@ -1434,7 +1442,12 @@ function bind() {
     socket.on("start", Game.start);
 
     //Game snapshot
-    socket.on("shot", Game.load);
+    socket.on("shot", function (data, crash, winner, list) {
+        Game.load(data, crash, winner);
+        if (list) {
+            Chat.room(list);
+        }
+    });
 
 }
 
