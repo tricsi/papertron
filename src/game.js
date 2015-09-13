@@ -196,7 +196,7 @@ global.exports = (function () {
 	 * @constructor
 	 */
     function Match(mode, map) {
-        this.timer = 30; //Snapshot time
+        this.timer = 40; //Snapshot time
         this.rubber = 5; //Rubber time
         this.distance = 80; //Wall distance
         this.start = new Date().getTime() + 5000; //Start time
