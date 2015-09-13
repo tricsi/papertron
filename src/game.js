@@ -249,9 +249,11 @@ global.exports = (function () {
 		for (i = 0; i < snapshot.data.length; i++) {
 			data = snapshot.data[i];
 			item = this.motors[i] || this.add(data.nick);
-			for (param in data) {
-				item[param] = data[param];
-			}
+            if (item.data[0][3] <= snapshot.time) {
+                for (param in data) {
+                    item[param] = data[param];
+                }
+            }
 		}
 	};
 
