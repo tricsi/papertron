@@ -1,7 +1,7 @@
 var logic = require("./game.js"); //game.logic
 
 var io = require("socket.io")(), //server
-    lag = 50, //lag compensation
+    lag = 0, //lag compensation
     games = [], //game list
     names = [], //nicknames
     store = {}; //game data
