@@ -1465,7 +1465,10 @@ function bind() {
 window.onload = function () {
     logic = exports;
     if (typeof io !== "undefined") {
-        socket = io(location.href);
+        socket = io(location.href, { 
+            upgrade: false,
+            transports: ['websocket']
+        });
         bind();
     }
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
